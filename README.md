@@ -183,3 +183,14 @@ And enter your password twice.
 ```
 python ~/firstdraft/projbkto/manage.py createsuperuser;
 ```
+
+####Set up WSGI
+```
+sudo a2enmod wsgi;
+```
+
+####Copy Over Apache2 Config File to Site-Enabled Directory
+```
+sudo cp /home/usrfd/firstdraft/fd.conf /etc/apache2/sites-available/fd.conf;
+```
+
