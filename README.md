@@ -153,3 +153,16 @@ cd /home/usrfd/firstdraft;
 virtualenv venv;
 source venv/bin/activate;
 ```
+
+
+####Install Django
+```
+pip install -e /home/usrfd/django-trunk
+```
+
+####Install Python Packages
+The -r lets you install python packages to usrfd's directory and not the system directory.
+We add --user at the end to force everything, especially python-social-auth, to install everything under usrfd and not the system superuser.
+```
+pip install -r /home/usrfd/firstdraft/requirements.txt --ignore-installed;
+```
