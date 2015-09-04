@@ -82,3 +82,13 @@ The -m at the end tells it to create a home directory for the usrfd user.
 sudo useradd usrfd -m && sudo passwd usrfd;
 ```
 
+####Set Up Database
+Create a usrfd user in the database
+Create a database
+Make usrfd owner of that database
+```
+sudo -u postgres psql -c "CREATE USER usrfd;";
+sudo -u postgres psql -c "CREATE DATABASE dbfd;"
+sudo -u postgres psql -c "ALTER DATABASE dbfd OWNER TO usrfd;"
+sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;" dbfd
+```
