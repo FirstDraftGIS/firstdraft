@@ -175,3 +175,11 @@ migrate actually runs those instructions
 python ~/firstdraft/projfd/manage.py makemigrations;
 python ~/firstdraft/projfd/manage.py migrate;
 ```
+
+####Create Admin User
+The following command will prompt you for a username and email address.
+Enter ```admin``` as username and enter your email address.
+And enter your password twice.
+```
+python ~/firstdraft/projbkto/manage.py createsuperuser;
+```
