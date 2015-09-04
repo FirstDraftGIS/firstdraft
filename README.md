@@ -166,3 +166,12 @@ We add --user at the end to force everything, especially python-social-auth, to 
 ```
 pip install -r /home/usrfd/firstdraft/requirements.txt --ignore-installed;
 ```
+
+
+####Create Tables in Database
+makemigrations creates the instructions for the database
+migrate actually runs those instructions
+```
+python ~/firstdraft/projfd/manage.py makemigrations;
+python ~/firstdraft/projfd/manage.py migrate;
+```
