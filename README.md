@@ -142,3 +142,14 @@ git clone git://github.com/django/django.git /home/usrfd/django-trunk
 ```
 git clone http://github.com/danieljdufour/firstdraft.git /home/usrfd/firstdraft;
 ```
+
+####Change into Repo Directory
+```
+cd /home/usrfd/firstdraft;
+```
+
+####Create Virtual Environment and Activate It
+```
+virtualenv venv;
+source venv/bin/activate;
+```
