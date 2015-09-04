@@ -92,3 +92,13 @@ sudo -u postgres psql -c "CREATE DATABASE dbfd;"
 sudo -u postgres psql -c "ALTER DATABASE dbfd OWNER TO usrfd;"
 sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;" dbfd
 ```
+
+####Install SFCGAL
+This is used to compute where to place the label and other crazy cool stuff
+```
+cd ~\
+curl --location --remote-name https://github.com/Oslandia/SFCGAL/archive/v1.0.tar.gz
+tar xvzf v1.0.tar.gz
+cd ~/SFCGAL-1.0/
+cmake . && make && sudo make install
+```
