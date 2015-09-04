@@ -102,3 +102,24 @@ tar xvzf v1.0.tar.gz
 cd ~/SFCGAL-1.0/
 cmake . && make && sudo make install
 ```
+
+
+####Install Postgis & SFCGAL
+We have to compile and install postgis from source because we have to manually configure it for SFCGAL.
+
+```
+#allow postgis to files in c
+sudo -u postgres psql -c "UPDATE pg_language SET lanpltrusted = true WHERE lanname LIKE 'c';"
+sudo service postgresql restart
+
+
+download it
+sudo ./configure --with-sfcgal=/home/usrfd/SFCGAL-1.0/sfcgal-config
+make
+sudo make install
+sudo mkdir /home/usrfd/sfcgal
+sudo cp /usr/share/postgresql/9.3/contrib/postgis-2.1/sfcgal.sql /home/usrfd/sfcgal/sfcgal.sql
+sudo chown -R usrfd:usrfd /home/usrfd/sfcgal/
+su usrfd
+psql dbfd -f /home/usrfd/sfcgal/sfcgal.sql
+```
