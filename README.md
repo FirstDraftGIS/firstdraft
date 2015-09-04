@@ -123,3 +123,22 @@ sudo chown -R usrfd:usrfd /home/usrfd/sfcgal/
 su usrfd
 psql dbfd -f /home/usrfd/sfcgal/sfcgal.sql
 ```
+
+
+####Change to usrfd user and it's directory
+It will ask for the password, which you gave after running passwd.
+```
+su usrfd -p;
+cd /home/usrfd;
+```
+
+####Download Most Recent Version of Django
+This version will include the geojson serializer we need
+```
+git clone git://github.com/django/django.git /home/usrfd/django-trunk
+```
+
+####Download this repository of code
+```
+git clone http://github.com/danieljdufour/firstdraft.git /home/usrfd/firstdraft;
+```
