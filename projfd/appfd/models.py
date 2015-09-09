@@ -101,3 +101,4 @@ class Translator(Model):
 
 #should also probably add in website at some point, so can associate websites with certain topics, too
 
+#also add in feature classes of geonames, so don't mean lake when mean city!
