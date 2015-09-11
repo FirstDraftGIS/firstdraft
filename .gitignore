@@ -61,3 +61,6 @@ target/
 
 #old
 *old*
+
+#swap
+*.swp*

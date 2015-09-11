@@ -289,6 +289,7 @@ def team(request):
 
 # this method takes in data as text and returns a geojson of the map
 def upload(request):
+    print "starting upload"
     try:
         log("starting upload")
         if request.method == 'POST':

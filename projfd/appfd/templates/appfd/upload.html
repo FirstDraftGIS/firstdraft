@@ -1,9 +1,52 @@
 <div ng-controller="UploadController">
-<div class="form-group">
-    <label for="story">Story or Article Text</label>
+<h3><b>How would you like start?</b></h3>
+
+<div class="radio">
+  <label>
+    <input type="radio" name="start_options" value="paste" ng-model="start">
+    Paste something you copied
+  </label>
+</div>
+<div class="form-group" ng-show="start === 'paste'">
     <textarea class="form-control" rows="5" id="story" ng-model="story"></textarea>
 </div>
+
+<div class="radio">
+  <label>
+    <input type="radio" name="start_options" value="upload" ng-model="start">
+    Upload a file
+  </label>
+</div>
+<div class="form-group" ng-show="start === 'upload'">
+  <input type="file" id="uploadFile" ng-model="uploadFile">
+</div>
+
+
+<div class="radio">
+  <label>
+    <input type="radio" name="start_options" value="url_to_webpage" ng-model="start">
+    Link to a WebPage
+  </label>
+</div>
+<div class="form-group" ng-show="start === 'url_to_webpage'">
+    <input type="email" class="form-control" id="url_to_webpage" ng-model="url_to_webpage">
+</div>
+
+
+<div class="radio">
+  <label>
+    <input type="radio" name="start_options" value="url_to_file" ng-model="start">
+    Link to a file on a website
+  </label>
+</div>
+<div class="form-group" ng-show="start === 'url_to_file'">
+    <input type="email" class="form-control" id="url_to_file" ng-model="url_to_file">
+</div>
+
+
+
+
 <div class="form-group">
-    <button type="button" class="btn btn-primary" ng-click="upload()">Map your Story!</button>
+    <button type="button" class="btn btn-primary" ng-click="upload()">Next</button>
 </div>
 </div>
