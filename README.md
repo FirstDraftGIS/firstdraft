@@ -166,3 +166,40 @@ We add --user at the end to force everything, especially python-social-auth, to 
 ```
 pip install -r /home/usrfd/firstdraft/requirements.txt --ignore-installed;
 ```
+
+
+####Create Tables in Database
+makemigrations creates the instructions for the database
+migrate actually runs those instructions
+```
+python ~/firstdraft/projfd/manage.py makemigrations;
+python ~/firstdraft/projfd/manage.py migrate;
+```
+
+####Create Admin User
+The following command will prompt you for a username and email address.
+Enter ```admin``` as username and enter your email address.
+And enter your password twice.
+```
+python ~/firstdraft/projbkto/manage.py createsuperuser;
+```
+
+####Set up WSGI
+```
+sudo a2enmod wsgi;
+```
+
+####Copy Over Apache2 Config File to Site-Enabled Directory
+```
+sudo cp /home/usrfd/firstdraft/fd.conf /etc/apache2/sites-available/fd.conf;
+```
+
+####Create Symbolic Link
+```
+sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.conf;
+```
+
+####Restart Apache
+```
+sudo service apache2 restart;
+```
