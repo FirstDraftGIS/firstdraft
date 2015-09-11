@@ -1,0 +1,61 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+{% block html %}
+<html ng-app="app">
+{% endblock %}
+{% block head %}
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>First Draft</title>
+<link href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+<script src="{% static 'node_modules/jquery/dist/jquery.min.js' %}"></script>
+<script src="{% static 'node_modules/angular/angular.min.js' %}"></script>
+<script src="{% static 'node_modules/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'node_modules/angular-ui-bootstrap/ui-bootstrap.min.js' %}"></script>
+<script src="{% static 'js/app.js' %}"></script>
+<script src="{% static 'js/UploadController.js' %}"></script>
+<link rel = "icon" type = "image/ico" href="logo.ico"/>
+<link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
+
+<!-- Google Analytics -->
+<script>
+</script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="{% static 'img/logo.png' %}">
+<link rel="apple-touch-icon" sizes="60x60" href="{% static 'img/logo.png' %}">
+<link rel="apple-touch-icon" sizes="72x72" href="{% static 'img/logo.png' %}">
+<link rel="apple-touch-icon" sizes="76x76" href="{% static 'img/logo.png' %}">
+<link rel="apple-touch-icon" sizes="114x114" href="{% static 'img/logo.png' %}">
+<link rel="apple-touch-icon" sizes="120x120" href="{% static 'img/logo.png' %}">
+<link rel="apple-touch-icon" sizes="144x144" href="{% static 'img/logo.png' %}">
+<link rel="apple-touch-icon" sizes="152x152" href="{% static 'img/logo.png' %}">
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/logo.png' %}">
+<link rel="icon" type="image/png" href="{% static 'img/logo.png' %}" sizes="32x32">
+<link rel="icon" type="image/png" href="{% static 'img/logo.png' %}" sizes="192x192">
+<link rel="icon" type="image/png" href="{% static 'img/logo.png' %}" sizes="96x96">
+<link rel="icon" type="image/png" href="{% static 'img/logo.png' %}" sizes="16x16">
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="msapplication-TileImage" content="{% static 'img/logo.png' %}">
+<meta name="theme-color" content="#ffffff">
+
+
+{% block head_extra %}
+{% endblock %}
+</head>
+{% endblock %}
+<body>
+{% include "appfd/header.html" %}
+<noscript>
+<input type="radio" id="base-noscript-warning">
+<div>
+Warning! JavaScript is not enabled.
+</div>
+</noscript>
+{% block content %}
+{% endblock %}
+{% include "appfd/footer.html" %}
+</body>
+</html>

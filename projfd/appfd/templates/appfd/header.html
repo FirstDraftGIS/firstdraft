@@ -1,0 +1,55 @@
+{% load staticfiles %}
+<nav class="navbar {% if user.is_authenticated %} navbar-inverse {% else %} navbar-default {% endif %}" role="navigation">
+    <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle Navigation</span>
+           <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="{% url 'index' %}">
+            <span class="hideOnSmallScreen">First Draft:</span>
+            <span class="showOnSmallScreen">FD:</span>
+            Alpha Version
+        </a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+            {% if user.is_authenticated %}<li><a href="">Account & Email</a></li>{% endif %}
+             <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">About <span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                  <li><a href="{% url 'contact' %}">Contact</a></li>
+                  <li><a href="{% url 'mission' %}">Mission</a></li>
+                  <li><a href="{% url 'team' %}">Team</a></li>
+               </ul>
+            </li>
+ 
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Legal <span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href="{% url 'disclaimers' %}">Disclaimers</a></li>
+               </ul>
+            </li>
+            {% comment %}
+            {% if user.is_authenticated %}
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+             <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Join <span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href="{% url 'register' %}">Register</a></li>
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                </ul>
+            </li>
+            {% endif %}
+            {% endcomment %}
+        </ul>
+    </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>

@@ -1,0 +1,25 @@
+{% extends "appfd/base.html" %}
+{% load staticfiles %}
+{% block content %}
+<div class="middle">
+{% include "appfd/errors.html" %}
+<h1>Register here!</h1><br/>
+<form id="user_form" method="post" action="" enctype="multipart/form-data" role="form">
+{% csrf_token %}
+<div id="form-group-email" class="form-group">
+<label for="id_email">Email</label>
+<input id="id_email" type="email" name="email" maxlength="30" class="form-control" placeholder="Enter your email address here" required="required">
+</div>
+<div id="form-group-password" class="form-group">
+<label for="id_password">Password</label>
+<input id="id_password" type="password" name="password" class="form-control" placeholder="Enter your new password here" required="required">
+</div>
+<div id="form-group-password2" class="form-group">
+<label for="id_password2">Password Confirmation</label>
+<input id="id_password2" type="password" name="password2" class="form-control" placeholder="Enter your new password a second time to make sure you type it in right" required="required">
+</div>
+<!-- Provide a button to click to submit the form. -->
+<input type="submit" name="submit" value="Register" />
+</form>
+</div> <!-- end .middle -->
+{% endblock%}

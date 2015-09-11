@@ -31,6 +31,7 @@ urlpatterns += [
     #url(r'stats', views.stats, name='stats'),
     url(r'team$', views.team, name='team'),
     #url(r'test/', views.test, name='test'),
+    url(r'^upload$', views.upload, name='upload'),
     url('', include('social.apps.django_app.urls', namespace='social')),
     url('', include('django.contrib.auth.urls', namespace='auth'))
 ]

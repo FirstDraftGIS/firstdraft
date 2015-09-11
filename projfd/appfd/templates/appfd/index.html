@@ -1,0 +1,24 @@
+{% extends "appfd/base.html" %}
+{% load staticfiles %}
+{% block content %}
+<div class="middle">
+{% include "appfd/alerts.html" %}
+
+{% include "appfd/magic.html" %}
+
+<!--
+<div class="jumbotron">
+First Draft is a website that automatically creates first drafts of maps based on your data, tables, and stories.
+</div>
+
+{% if not user.is_authenticated %}
+<div class="login-buttons">
+<a href={% url 'register' %}><button class="btn btn-default btn-sm">Sign up with e-mail</button></a>
+<a href="{% url 'social:begin' 'facebook' %}"><button class="btn btn-info btn-sm">Login with Facebook</button></a>
+<a href="{% url 'social:begin' 'google-oauth2' %}"><button class="btn btn-success btn-sm">Login with Google</button></a>
+<a href="{% url 'social:begin' 'twitter' %}"><button class="btn btn-primary btn-sm">Login with Twitter</button></a>
+</div>
+{% endif %}
+-->
+</div><!-- end .middle -->
+{% endblock %}

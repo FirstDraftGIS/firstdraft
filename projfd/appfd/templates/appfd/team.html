@@ -1,0 +1,26 @@
+{% extends "appfd/base.html" %}
+{% block content %}
+<div class="middle">
+<h1>Team Members</h1>
+<h5>We just started recently and we are adding new team members every day.  Send an email to the project founder at <a href="daniel.j.dufour@gmail.com">daniel.j.dufour@gmail.com</a> if you would like to join the team!
+</br>
+</br>
+</br>
+{% for member in team_members %}
+<div class="card team">
+<img src="{{member.pic.url}}"></img>
+<div class="right">
+    <div class="name">{{member.name}}</div>
+    <h5>{{member.position}}</h5>
+    <div class="line"></div>
+    <div class="contact">
+        {% if member.email %}<a href="{{member.email}}">Email</a>{% endif %}
+        {% if member.twitter %}<a href="http://twitter.com/{{member.twitter}}">@{{member.twitter}}</a>{% endif %}
+    </div>
+</div>
+</div>
+{% endfor %}
+
+</div><!-- end .middle -->
+
+{% endblock %} 

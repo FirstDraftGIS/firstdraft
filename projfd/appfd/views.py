@@ -19,6 +19,17 @@ import datetime, geojson, json, requests, sys
 from geojson import Feature, FeatureCollection, MultiPolygon, Point
 from json import dumps, loads
 from urllib import quote, quote_plus
+import sys
+
+def log(string):
+    print >> sys.stderr, 'message ...'
+    print string
+    with open("/home/usrfd/logfd.txt", "wb") as f:
+        f.write(string)
+
+
+    with open("/tmp/logfd.txt", "a") as f:
+        f.write(string)
 
 # Create your views here.
 def must_be_active(user):
@@ -141,10 +152,13 @@ def contact(request):
 
 # this method takes in data as text and returns a geojson of the map
 def crunch(request):
-    print "starting crunch"
-    if request.method == 'POST':
-        print "request.method is post"
-    print "finish crunch"
+    try:
+        print "starting crunch"
+        if request.method == 'POST':
+            log("request.method is post")
+        print "finish crunch"
+    except Exception as e:
+        log(str(e))
 
 
 def disclaimers(request):
@@ -272,3 +286,14 @@ def register(request):
 def team(request):
     team_members = TeamMember.objects.all()
     return render(request, "appfd/team.html", {'team_members': team_members})
+
+# this method takes in data as text and returns a geojson of the map
+def upload(request):
+    try:
+        log("starting upload")
+        if request.method == 'POST':
+            log("request.method is post")
+    except Exception as e:
+        log(str(e))
+
+
