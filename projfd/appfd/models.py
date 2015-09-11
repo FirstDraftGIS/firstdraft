@@ -38,9 +38,20 @@ class Alias(Model):
     class Meta:
         ordering = ['alias']
 
+class AliasPlace(Model):
+    alias = ForeignKey('Alias')
+    place = ForeignKey('Place')
+
+    class Meta:
+        unique_together = (("alias","place"))
+
+
 class Email(Model):
     address = EmailField(null=True, blank=True)
     entered = DateTimeField(auto_now_add=True)
+
+class Order(Model):
+    token = CharField(max_length=200, null=True, blank=True)
 
 # should add in org and person model at some point, so can cross locate story based on people or orgs if no location names given
 
@@ -69,13 +80,6 @@ class Place(Model):
             return self.id
     class Meta:
         ordering = ['name']
-
-class AliasPlace(Model):
-    alias = ForeignKey('Alias')
-    place = ForeignKey('Place')
-
-    class Meta:
-        unique_together = (("alias","place"))
 
 class ParentChild(Model):
     parent = ForeignKey('Place', related_name="parentplace")
