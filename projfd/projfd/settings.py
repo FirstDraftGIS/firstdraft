@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import imp, os
 from hidden import *
+from subprocess import check_output
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SETTINGS_DIR = os.path.dirname(__file__)
@@ -66,7 +67,9 @@ INSTALLED_APPS = (
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+
+# disable csrf because prevents api calls to all views
+#    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -129,7 +132,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_ROOT = "/home/usrfd/firstdraft/projfd/static/"
-STATIC_URL = '/static/'
+
+#  if computer name starts with ip, indicating on aws, then use static directory hosted by apache
+if check_output(['uname','-n']).startswith("ip"):
+    STATIC_URL = 'http://firstdraftgis.com/static/'
+else:
+    STATIC_URL = '/static/'
+#STATIC_URL = '/static/'
 
 DEFAULT_CHARSET = 'utf-8'
 FILE_CHARSET = 'utf-8'

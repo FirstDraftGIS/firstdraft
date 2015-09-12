@@ -7,7 +7,8 @@ app.controller('UploadController', ['$scope', '$http', '$window', '$compile', '$
         $http
         .post('/upload', {'story': $scope.story}).
         then(function(response) {
-
+            console.log("Response is", response);
+            $scope.$parent.job = $scope.job = response.data;
         });
     };
 }]);

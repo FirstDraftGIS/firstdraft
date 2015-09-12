@@ -46,12 +46,15 @@
 <meta name="msapplication-TileImage" content="{% static 'img/logo.png' %}">
 <meta name="theme-color" content="#ffffff">
 
-
+<script>
+    csrf_token = /value='([^']*)/.exec("{% csrf_token %}")[1];
+</script>
 {% block head_extra %}
 {% endblock %}
 </head>
 {% endblock %}
 <body>
+{% csrf_token %}
 {% include "appfd/header.html" %}
 <noscript>
 <input type="radio" id="base-noscript-warning">

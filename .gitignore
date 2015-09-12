@@ -64,3 +64,4 @@ target/
 
 #swap
 *.swp*
+*.swo*

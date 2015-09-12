@@ -1,5 +1,7 @@
 from appfd import forms, models
 from appfd.models import *
+from appfd.scripts import resolve
+from bnlp import getLocationsFromEnglishText
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -14,22 +16,35 @@ from django.shortcuts import render, get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.template.defaultfilters import slugify
 from django.utils.crypto import get_random_string
+from django.views.decorators.csrf import csrf_protect
+from multiprocessing import Process
 from operator import itemgetter
+from os import mkdir
 import datetime, geojson, json, requests, sys
 from geojson import Feature, FeatureCollection, MultiPolygon, Point
 from json import dumps, loads
+from subprocess import check_output
 from urllib import quote, quote_plus
-import sys
+#import sys
 
-def log(string):
-    print >> sys.stderr, 'message ...'
-    print string
-    with open("/home/usrfd/logfd.txt", "wb") as f:
-        f.write(string)
+
+"""
+#def log(string):
+#    print >> sys.stderr, 'message ...'
+#    print string
+#    with open("/home/usrfd/logfd.txt", "wb") as f:
+#        f.write(string)
 
 
     with open("/tmp/logfd.txt", "a") as f:
         f.write(string)
+"""
+
+##basically if aws
+#if check_output(['uname','-n']).startswith("ip"):
+#    #f = open("/tmp/stdout","w")
+#    sys.stdout = sys.stderr
+
 
 # Create your views here.
 def must_be_active(user):
@@ -66,7 +81,7 @@ def activate(request, key):
                 activation.save()
     return HttpResponseRedirect('/')
 
-
+@csrf_protect
 @user_passes_test(must_be_active)
 def change_email(request):
     user = request.user
@@ -119,7 +134,7 @@ def change_email(request):
         print "current_email is", current_email
         return render(request, 'appfd/change_email.html', {"current_email": current_email})
 
-
+@csrf_protect
 @user_passes_test(must_be_active)
 def change_password(request):
     if request.method == 'POST':
@@ -191,6 +206,7 @@ def index(request):
     print "about to finish index"
     return render(request, "appfd/index.html", {'alerts': alerts})
 
+@csrf_protect
 def password_recovery(request):
     user = request.user
     if user.is_authenticated():
@@ -236,7 +252,7 @@ def password_recovery(request):
 def mission(request):
     return render(request, "appfd/mission.html", {})
 
-
+@csrf_protect
 def register(request):
     host = request.get_host()
     if request.method == 'POST':
@@ -287,14 +303,39 @@ def team(request):
     team_members = TeamMember.objects.all()
     return render(request, "appfd/team.html", {'team_members': team_members})
 
+
+def create(job):
+    print "starting create with", job
+    places = []
+    for location in getLocationsFromEnglishText(job['data']):
+        if len(location) > 1:
+            places.append(resolve.resolve(location))
+
+    places = [place for place in list(set(places)) if place]
+
+    print "places are", places
+    serialized = serialize('geojson', places, geometry_field='point', fields=('geonameid', 'name','point',))
+
+    # make directory to store files
+    directory = "/home/usrfd/maps/" + job['key'] + "/"
+    mkdir(directory)
+    with open(directory + "job.geojson", "wb") as f:
+        f.write(serialized)
+
+def get_map(request):
+    print "starting get_map"
+
 # this method takes in data as text and returns a geojson of the map
 def upload(request):
     print "starting upload"
-    try:
-        log("starting upload")
-        if request.method == 'POST':
-            log("request.method is post")
-    except Exception as e:
-        log(str(e))
-
+    if request.method == 'POST':
+        print "request.method is post"
+        job = {
+              'data': loads(request.body)['story'],
+              'key': get_random_string(25)
+        }
+        Process(target=create, args=(job,)).start()
+        return HttpResponse(job['key'])
+    else:
+        return HttpResponse("You have to post!")
 
