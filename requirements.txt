@@ -12,6 +12,7 @@ geojson
 markdown
 mod_wsgi
 nltk
+numpy
 pillow
 psycopg2
 python-dateutil
