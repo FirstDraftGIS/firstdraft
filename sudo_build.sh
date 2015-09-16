@@ -26,12 +26,7 @@ sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdra
 
 sudo wget http://download.geonames.org/export/dump/allCountries.zip -O /tmp/allCountries.zip
 cd /tmp && sudo unzip allCountries.zip
-sudo -u postgres psql -c "CREATE EXTENSION file_fdw;" dbfd
-sudo -u postgres psql -c "CREATE SERVER geoname_server FOREIGN DATA WRAPPER file_fdw" dbfd
 sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;
-
-# copy data from the csv to the database via the foreign table
-sudo -u postgres psql -c "INSERT INTO appfd_place (geonameid, name, point) SELECT geonameid, name, ST_SetSRID(ST_POINT(longitude, latitude), 4326) FROM appfd_geoname;" dbfd &
 
 
 # add hidden.py
