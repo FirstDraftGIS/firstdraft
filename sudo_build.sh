@@ -57,3 +57,6 @@ echo "alias m='sudo -u usrfd bash -c\"m\"'" >> ~/.bashrc
 sudo -u usrfd bash -c "echo \"alias a='cd /home/usrfd && source venv/bin/activate && cd /home/usrfd/firstdraft/projfd'\" && . /home/usrfd/.bashrc"
 sudo -u usrfd bash -c "echo \"alias m='cd /home/usrfd && source venv/bin/activate && cd /home/usrfd/firstdraft/projfd && python manage.py makemigrations && python manage.py migrate'\" >> /home/usrfd/.bashrc && . /home/usrfd/.bashrc"
 sudo -u usrfd bash -c "echo \"alias s='cd /home/usrfd && source venv/bin/activate && cd /home/usrfd/firstdraft/projfd && python manage.py shell'\" && . /home/usrfd/.bashrc"
+
+# create maps directory that will store maps (e.g., geojsons, shapefiles, CSV's)
+sudo -u usrfd bash -c "mkdir /home/usrfd/maps";
