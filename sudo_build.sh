@@ -28,7 +28,7 @@ sudo wget http://download.geonames.org/export/dump/allCountries.zip -O /tmp/allC
 cd /tmp && sudo unzip allCountries.zip
 sudo -u postgres psql -c "CREATE EXTENSION file_fdw;" dbfd
 sudo -u postgres psql -c "CREATE SERVER geoname_server FOREIGN DATA WRAPPER file_fdw" dbfd
-
+sudo -u usrfd bash -c "psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;"
 
 
 # add hidden.py
