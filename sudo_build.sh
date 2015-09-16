@@ -26,6 +26,8 @@ sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdra
 
 sudo wget http://download.geonames.org/export/dump/allCountries.zip -O /tmp/allCountries.zip
 cd /tmp && sudo unzip allCountries.zip
+
+# takes about 20 min an an AWS Medium EC2 Ubuntu 15.04
 sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;
 
 
