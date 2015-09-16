@@ -1,7 +1,8 @@
 #update packages
 sudo apt-get update;
 sudo apt-get -y dist-upgrade;
-sudo apt-get install -y apache2 apache2-dev apache2-mpm-prefork apt-file build-essential cmake curl default-jdk default-jre fabric git libapache2-mod-wsgi libboost-all-dev libcgal-dev libgdal1-dev libgeos-dev libgmp3-dev libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg libproj-dev libpq-dev maven pgadmin3 postgresql postgresql-contrib postgresql-9.4-postgis-2.1 postgresql-server-dev-all python python-dev python-pip python-qgis python-virtualenv qgis vim xvfb
+sudo apt-get install -y apache2 apache2-dev apache2-mpm-prefork apt-file build-essential cmake curl default-jdk default-jre fabric git libapache2-mod-wsgi libboost-all-dev libcgal-dev libgdal1-dev libgeos-dev libgmp3-dev libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg libproj-dev libpq-dev maven nodejs npm pgadmin3 postgresql postgresql-contrib postgresql-9.4-postgis-2.1 postgresql-server-dev-all python python-dev python-pip python-qgis python-virtualenv qgis vim xvfb
+sudo npm install npm -g;
 
 # create user
 sudo useradd usrfd -m && sudo passwd usrfd;
@@ -34,7 +35,8 @@ sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;
 # add hidden.py
 
 # add md5 auth for usrfd to /etc/postgresql/9.4/main/pg_hba.conf
-
+sudo service postgresql restart
+sudo -u postgres psql -c "ALTER ROLE usrfd WITH PASSWORD 'passwordhere'"
 
 # enable wsgi mod in 
 sudo a2enmod wsgi;
