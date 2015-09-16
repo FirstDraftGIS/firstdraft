@@ -50,6 +50,27 @@ class Email(Model):
     address = EmailField(null=True, blank=True)
     entered = DateTimeField(auto_now_add=True)
 
+class GeoName(Model):
+    geonameid = IntegerField(primary_key=True)
+    name = CharField(max_length=200, null=True, blank=True)
+    asciiname = CharField(max_length=200, null=True, blank=True)
+    alternatenames = CharField(max_length=10000, null=True, blank=True)
+    latitude = DecimalField(decimal_places=10, max_digits=50)
+    longitude = DecimalField(decimal_places=10, max_digits=50)
+    feature_class = CharField(max_length=1)
+    feature_code = CharField(max_length=10)
+    country_code = CharField(max_length=2)
+    cc2 = CharField(max_length=200)
+    admin1_code = CharField(max_length=20)
+    admin2_code = CharField(max_length=80)
+    admin3_code = CharField(max_length=20)
+    admin4_code = CharField(max_length=20)
+    population = BigIntegerField()
+    elevation = CharField(max_length=200)
+    dem = BigIntegerField()
+    timezone = CharField(max_length=40)
+    modification_date = DateField()
+
 class Order(Model):
     token = CharField(max_length=200, null=True, blank=True)
 

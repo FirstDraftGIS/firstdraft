@@ -20,6 +20,7 @@ from django.views.decorators.csrf import csrf_protect
 from multiprocessing import Process
 from operator import itemgetter
 from os import mkdir
+from os.path import isfile
 import datetime, geojson, json, requests, sys
 from geojson import Feature, FeatureCollection, MultiPolygon, Point
 from json import dumps, loads
@@ -322,8 +323,21 @@ def create(job):
     with open(directory + "job.geojson", "wb") as f:
         f.write(serialized)
 
-def get_map(request):
-    print "starting get_map"
+def does_map_exist(request):
+    print "starting does_map_exist"
+    print "request.body is", request.body
+
+def get_map(request, job, extension):
+    print "starting get_map with", job, extension
+    filepath = "/home/usrfd/maps/" + job + "/" + "job." + extension
+    if isfile(filepath):
+        with open(filepath) as f:
+            data = f.read()
+    else:
+        data = ""
+    return HttpResponse(data, content_type='application/json') 
+
+
 
 # this method takes in data as text and returns a geojson of the map
 def upload(request):

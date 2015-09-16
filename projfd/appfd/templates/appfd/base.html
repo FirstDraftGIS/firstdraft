@@ -46,9 +46,8 @@
 <meta name="msapplication-TileImage" content="{% static 'img/logo.png' %}">
 <meta name="theme-color" content="#ffffff">
 
-<script>
-    csrf_token = /value='([^']*)/.exec("{% csrf_token %}")[1];
-</script>
+{% if csrf_token and csrf_token != '' %}<script>csrf_token = /value='([^']*)/.exec("{% csrf_token %}")[1];</script>{% endif %}
+
 {% block head_extra %}
 {% endblock %}
 </head>

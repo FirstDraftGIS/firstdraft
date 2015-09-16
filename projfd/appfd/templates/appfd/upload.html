@@ -29,7 +29,7 @@
   </label>
 </div>
 <div class="form-group" ng-show="start === 'url_to_webpage'">
-    <input type="email" class="form-control" id="url_to_webpage" ng-model="url_to_webpage">
+    <input type="text" class="form-control" id="url_to_webpage" ng-model="url_to_webpage" ng-enter="upload()">
 </div>
 
 
@@ -40,7 +40,7 @@
   </label>
 </div>
 <div class="form-group" ng-show="start === 'url_to_file'">
-    <input type="email" class="form-control" id="url_to_file" ng-model="url_to_file">
+    <input type="text" class="form-control" id="url_to_file" ng-model="url_to_file" ng-enter="upload()">
 </div>
 
 

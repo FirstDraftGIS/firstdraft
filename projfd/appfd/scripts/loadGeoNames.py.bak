@@ -9,9 +9,7 @@ def run():
     # most have user create fdw extension with
     # CREATE EXTENSION file_fdw;
 
-    # deletes all rows from place table`
-    #TRUNCATE appfd_place CASCADE;
-#    Place.objects.all().delete()
+    Place.objects.all().delete()
     cursor = connection.cursor()
     c.execute("""
     COPY appfd_geoname
@@ -46,16 +44,6 @@ def run():
         OPTIONS ( filename '/home/usrfd/data/geonames/allCountries.txt', format 'text' );
 
     INSERT INTO appfd_place (geonameid, name, point) SELECT geonameid, name, ST_SetSRID(ST_POINT(longitude, latitude), 4326) FROM appfd_geoname LIMIT 10;
-
-
-     this command runs it in the background
-sudo -u postgres psql -c "INSERT INTO appfd_place (geonameid, name, point) SELECT geonameid, name, ST_SetSRID(ST_POINT(longitude, latitude), 4326) FROM appfd_geoname;" dbfd &
-
-sudo -u postgres psql -c "CREATE INDEX name_idx ON appfd_place (name);" dbfd &
-
-CREATE INDEX name_idx ON appfd_place USING gin(to_tsvector(name));
-
-
 """
 #""")
 #    c.execute("""

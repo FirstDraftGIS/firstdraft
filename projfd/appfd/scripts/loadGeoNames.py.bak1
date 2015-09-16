@@ -1,0 +1,20 @@
+from appfd.models import *
+from csv import reader
+from django.contrib.gis.geos import Point
+from django.db import connection
+
+def run():
+    print "running loadGeoNames"
+
+    # most have user create fdw extension with
+    # CREATE EXTENSION file_fdw;
+
+    GeoName.objects.all().delete()
+    cursor = connection.cursor()
+
+    #COPY appfd_geoname FROM '/home/usrfd/data/geonames/allCountries.txt' WITH (FORMAT 'text', DELIMITER E'\t');
+    cursor.execute("""
+        COPY appfd_geoname
+        FROM '/home/usrfd/data/geonames/allCountries.txt'
+        WITH (FORMAT 'text', DELIMITER E'\t');
+    """)

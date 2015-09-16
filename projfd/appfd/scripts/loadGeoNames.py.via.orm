@@ -1,0 +1,32 @@
+from appfd.models import *
+from csv import reader
+from django.contrib.gis.geos import Point
+from django.db import connection
+from time import sleep
+
+def run():
+    print "running loadGeoNames"
+
+    #Place.objects.all().delete()
+    #print "deleted all current Places"
+    with open("/home/usrfd/data/geonames/allCountries.txt", "r") as f:
+        for count, line in enumerate(f):
+            #print "\n\nline is", line
+            line_split = line.decode('utf-8').strip().split(u"\t")
+            #print "line_split is", line_split
+            #print "geonameid = ", int(line_split[0])
+            place = Place.objects.get_or_create(geonameid=int(line_split[0]))[0]
+            place.name = line_split[1]
+            #print "place.name is", line_split[1]
+            place.point = Point(x=float(line_split[5]),y=float(line_split[4])) 
+            place.save()
+
+            #for a in line_split[3].split(","):
+            #    print "alias is", alias
+            #    alias = Alias.objects.get_or_create(alias=alias)[0]
+            #    AliasPlace.objects.get_or_create(alias=alias, place=place)
+
+            if (count+1) % 100 == 0:
+                print "Percentage Complete:", (float(count)/10000000)
+                sleep(1)
+                break

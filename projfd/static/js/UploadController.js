@@ -9,6 +9,7 @@ app.controller('UploadController', ['$scope', '$http', '$window', '$compile', '$
         then(function(response) {
             console.log("Response is", response);
             $scope.$parent.job = $scope.job = response.data;
+            console.log("$scope.$parent is", $scope.$parent);
         });
     };
 }]);

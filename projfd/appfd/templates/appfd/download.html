@@ -1,12 +1,14 @@
 <div ng-controller="DownloadController">
-<h3><b>In what format would you like to download it?</b></h3>
+<div ng-show="show_downloads">
+    <h3><b>In what format would you like to download it?</b></h3>
 
-<ul>
-<li><a ng-href="">Adobe Illustrator</a></li>
-<li><a ng-href="">GeoJSON</a></li>
-<li><a ng-href="">PDF</a></li>
-<li><a ng-href="">Shapefile</a></li>
-<li><a ng-href="">TopoJSON</a></li>
-</ul>
+    <ul>
+        <li ng-show="href_ai"><a ng-href="{{href_ai}}">Adobe Illustrator</a></li>
+        <li ng-show="href_geojson"><a id="href_geojson">GeoJSON</a></li>
+        <li ng-show="href_pdf"><a ng-href="{{href_geojson}}">PDF</a></li>
+        <li ng-show="href_shp"><a ng-href="{{href_shp}}">Shapefile</a></li>
+        <li ng-show="href_topojson"><a ng-href="{{href_topojson}}">TopoJSON</a></li>
+    </ul>
 
+</div>
 </div>
