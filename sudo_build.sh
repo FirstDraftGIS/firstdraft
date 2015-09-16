@@ -16,6 +16,12 @@ sudo -u usrfd git clone http://github.com/danieljdufour/firstdraft.git /home/usr
 sudo -u usrfd bash -c "cd /home/usrfd && virtualenv venv;"
 sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
 
-# create tables in database
-sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && python ~/firstdraft/projfd/manage.py makemigrations;"
-sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && python ~/firstdraft/projfd/manage.py migrate;"
+#load database dump
+
+
+# enable wsgi mod in 
+sudo a2enmod wsgi;
+
+sudo cp /home/usrfd/firstdraft/fd.conf /etc/apache2/sites-available/fd.conf;
+sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.conf;
+sudo service apache2 restart;
