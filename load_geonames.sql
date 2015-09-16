@@ -1,5 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS file_fdw;
 CREATE SERVER geoname_server FOREIGN DATA WRAPPER file_fdw;
+DROP FOREIGN TABLE appfd_geoname;
 CREATE FOREIGN TABLE IF NOT EXISTS appfd_geoname (
             geonameid integer,
             name varchar(200),
@@ -30,3 +31,8 @@ ALTER TABLE appfd_place ADD COLUMN textsearchable_index_col tsvector;
 UPDATE appfd_place SET textsearchable_index_col =
      to_tsvector('english', name);
 CREATE INDEX textsearch_idx ON appfd_place USING gin(textsearchable_index_col);
+
+-- this should only take about 5 minutes
+DROP INDEX name_index;
+CREATE INDEX name_index ON appfd_place (name);
+
