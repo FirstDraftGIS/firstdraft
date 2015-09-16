@@ -42,3 +42,13 @@ sudo a2enmod wsgi;
 sudo cp /home/usrfd/firstdraft/fd.conf /etc/apache2/sites-available/fd.conf;
 sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.conf;
 sudo service apache2 restart;
+
+
+# add useful aliases
+echo "alias a='sudo su usrfd'" >> ~/.bashrc
+echo "alias m='sudo -u usrfd bash -c\"m\"'" >> ~/.bashrc
+. ~/.bashrc
+
+sudo -u usrfd bash -c "echo \"alias a='cd /home/usrfd && source venv/bin/activate && cd /home/usrfd/firstdraft/projfd'\" && . /home/usrfd/.bashrc"
+sudo -u usrfd bash -c "echo \"alias m='cd /home/usrfd && source venv/bin/activate && cd /home/usrfd/firstdraft/projfd && python manage.py makemigrations && python manage.py migrate'\" >> /home/usrfd/.bashrc && . /home/usrfd/.bashrc"
+sudo -u usrfd bash -c "echo \"alias s='cd /home/usrfd && source venv/bin/activate && cd /home/usrfd/firstdraft/projfd && python manage.py shell'\" && . /home/usrfd/.bashrc"
