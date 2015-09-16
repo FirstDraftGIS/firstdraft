@@ -1,3 +1,5 @@
+CREATE EXTENSION file_fdw;
+CREATE SERVER geoname_server FOREIGN DATA WRAPPER file_fdw;
 CREATE FOREIGN TABLE appfd_geoname (
             geonameid integer,
             name varchar(200),
@@ -21,3 +23,4 @@ CREATE FOREIGN TABLE appfd_geoname (
         )
         SERVER geoname_server
         OPTIONS ( filename '/tmp/allCountries.txt', format 'text' );
+INSERT INTO appfd_place (geonameid, name, point) SELECT geonameid, name, ST_SetSRID(ST_POINT(longitude, latitude), 4326) FROM appfd_geoname;
