@@ -16,7 +16,20 @@ sudo -u usrfd git clone http://github.com/danieljdufour/firstdraft.git /home/usr
 sudo -u usrfd bash -c "cd /home/usrfd && virtualenv venv;"
 sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
 
-#load database dump
+#(1) load database dump or (2) start over by migrating and loading geonames
+
+#(2)
+
+sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdraft/projfd && python manage.py makemigrations"
+sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdraft/projfd && python manage.py migrate"
+
+sudo wget http://download.geonames.org/export/dump/allCountries.zip -O /tmp/allCountries.zip
+cd /tmp && sudo unzip allCountries.zip
+
+
+# add hidden.py
+
+
 
 
 # enable wsgi mod in 
