@@ -12,6 +12,7 @@ sudo -u postgres psql -c "CREATE DATABASE dbfd;"
 sudo -u postgres psql -c "ALTER DATABASE dbfd OWNER TO usrfd;"
 sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;" dbfd
 
+
 sudo -u usrfd git clone http://github.com/danieljdufour/firstdraft.git /home/usrfd/firstdraft;
 sudo -u usrfd bash -c "cd /home/usrfd && virtualenv venv;"
 sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
@@ -25,6 +26,9 @@ sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdra
 
 sudo wget http://download.geonames.org/export/dump/allCountries.zip -O /tmp/allCountries.zip
 cd /tmp && sudo unzip allCountries.zip
+sudo -u postgres psql -c "CREATE EXTENSION file_fdw;" dbfd
+sudo -u postgres psql -c "CREATE SERVER geoname_server FOREIGN DATA WRAPPER file_fdw" dbfd
+
 
 
 # add hidden.py
