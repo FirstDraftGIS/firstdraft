@@ -24,13 +24,16 @@ CREATE FOREIGN TABLE IF NOT EXISTS appfd_geoname (
         )
         SERVER geoname_server
         OPTIONS ( filename '/tmp/allCountries.txt', format 'text' );
-INSERT INTO appfd_place (geonameid, name, point, pop) SELECT geonameid, name, ST_SetSRID(ST_POINT(longitude, latitude), 4326), population FROM appfd_geoname;
+
+TRUNCATE appfd_place CASCADE;
+INSERT INTO appfd_place (geonameid, name, point, population) SELECT geonameid, name, ST_SetSRID(ST_POINT(longitude, latitude), 4326), population FROM appfd_geoname;
 
 -- indexes database for faster searching
-ALTER TABLE appfd_place ADD COLUMN textsearchable_index_col tsvector;
-UPDATE appfd_place SET textsearchable_index_col =
-     to_tsvector('english', name);
-CREATE INDEX textsearch_idx ON appfd_place USING gin(textsearchable_index_col);
+-- commenting out for now, because even with indexing, full text searching is slow
+--ALTER TABLE appfd_place ADD COLUMN textsearchable_index_col tsvector;
+--UPDATE appfd_place SET textsearchable_index_col =
+--     to_tsvector('english', name);
+--CREATE INDEX textsearch_idx ON appfd_place USING gin(textsearchable_index_col);
 
 -- this should only take about 5 minutes
 DROP INDEX name_index;
