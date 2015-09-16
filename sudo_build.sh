@@ -33,7 +33,7 @@ sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;
 
 # add hidden.py
 
-
+# add md5 auth for usrfd to /etc/postgresql/9.4/main/pg_hba.conf
 
 
 # enable wsgi mod in 
