@@ -7,3 +7,5 @@ sudo -u postgres psql -c "CREATE DATABASE dbfd;"
 sudo -u postgres psql -c "ALTER DATABASE dbfd OWNER TO usrfd;"
 sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;" dbfd
 sudo -u usrfd git clone http://github.com/danieljdufour/firstdraft.git /home/usrfd/firstdraft;
+sudo -u usrfd bash -c "cd /home/usrfd && virtualenv venv;"
+sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
