@@ -20,4 +20,4 @@ CREATE FOREIGN TABLE appfd_geoname (
             modification_date varchar(40)
         )
         SERVER geoname_server
-        OPTIONS ( filename '/home/usrfd/data/geonames/allCountries.txt', format 'text' );
+        OPTIONS ( filename '/tmp/allCountries.txt', format 'text' );
