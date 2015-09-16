@@ -24,3 +24,9 @@ CREATE FOREIGN TABLE IF NOT EXISTS appfd_geoname (
         SERVER geoname_server
         OPTIONS ( filename '/tmp/allCountries.txt', format 'text' );
 INSERT INTO appfd_place (geonameid, name, point) SELECT geonameid, name, ST_SetSRID(ST_POINT(longitude, latitude), 4326) FROM appfd_geoname;
+
+-- indexes database for faster searching
+ALTER TABLE appfd_place ADD COLUMN textsearchable_index_col tsvector;
+UPDATE appfd_place SET textsearchable_index_col =
+     to_tsvector('english', name);
+CREATE INDEX textsearch_idx ON appfd_place USING gin(textsearchable_index_col);
