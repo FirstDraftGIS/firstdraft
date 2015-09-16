@@ -1,6 +1,6 @@
-CREATE EXTENSION file_fdw;
+CREATE EXTENSION IF NOT EXISTS file_fdw;
 CREATE SERVER geoname_server FOREIGN DATA WRAPPER file_fdw;
-CREATE FOREIGN TABLE appfd_geoname (
+CREATE FOREIGN TABLE IF NOT EXISTS appfd_geoname (
             geonameid integer,
             name varchar(200),
             asciiname varchar(200),
