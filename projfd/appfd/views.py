@@ -1,11 +1,14 @@
 from appfd import forms, models
+from appfd.forms import *
 from appfd.models import *
-from appfd.scripts import resolve
+from appfd.scripts import excel, resolve
+from appfd.scripts.excel import *
 from bnlp import getLocationsFromEnglishText
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
+from django.core.files.storage import default_storage
 from django.core.mail import send_mail
 from django.core.serializers import serialize
 from django.core.serializers.json import DjangoJSONEncoder
@@ -18,14 +21,17 @@ from django.template.defaultfilters import slugify
 from django.utils.crypto import get_random_string
 from django.views.decorators.csrf import csrf_protect
 from multiprocessing import Process
+from openpyxl import load_workbook
 from operator import itemgetter
-from os import mkdir
+from os import listdir, mkdir
 from os.path import isfile
 import datetime, geojson, json, requests, sys
 from geojson import Feature, FeatureCollection, MultiPolygon, Point
+import geojson
 from json import dumps, loads
 from subprocess import check_output
 from urllib import quote, quote_plus
+from openpyxl import load_workbook
 #import sys
 
 
@@ -310,9 +316,9 @@ def create(job):
     places = []
     for location in getLocationsFromEnglishText(job['data']):
         if len(location) > 1:
-            places.append(resolve.resolve(location))
-
-    places = [place for place in list(set(places)) if place]
+            place = resolve.resolve(location)
+            if place and place not in places:
+                places.append(place)
 
     print "places are", places
     serialized = serialize('geojson', places, geometry_field='point', fields=('geonameid', 'name','point',))
@@ -323,20 +329,111 @@ def create(job):
     with open(directory + "job.geojson", "wb") as f:
         f.write(serialized)
 
+def create_from_file(job):
+    print "starting create_from_file with", job
+    content_type = job['file'].content_type
+    print "content_type is", content_type
+
+    # .split("/")[-1] prevents would-be hackers from passing in paths as filenames
+    job['filename'] = filename = job['file'].name.split("/")[-1]
+    if filename.endswith(('.xls','.xlsx')):
+        print "user uploaded an excel file!"
+        create_from_xl(job)
+
+def create_from_xl(job):
+    print "starting create_from_xl with", job
+    file_obj = job['file']
+    filename = job['filename']
+
+    # make directory to store excel file and maps
+    directory = "/home/usrfd/maps/" + job['key'] + "/"
+    mkdir(directory)
+
+    filepath = directory + "/" + filename
+
+    # save file to disk
+    with open(filepath, 'wb+') as destination:
+        for chunk in file_obj.chunks():
+            destination.write(chunk)
+    print "wrote file"
+
+    wb = load_workbook(filepath)
+    print "wb is", wb
+
+    features = []
+
+    for sheet in wb:
+        rows = sheet.rows
+        headerRow = getHeaderRow(rows[0], rows)
+
+
+        location_column_index = getLocationColumn(sheet)
+        print "location_column_index is", location_column_index 
+
+        for row_index, row in enumerate(rows):
+            if headerRow:
+                if row_index == 0:
+                    pass
+                else:
+                    geometry = None
+                    properties = {}
+                    for cell_index, cell in enumerate(row):
+                        value = cleanCellValue(cell.value)
+                        if cell_index == location_column_index:
+                            place = resolve.resolve(value)
+                            if place:
+                                point = place.point
+                                geometry = Point((point.x,point.y))
+                        properties[headerRow[cell_index]] = value
+                    feature = Feature(geometry=geometry, properties=properties)
+                    features.append(feature)
+            else: #not headerRow
+                geometry = None
+                properties = {}
+                for cell_index, cell in enumerate(row):
+                    value = cleanCellValue(cell.value)
+                    if cell_index == location_column_index:
+                        #strip makes sure we remove any white space
+                        place = resolve.resolve(value)
+                        if place:
+                            point = place.point
+                            geometry = Point((point.x,point.y))
+                        
+                    properties[cell_index] = value
+                feature = Feature(geometry=geometry, properties=properties)
+                features.append(feature)
+
+
+    featureCollection = FeatureCollection(features)
+    serialized = geojson.dumps(featureCollection, sort_keys=True)
+   
+    with open(directory + filename.split(".")[0] + "." + "geojson", "wb") as f:
+        f.write(serialized)
+
+    print "finished creating geojson from excel file"
+
 def does_map_exist(request):
     print "starting does_map_exist"
     print "request.body is", request.body
 
-def get_map(request, job, extension):
-    print "starting get_map with", job, extension
-    filepath = "/home/usrfd/maps/" + job + "/" + "job." + extension
-    if isfile(filepath):
-        with open(filepath) as f:
-            data = f.read()
-    else:
-        data = ""
-    return HttpResponse(data, content_type='application/json') 
 
+#basically looks for the directory that corresponds to the job
+# and returns whatever file in their that ends with geojson
+def get_map(request, job, extension):
+  try:
+    print "starting get_map with", job, extension
+    path_to_directory = "/home/usrfd/maps/" + job + "/"
+
+    data = ""
+    for filename in listdir(path_to_directory):
+        print "for filename"
+        if filename.endswith("."+extension):
+            with open(path_to_directory + filename) as f:
+                data = f.read()
+            break
+    return HttpResponse(data, content_type='application/json') 
+  except Exception as e:
+    print e
 
 
 # this method takes in data as text and returns a geojson of the map
@@ -353,3 +450,26 @@ def upload(request):
     else:
         return HttpResponse("You have to post!")
 
+def upload_file(request):
+  try:
+    print "starting upload_file"
+    if request.method == 'POST':
+        print "request.method is post"
+        form = UploadFileForm(request.POST, request.FILES)
+        print "form is", form
+        if form.is_valid():
+            print "form is valid"
+            job = {
+              'file': request.FILES['file'],
+              'key': get_random_string(25)
+            }
+            print "job is", job
+            Process(target=create_from_file, args=(job,)).start()
+            return HttpResponse(job['key'])
+        else:
+            print form.errors
+            return HttpResponse("post data was malformed")
+    else:
+        return HttpResponse("You have to post!")
+  except Exception as e:
+    print "e is", e

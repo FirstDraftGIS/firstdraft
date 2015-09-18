@@ -3,7 +3,7 @@ app.controller('DownloadController', ['$scope', '$http', '$window', '$compile', 
 
     $scope.activate = function(){
         $scope.show_downloads = true;
-        document.getElementById("href_geojson").href = $scope.href_geojson = "/maps/" + $scope.$parent.job + "/geojson";
+        document.getElementById("href_geojson").href = $scope.href_geojson = "/get_map/" + $scope.$parent.job + "/geojson";
         console.log("$scope.href_geojson is", $scope.href_geojson);
     };
 

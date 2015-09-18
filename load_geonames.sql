@@ -36,6 +36,6 @@ INSERT INTO appfd_place (geonameid, name, point, population) SELECT geonameid, n
 --CREATE INDEX textsearch_idx ON appfd_place USING gin(textsearchable_index_col);
 
 -- this should only take about 5 minutes
-DROP INDEX name_index;
+DROP INDEX IF EXISTS name_index;
 CREATE INDEX name_index ON appfd_place (name);
 

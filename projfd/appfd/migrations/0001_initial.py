@@ -72,6 +72,19 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='Order',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('token', models.CharField(max_length=200, null=True, blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ParentChild',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+            ],
+        ),
+        migrations.CreateModel(
             name='Place',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
@@ -85,7 +98,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=200, null=True, blank=True)),
                 ('note', models.CharField(max_length=200, null=True, blank=True)),
                 ('point', django.contrib.gis.db.models.fields.PointField(srid=4326, null=True, blank=True)),
-                ('pop', models.IntegerField(null=True, blank=True)),
+                ('population', models.BigIntegerField(null=True, blank=True)),
                 ('pcode', models.CharField(max_length=200, null=True, blank=True)),
                 ('skeleton', django.contrib.gis.db.models.fields.MultiLineStringField(srid=4326, null=True, blank=True)),
                 ('timezone', models.CharField(max_length=200, null=True, blank=True)),
@@ -114,9 +127,23 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AddField(
+            model_name='parentchild',
+            name='child',
+            field=models.ForeignKey(related_name='subplace', to='appfd.Place'),
+        ),
+        migrations.AddField(
+            model_name='parentchild',
+            name='parent',
+            field=models.ForeignKey(related_name='parentplace', to='appfd.Place'),
+        ),
+        migrations.AddField(
             model_name='aliasplace',
             name='place',
             field=models.ForeignKey(to='appfd.Place'),
+        ),
+        migrations.AlterUniqueTogether(
+            name='parentchild',
+            unique_together=set([('parent', 'child')]),
         ),
         migrations.AlterUniqueTogether(
             name='aliasplace',

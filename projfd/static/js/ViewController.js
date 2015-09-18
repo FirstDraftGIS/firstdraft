@@ -31,7 +31,17 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
             "opacity": .5,
 	    "fillOpacity": 0
         };
-        var mainLayer = L.geoJson(undefined,{style:mainLayerStyle}).addTo(map);
+
+        function onEachFeature(feature, layer)
+        {
+            try
+            {
+                layer.bindPopup(feature.properties.name);
+            }
+            catch(err){console.log("err is", err);}
+        }
+
+        var mainLayer = L.geoJson(undefined,{onEachFeature:onEachFeature, style:mainLayerStyle}).addTo(map);
 
         // add data from respective geojson file to changesetsLayer
         //$.getJSON( $scope.$parent.job + "/job" + .geojson, function( data ) {changesetsLayer.addData(data);});
@@ -50,6 +60,7 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
                     console.log('mainLayer is', mainLayer);
                     console.log('featureGroup is', featureGroup.getBounds());
                     $scope.$parent.show_downloads = true;
+                    $scope.show_map = true;
                 }
             });
         }, 2000);

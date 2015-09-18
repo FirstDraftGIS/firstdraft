@@ -68,7 +68,7 @@ class Place(Model):
     note = CharField(max_length=200, null=True, blank=True)
     objects = GeoManager()
     point = PointField(null=True, blank=True)
-    pop = IntegerField(null=True, blank=True)
+    population = BigIntegerField(null=True, blank=True)
     pcode = CharField(max_length=200, null=True, blank=True)
     skeleton = MultiLineStringField(null=True, blank=True)
     timezone = CharField(max_length=200, null=True, blank=True)
