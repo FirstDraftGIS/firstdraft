@@ -29,6 +29,26 @@ app.controller('UploadController', ['$scope', '$http', '$window', '$compile', '$
                 console.log("$scope.$parent is", $scope.$parent);
             });
         }
+        else if ($scope.start === 'url_to_webpage')
+        {
+            $http
+            .post('/start_link', {'link': $scope.url_to_webpage}).
+            then(function(response) {
+                console.log("Response is", response);
+                $scope.$parent.job = $scope.job = response.data;
+                console.log("$scope.$parent is", $scope.$parent);
+            });
+        }
+        else if ($scope.start === 'url_to_file')
+        {
+            $http
+            .post('/start_link_to_file', {'link': $scope.url_to_file}).
+            then(function(response) {
+                console.log("Response is", response);
+                $scope.$parent.job = $scope.job = response.data;
+                console.log("$scope.$parent is", $scope.$parent);
+            });
+        }
     };
 }]);
 

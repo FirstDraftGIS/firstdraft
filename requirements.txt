@@ -16,6 +16,7 @@ numpy
 pillow
 psycopg2
 python-dateutil
+python-magic
 python-mimeparse
 python-social-auth
 pytz

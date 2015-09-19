@@ -20,6 +20,7 @@ from django.template import RequestContext
 from django.template.defaultfilters import slugify
 from django.utils.crypto import get_random_string
 from django.views.decorators.csrf import csrf_protect
+from magic import from_file
 from multiprocessing import Process
 from openpyxl import load_workbook
 from operator import itemgetter
@@ -29,8 +30,9 @@ import datetime, geojson, json, requests, sys
 from geojson import Feature, FeatureCollection, MultiPolygon, Point
 import geojson
 from json import dumps, loads
+from requests import get
 from subprocess import check_output
-from urllib import quote, quote_plus
+from urllib import quote, quote_plus, urlretrieve
 from openpyxl import load_workbook
 #import sys
 
@@ -329,6 +331,69 @@ def create(job):
     with open(directory + "job.geojson", "wb") as f:
         f.write(serialized)
 
+def create_map_from_link(job):
+    print "starting create with", job
+
+    # make directory to store saved webpage and maps
+    directory = "/home/usrfd/maps/" + job['key'] + "/"
+    mkdir(directory)
+
+    # get url
+    link = job['link']
+
+    # get web page text
+    filename = link.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
+    text = get(link).text
+ 
+
+    # save text to file
+    with open(directory + filename, "wb") as f:
+        f.write(text.encode('utf-8'))
+ 
+    places = []
+    for location in getLocationsFromEnglishText(text):
+
+        #making sure we don't try to resolve single letters like U
+        if len(location) > 1:
+            place = resolve.resolve(location)
+            if place and place not in places:
+                places.append(place)
+
+    print "places are", places
+    serialized = serialize('geojson', places, geometry_field='point', fields=('geonameid', 'name','point',))
+
+    # make directory to store files
+    with open(directory + job['key'] + ".geojson", "wb") as f:
+        f.write(serialized)
+
+def create_map_from_link_to_file(job):
+    print "starting create_from_file with", job
+
+    # make directory to store saved webpage and maps
+    directory = "/home/usrfd/maps/" + job['key'] + "/"
+    mkdir(directory)
+
+    # get url
+    link = job['link']
+
+    # get web page text
+    filename = link.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(":","_").replace("__","_")
+
+    # create path to file
+    path_to_file = directory + filename
+
+    # save file to folder
+    urlretrieve(link, path_to_file)
+ 
+    mimeType = from_file(path_to_file, mime=True)
+    print "mimeType is", mimeType
+
+    job['filename'] = filename
+    job['filepath'] = path_to_file
+    
+    if filename.endswith(('.xls','.xlsm','.xlsx')):
+        create_from_xl(job)
+
 def create_from_file(job):
     print "starting create_from_file with", job
     content_type = job['file'].content_type
@@ -340,22 +405,27 @@ def create_from_file(job):
         print "user uploaded an excel file!"
         create_from_xl(job)
 
+
 def create_from_xl(job):
     print "starting create_from_xl with", job
-    file_obj = job['file']
+    directory = "/home/usrfd/maps/" + job['key'] + "/"
     filename = job['filename']
 
-    # make directory to store excel file and maps
-    directory = "/home/usrfd/maps/" + job['key'] + "/"
-    mkdir(directory)
+    if 'filepath' not in job:
+        file_obj = job['file']
 
-    filepath = directory + "/" + filename
+        # make directory to store excel file and maps
+        mkdir(directory)
 
-    # save file to disk
-    with open(filepath, 'wb+') as destination:
-        for chunk in file_obj.chunks():
-            destination.write(chunk)
-    print "wrote file"
+        filepath = directory + "/" + filename
+
+        # save file to disk
+        with open(filepath, 'wb+') as destination:
+            for chunk in file_obj.chunks():
+                destination.write(chunk)
+        print "wrote file"
+    else:
+        filepath = job['filepath']
 
     wb = load_workbook(filepath)
     print "wb is", wb
@@ -449,6 +519,39 @@ def upload(request):
         return HttpResponse(job['key'])
     else:
         return HttpResponse("You have to post!")
+
+def start_link(request):
+  try:
+    print "starting start_link"
+    if request.method == 'POST':
+        print "request.method is post"
+        job = {
+              'link': loads(request.body)['link'],
+              'key': get_random_string(25)
+        }
+        Process(target=create_map_from_link, args=(job,)).start()
+        return HttpResponse(job['key'])
+    else:
+        return HttpResponse("You have to post!")
+  except Exception as e:
+    print e
+
+def start_link_to_file(request):
+  try:
+    print "starting start_link"
+    if request.method == 'POST':
+        print "request.method is post"
+        job = {
+              'link': loads(request.body)['link'],
+              'key': get_random_string(25)
+        }
+        Process(target=create_map_from_link_to_file, args=(job,)).start()
+        return HttpResponse(job['key'])
+    else:
+        return HttpResponse("You have to post!")
+  except Exception as e:
+    print e
+
 
 def upload_file(request):
   try:

@@ -31,6 +31,8 @@ urlpatterns += [
     #url(r'request_translation/(?P<class_type>[^\./]+)/(?P<class_id>[^\./]+)', views.request_translation),
     #url(r'roadmap/', views.roadmap, name='roadmap'),
     #url(r'stats', views.stats, name='stats'),
+    url(r'start_link$', views.start_link, name='start_link'),
+    url(r'start_link_to_file$', views.start_link_to_file, name='start_link_to_file'),
     url(r'team$', views.team, name='team'),
     #url(r'test/', views.test, name='test'),
     url(r'^upload$', views.upload, name='upload'),
