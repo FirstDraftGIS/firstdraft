@@ -1,9 +1,10 @@
 from appfd import forms, models
 from appfd.forms import *
 from appfd.models import *
-from appfd.scripts import excel, resolve
+from appfd.scripts import excel, resolve, tables
 from appfd.scripts.excel import *
 from bnlp import getLocationsFromEnglishText
+import csv
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -20,18 +21,20 @@ from django.template import RequestContext
 from django.template.defaultfilters import slugify
 from django.utils.crypto import get_random_string
 from django.views.decorators.csrf import csrf_protect
+from itertools import groupby, islice
 from magic import from_file
 from multiprocessing import Process
 from openpyxl import load_workbook
 from operator import itemgetter
-from os import listdir, mkdir
+from os import listdir, mkdir, remove
 from os.path import isfile
-import datetime, geojson, json, requests, sys
+import datetime, geojson, json, requests, StringIO, sys, zipfile
 from geojson import Feature, FeatureCollection, MultiPolygon, Point
 import geojson
 from json import dumps, loads
 from requests import get
-from subprocess import check_output
+from sendfile import sendfile
+from subprocess import call, check_output
 from urllib import quote, quote_plus, urlretrieve
 from openpyxl import load_workbook
 #import sys
@@ -334,8 +337,10 @@ def create(job):
 def create_map_from_link(job):
     print "starting create with", job
 
+    key = job['key']
+
     # make directory to store saved webpage and maps
-    directory = "/home/usrfd/maps/" + job['key'] + "/"
+    directory = "/home/usrfd/maps/" + key + "/"
     mkdir(directory)
 
     # get url
@@ -343,6 +348,10 @@ def create_map_from_link(job):
 
     # get web page text
     filename = link.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
+
+    if not link.startswith("http"):
+        print "we assume that the user didn't include the protocol"
+        link = "http://" + link
     text = get(link).text
  
 
@@ -363,8 +372,32 @@ def create_map_from_link(job):
     serialized = serialize('geojson', places, geometry_field='point', fields=('geonameid', 'name','point',))
 
     # make directory to store files
-    with open(directory + job['key'] + ".geojson", "wb") as f:
+    path_to_geojson = directory + key + ".geojson"
+    with open(path_to_geojson, "wb") as f:
         f.write(serialized)
+
+    call(['ogr2ogr','-f','ESRI Shapefile',directory+key+'.shp',path_to_geojson])
+
+
+    path_to_dbf = directory + key + ".dbf"
+    print "path_to_dbf is", path_to_dbf 
+    path_to_prj = directory + key + ".prj"
+    print "path_to_prj is", path_to_prj 
+    path_to_shx = directory + key + ".shx"
+    print "path_to_shx is", path_to_shx 
+    path_to_shp = directory + key + ".shp"
+    print "path_to_shp is", path_to_shp 
+    path_to_zip = directory + key + ".zip"
+    print "path_to_zip is", path_to_zip 
+    call(['zip',key+".zip",key+'.dbf',key+'.prj',key+'.shx',key+'.shp'],cwd=directory)
+
+    # remove leftover shapefile parts
+    remove(path_to_dbf)
+    remove(path_to_prj)
+    remove(path_to_shx)
+    remove(path_to_shp)
+
+
 
 def create_map_from_link_to_file(job):
     print "starting create_from_file with", job
@@ -393,6 +426,8 @@ def create_map_from_link_to_file(job):
     
     if filename.endswith(('.xls','.xlsm','.xlsx')):
         create_from_xl(job)
+    elif filename.endswith('.csv'):
+        create_map_from_csv(job)
 
 def create_from_file(job):
     print "starting create_from_file with", job
@@ -404,7 +439,100 @@ def create_from_file(job):
     if filename.endswith(('.xls','.xlsx')):
         print "user uploaded an excel file!"
         create_from_xl(job)
+    elif filename.endswith('.csv'):
+        print "user uploaded a csv file!"
+        create_map_from_csv(job)
 
+def create_map_from_csv(job):
+    print "starting create_map_from_csv with", job
+    directory = "/home/usrfd/maps/" + job['key'] + "/"
+    filename = job['filename']
+
+    if 'filepath' not in job:
+        file_obj = job['file']
+
+        # make directory to store excel file and maps
+        mkdir(directory)
+
+        filepath = directory + "/" + filename
+
+        # save file to disk
+        with open(filepath, 'wb+') as destination:
+            for chunk in file_obj.chunks():
+                destination.write(chunk)
+        print "wrote file"
+    else:
+        filepath = job['filepath']
+
+    rows = []
+
+    f = open(filepath, 'r')
+    reader = csv.reader(f)
+
+    #first ten lines
+    top_lines = []
+    for index, line in enumerate(reader):
+        top_lines.append(line)
+        if index == 3:
+            break
+    print "top_lines are", top_lines
+
+    headerRow = tables.getHeaderRow(top_lines)
+    print "headeRow is", headerRow
+
+
+    location_column_index = tables.getLocationColumn(top_lines)
+    print "location_column_index is", location_column_index 
+
+
+    features = []
+
+    for row_index, row in enumerate(top_lines):
+        if headerRow and row_index == 0:
+            pass
+        else:
+            geometry = None
+            properties = {}
+            for column_index, value in enumerate(row):
+                value = tables.clean(value)
+                if column_index == location_column_index:
+                    place = resolve.resolve(value)
+                    if place:
+                        point = place.point
+                        geometry = Point((point.x,point.y))
+                    if headerRow:
+                        properties[headerRow[column_index]] = value
+                    else:
+                        properties[column_index] = value
+            feature = Feature(geometry=geometry, properties=properties)
+            features.append(feature)
+
+    for row_index, row in enumerate(reader):
+        geometry = None
+        properties = {}
+        for column_index, value in enumerate(row):
+            value = tables.clean(value)
+            if column_index == location_column_index:
+                place = resolve.resolve(value)
+                if place:
+                    point = place.point
+                    geometry = Point((point.x,point.y))
+                if headerRow:
+                    properties[headerRow[column_index]] = value
+                else:
+                    properties[column_index] = value
+        feature = Feature(geometry=geometry, properties=properties)
+        features.append(feature)
+
+
+    featureCollection = FeatureCollection(features)
+    serialized = geojson.dumps(featureCollection, sort_keys=True)
+   
+    with open(directory + filename.split(".")[0] + "." + "geojson", "wb") as f:
+        f.write(serialized)
+
+    print "finished creating geojson from csv file"
+    f.close()
 
 def create_from_xl(job):
     print "starting create_from_xl with", job
@@ -482,9 +610,15 @@ def create_from_xl(job):
 
     print "finished creating geojson from excel file"
 
-def does_map_exist(request):
+def does_map_exist(request, job, extension):
     print "starting does_map_exist"
-    print "request.body is", request.body
+    try:
+        print "starting get_map with", job, extension
+        return HttpResponse(isfile("/home/usrfd/maps/" + job + "/" + job + "." + extension))
+    except Exception as e:
+        print e
+        return HttpResponse("")
+
 
 
 #basically looks for the directory that corresponds to the job
@@ -494,14 +628,27 @@ def get_map(request, job, extension):
     print "starting get_map with", job, extension
     path_to_directory = "/home/usrfd/maps/" + job + "/"
 
-    data = ""
-    for filename in listdir(path_to_directory):
-        print "for filename"
-        if filename.endswith("."+extension):
-            with open(path_to_directory + filename) as f:
-                data = f.read()
-            break
-    return HttpResponse(data, content_type='application/json') 
+
+    # currently, loads zip file in memory and returns it
+    # todo: use mod_xsendfile, so don't load into memory
+    if extension in ("shp","zip"):
+        filename = job + ".zip"
+        abspath = path_to_directory + filename
+
+        with open(abspath, "rb") as zip_file:
+            response = HttpResponse(zip_file, content_type='application/force-download')
+            response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+            return response
+
+    else:
+        data = ""
+        for filename in listdir(path_to_directory):
+            print "for filename"
+            if filename.endswith("."+extension):
+                with open(path_to_directory + filename) as f:
+                    data = f.read()
+                break
+        return HttpResponse(data, content_type='application/json') 
   except Exception as e:
     print e
 
@@ -553,6 +700,12 @@ def start_link_to_file(request):
     print e
 
 
+def thanks(request):
+    with open("/home/usrfd/firstdraft/requirements.txt") as f:
+        list_to_thank = [("Clavin","https://github.com/Berico-Technologies/CLAVIN"),("Leaflet", "leafletjs.com"),("American Red Cross","https://github.com/americanredcross"),("OpenStreetMap","https://www.openstreetmap.org/")]
+        list_to_thank += [(package.split("(")[0].strip(), None) for package in f.read().strip().split("\n")]
+        return render(request, "appfd/thanks.html", {'list_to_thank': list_to_thank})
+
 def upload_file(request):
   try:
     print "starting upload_file"
@@ -576,3 +729,8 @@ def upload_file(request):
         return HttpResponse("You have to post!")
   except Exception as e:
     print "e is", e
+
+def view_map(request, job):
+    return render(request, "appfd/view_map.html", {'job': job})
+
+

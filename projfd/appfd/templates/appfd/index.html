@@ -1,16 +1,16 @@
 {% extends "appfd/base.html" %}
 {% load staticfiles %}
 {% block content %}
-<div class="middle">
+<div class="middle" style ="max-width: 900px; margin: 0 auto;">
 {% include "appfd/alerts.html" %}
+
+<div class="jumbotron" style="padding: 15px">
+<p>Welcome to <b>First Draft</b>, a website that automatically creates the first drafts of maps for you.  You give it information and it returns a map of that information.</p>
+</div>
 
 {% include "appfd/magic.html" %}
 
 <!--
-<div class="jumbotron">
-First Draft is a website that automatically creates first drafts of maps based on your data, tables, and stories.
-</div>
-
 {% if not user.is_authenticated %}
 <div class="login-buttons">
 <a href={% url 'register' %}><button class="btn btn-default btn-sm">Sign up with e-mail</button></a>

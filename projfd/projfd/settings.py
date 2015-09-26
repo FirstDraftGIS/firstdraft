@@ -170,3 +170,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 10
 }
+
+SENDFILE_BACKEND = 'sendfile.backends.mod_wsgi'
+SENDFILE_ROOT = 'home/usrfd/maps'
+SENDFILE_URL = '/maps'

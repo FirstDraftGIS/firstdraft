@@ -26,7 +26,8 @@ CREATE FOREIGN TABLE IF NOT EXISTS appfd_geoname (
         OPTIONS ( filename '/tmp/allCountries.txt', format 'text' );
 
 TRUNCATE appfd_place CASCADE;
-INSERT INTO appfd_place (geonameid, name, point, population) SELECT geonameid, name, ST_SetSRID(ST_POINT(longitude, latitude), 4326), population FROM appfd_geoname;
+INSERT INTO appfd_place (geonameid, name, point, population, country_code, admin1_code, admin2_code) SELECT geonameid, name, ST_SetSRID(ST_POINT(longitude, latitude), 4326), population, country_code, admin1_code, admin2_code FROM appfd_geoname;
+
 
 -- indexes database for faster searching
 -- commenting out for now, because even with indexing, full text searching is slow

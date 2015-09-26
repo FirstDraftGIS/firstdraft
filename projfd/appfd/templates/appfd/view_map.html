@@ -1,0 +1,42 @@
+{% extends "appfd/base.html" %}
+{% load staticfiles %}
+{% block content %}
+<div id="map_full" style="position: absolute; top: 50px; left: 0; right: 0; bottom: 0;"></div>
+<script>
+
+    job = '{{job}}';
+
+    map = L.map('map_full');
+    map.setView([0,0],2);
+    var osmLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors.',
+        maxZoom: 18
+    }).addTo(map);
+
+
+    var mainLayerStyle = {
+        "color": "#ff0000",
+        "weight": .5,
+        "opacity": .5,
+        "fillOpacity": 0
+    };
+
+    function onEachFeature(feature, layer)
+    {
+        try
+        {
+            layer.bindPopup(feature.properties.name);
+        }
+        catch(err){console.log("err is", err);}
+    }
+
+    var mainLayer = L.geoJson(undefined,{onEachFeature:onEachFeature, style:mainLayerStyle});
+    var featureGroup = L.featureGroup([mainLayer]);
+    featureGroup.addTo(map);
+    map.setView([0,0],2);
+
+    $.getJSON('/get_map/'+job+'/geojson', function( data ) {mainLayer.addData(data);});
+
+
+</script>
+{% endblock %}

@@ -32,7 +32,7 @@ class Activation(Model):
 class Alias(Model):
     alias = CharField(max_length=200, null=True, blank=True)
     entered = DateTimeField(auto_now_add=True)
-    language = CharField(max_length=2)
+    language = CharField(max_length=7)
     def __str__(self):
         return self.alias.encode("utf-8")
     class Meta:
@@ -56,15 +56,18 @@ class Order(Model):
 # should add in org and person model at some point, so can cross locate story based on people or orgs if no location names given
 
 class Place(Model):
-    admin_level = IntegerField(null=True, blank=True)
+    admin_level = IntegerField(null=True, blank=True, db_index=True)
+    admin1_code = CharField(max_length=100, null=True, blank=True, db_index=True)
+    admin2_code = CharField(max_length=100, null=True, blank=True, db_index=True)
     aliases = ManyToManyField('Alias', through="AliasPlace", related_name="place_from_placealias+")
     area_sqkm = IntegerField(null=True, blank=True)
+    country_code = CharField(max_length=2, null=True, blank=True, db_index=True)
     district_num = IntegerField(null=True, blank=True)
-    fips = IntegerField(null=True, blank=True)
-    geonameid = IntegerField(null=True, blank=True)
+    fips = IntegerField(null=True, blank=True, db_index=True)
+    geonameid = IntegerField(null=True, blank=True, db_index=True)
     mls = MultiLineStringField(null=True, blank=True)
     mpoly = MultiPolygonField(null=True, blank=True)
-    name = CharField(max_length=200, null=True, blank=True)
+    name = CharField(max_length=200, null=True, blank=True, db_index=True)
     note = CharField(max_length=200, null=True, blank=True)
     objects = GeoManager()
     point = PointField(null=True, blank=True)

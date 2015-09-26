@@ -16,7 +16,8 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
 
 
     $scope.activate = function(){
-        var map = L.map('map').setView([51.505, -0.09], 13);
+        map = L.map('map');
+        map.setView([0,0],1);
 
         // add OSM base layer
         var osmLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -24,7 +25,11 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
             maxZoom: 18
         }).addTo(map);
 
-        // creates style for changesetsLayer and then creates changesetsLayer
+        //L.tileLayer.provider('Stamen.Watercolor').addTo(map);
+        //var osmLayer = new L.TileLayer.OpenStreetMap();
+        //osmLayer.addTo(map);
+
+        // creates style for mainLayer and then creates mainLayer
         var mainLayerStyle = {
             "color": "#ff0000",
             "weight": .5,
@@ -41,10 +46,11 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
             catch(err){console.log("err is", err);}
         }
 
-        var mainLayer = L.geoJson(undefined,{onEachFeature:onEachFeature, style:mainLayerStyle}).addTo(map);
-
-        // add data from respective geojson file to changesetsLayer
-        //$.getJSON( $scope.$parent.job + "/job" + .geojson, function( data ) {changesetsLayer.addData(data);});
+        var mainLayer = L.geoJson(undefined,{onEachFeature:onEachFeature, style:mainLayerStyle});
+        var featureGroup = L.featureGroup([mainLayer]);
+        featureGroup.addTo(map);
+        map.setView([0,0],1);
+ 
 
         $scope.stop = function(){$interval.cancel(promise);};
 
@@ -55,12 +61,16 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
                 {
                     $scope.stop();
                     mainLayer.addData(response.data);
-                    var featureGroup = L.featureGroup([mainLayer]);
-                    map.fitBounds(featureGroup.getBounds());
+                    //map.fitBounds(featureGroup.getBounds());
                     console.log('mainLayer is', mainLayer);
-                    console.log('featureGroup is', featureGroup.getBounds());
+                    //console.log('featureGroup is', featureGroup.getBounds());
                     $scope.$parent.show_downloads = true;
+                    map.setView([0,0],1);
                     $scope.show_map = true;
+                    setTimeout(function(){
+                        map.invalidateSize();
+                        window.scrollTo(0,400);
+                    },100);
                 }
             });
         }, 2000);

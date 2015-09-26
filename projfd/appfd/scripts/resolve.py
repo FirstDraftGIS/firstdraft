@@ -7,7 +7,8 @@ def resolve(text):
     if text:
         #should give preference to citiesd
         # also locational culstering... expectation maximization algorithm??, number of clusters is dynamic...
-        locations = Place.objects.filter(name=text).order_by('-population')
+        # order by admin level, so have higher chance of getting the country of Spain than some city called Spain
+        locations = Place.objects.filter(name=text).order_by('admin_level','-population')
         count = locations.count()
 
         if count == 0:

@@ -3,7 +3,7 @@
 
 <div class="radio">
   <label>
-    <input type="radio" name="start_options" value="paste" ng-model="start">
+    <input type="radio" name="start_options" value="paste" ng-model="start" ng-click="focusOnTextArea()">
     Paste something you copied
   </label>
 </div>
@@ -24,7 +24,7 @@
 
 <div class="radio">
   <label>
-    <input type="radio" name="start_options" value="url_to_webpage" ng-model="start">
+    <input type="radio" name="start_options" value="url_to_webpage" ng-model="start" ng-click="focusOnUrlToWebpageInput()">
     Link to a WebPage
   </label>
 </div>
@@ -35,7 +35,7 @@
 
 <div class="radio">
   <label>
-    <input type="radio" name="start_options" value="url_to_file" ng-model="start">
+    <input type="radio" name="start_options" value="url_to_file" ng-model="start" ng-click="focusOnUrlToFileInput()">
     Link to a file on a website
   </label>
 </div>

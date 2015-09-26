@@ -1,4 +1,21 @@
 app.controller('UploadController', ['$scope', '$http', '$window', '$compile', '$element', function($scope, $http, $window, $compile, $element) {
+    var inputWebpage = document.getElementById("url_to_webpage");
+    var inputFile = document.getElementById("url_to_file");
+    var textarea = document.getElementById("story");
+    $scope.focusOnTextArea = function()
+    {
+        textarea.focus();
+    };
+    $scope.focusOnUrlToWebpageInput = function()
+    {
+        inputWebpage.focus();
+    };
+    $scope.focusOnUrlToFileInput = function()
+    {
+        inputFile.focus();
+    };
+
+
 
     $scope.upload = function(){
         console.log("starting upload");

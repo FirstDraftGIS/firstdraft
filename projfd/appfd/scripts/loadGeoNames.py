@@ -12,12 +12,12 @@ def run():
     # deletes all rows from place table`
     #TRUNCATE appfd_place CASCADE;
 #    Place.objects.all().delete()
-    cursor = connection.cursor()
-    c.execute("""
-    COPY appfd_geoname
-    FROM '/home/usrfd/data/geonames/allCountries.txt'
-    WITH (FORMAT 'text', DELIMITER E'\t', NULL 'NULL');
-    """)
+#    cursor = connection.cursor()
+#    c.execute("""
+#    COPY appfd_geoname
+#    FROM '/home/usrfd/data/geonames/allCountries.txt'
+#    WITH (FORMAT 'text', DELIMITER E'\t', NULL 'NULL');
+#    """)
  
 #    cursor.execute("""
 """        CREATE SERVER geoname_server FOREIGN DATA WRAPPER file_fdw;
