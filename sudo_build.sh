@@ -33,6 +33,7 @@ cd /tmp && sudo unzip allCountries.zip
 
 # takes about 20 min an an AWS Medium EC2 Ubuntu 15.04
 sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;
+sudo -u postgres psql -f /home/usrfd/firstdraft/load_alternate_names.sql dbfd;
 
 
 # add hidden.py
