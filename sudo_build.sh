@@ -41,6 +41,8 @@ cd /tmp && sudo unzip alternateNames.zip
 sudo -u postgres psql -f /home/usrfd/firstdraft/load_alternate_names.sql dbfd;
 
 
+sudo wget http://data.openaddresses.io/openaddresses-collected.zip
+cd /tmp && sudo unzip openaddresses-collected.zip
 # add hidden.py
 
 # add md5 auth for usrfd to /etc/postgresql/9.4/main/pg_hba.conf
