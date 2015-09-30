@@ -18,6 +18,7 @@ sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_top
 
 
 sudo -u usrfd git clone http://github.com/danieljdufour/firstdraft.git /home/usrfd/firstdraft;
+sudo chown usrfd:usrfd /home/usrfd/firstdraft -R;
 sudo -u usrfd bash -c "cd /home/usrfd && virtualenv venv;"
 sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
 
@@ -34,7 +35,14 @@ cd /tmp && sudo unzip allCountries.zip
 # takes about 20 min an an AWS Medium EC2 Ubuntu 15.04
 sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;
 
+sudo wget http://download.geonames.org/export/dump/alternateNames.zip
+cd /tmp && sudo unzip alternateNames.zip
 
+sudo -u postgres psql -f /home/usrfd/firstdraft/load_alternate_names.sql dbfd;
+
+
+sudo wget http://data.openaddresses.io/openaddresses-collected.zip
+cd /tmp && sudo unzip openaddresses-collected.zip
 # add hidden.py
 
 # add md5 auth for usrfd to /etc/postgresql/9.4/main/pg_hba.conf
