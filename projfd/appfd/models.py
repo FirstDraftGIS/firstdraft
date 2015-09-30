@@ -13,6 +13,15 @@ class Alert(Model):
     def __str__(self):
         return self.text
 
+class AlternateName(Model):
+    geonameid = IntegerField(db_index=True)
+    isolanguage = CharField(max_length=7, null=True, blank=True)
+    alternate_name = CharField(max_length=200, null=True, blank=True, db_index=True)
+    isPreferredName = CharField(max_length=1, null=True, blank=True)
+    isShortName = CharField(max_length=1, null=True, blank=True)
+    isColloquial = CharField(max_length=1, null=True, blank=True)
+    isHistoric = CharField(max_length=1, null=True, blank=True)
+
 class Calls(Model):
     date = DateField()
     total = IntegerField(default=0)
