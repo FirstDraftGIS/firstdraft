@@ -4,6 +4,7 @@ djangorestframework
 django-extensions
 django-filter
 django-guardian
+django-sendfile
 fabric
 fabric-virtualenv
 fabvenv
@@ -13,6 +14,7 @@ markdown
 mod_wsgi
 nltk
 numpy
+openpyxl
 pillow
 psycopg2
 python-dateutil
