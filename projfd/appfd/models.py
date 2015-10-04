@@ -39,9 +39,8 @@ class Activation(Model):
         return str(self.key[:10]) + "..."
 
 class Alias(Model):
-    alias = CharField(max_length=200, null=True, blank=True)
-    entered = DateTimeField(auto_now_add=True)
-    language = CharField(max_length=7)
+    alias = CharField(max_length=200, null=True, blank=True, db_index=True)
+    language = CharField(max_length=7, null=True, blank=True, db_index=True)
     def __str__(self):
         return self.alias.encode("utf-8")
     class Meta:

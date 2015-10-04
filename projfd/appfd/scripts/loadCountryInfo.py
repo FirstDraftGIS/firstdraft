@@ -18,8 +18,8 @@ def run():
                     line_split = line.split("\t")
                     geonameid = line_split[16]
                     place = Place.objects.get(geonameid=geonameid)
-                    print "place is", trim_location(place.name)
                     place.admin_level = 0
+                    place.name = trim_location(place.name)
                     place.save()
                 except Exception as e:
                     print e

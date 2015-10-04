@@ -3,8 +3,9 @@ from appfd.forms import *
 from appfd.models import *
 from appfd.scripts import excel, resolve, tables
 from appfd.scripts.excel import *
-from bnlp import getLocationsFromEnglishText
+from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
 import csv
+from datetime import datetime
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -28,7 +29,7 @@ from openpyxl import load_workbook
 from operator import itemgetter
 from os import listdir, mkdir, remove
 from os.path import isfile
-import datetime, geojson, json, requests, StringIO, sys, zipfile
+import geojson, json, requests, StringIO, sys, zipfile
 from geojson import Feature, FeatureCollection, MultiPolygon, Point
 import geojson
 from json import dumps, loads
@@ -76,9 +77,9 @@ def activate(request, key):
             print "activation has expired"
         else:
             print "activation hadn't expired as of last check"
-            print "today is", datetime.datetime.now()
+            print "today is", datetime.now()
             print "date of activation key is", activation.created
-            difference = (datetime.datetime.now() - activation.created.replace(tzinfo=None)).days
+            difference = (datetime.now() - activation.created.replace(tzinfo=None)).days
             print "difference is", difference
             if difference > 7:
                 print "activation has timed out and expired"
@@ -318,20 +319,35 @@ def team(request):
 
 def create(job):
     print "starting create with", job
-    places = []
-    for location in getLocationsFromEnglishText(job['data']):
-        if len(location) > 1:
-            place = resolve.resolve(location)
-            if place and place not in places:
-                places.append(place)
 
-    print "places are", places
-    serialized = serialize('geojson', places, geometry_field='point', fields=('geonameid', 'name','point',))
+    key = job['key']
+
+    features = []
+    for obj in getLocationsAndDatesFromEnglishText(job['data']):
+        properties = obj
+        location = obj['location']
+        place = resolve.resolve(location)
+        if place:
+            properties['geonameid'] = place.geonameid
+            if place:
+                point = place.point
+                geometry = Point((point.x,point.y))
+            if 'date' in properties:
+                date = properties['date']
+                if isinstance(date, datetime):
+                    properties['start_time'] = properties['end_time'] = properties['date'] = date.strftime("%y-%m-%d")
+                    properties['date_pretty'] = date.strftime("%m/%d/%y")
+            feature = Feature(geometry=geometry, properties=properties)
+            features.append(feature)
+
+    print "features are", features
+    featureCollection = FeatureCollection(features)
+    serialized = geojson.dumps(featureCollection, sort_keys=True)
 
     # make directory to store files
-    directory = "/home/usrfd/maps/" + job['key'] + "/"
+    directory = "/home/usrfd/maps/" + key + "/"
     mkdir(directory)
-    with open(directory + "job.geojson", "wb") as f:
+    with open(directory + key + ".geojson", "wb") as f:
         f.write(serialized)
 
 def create_map_from_link(job):

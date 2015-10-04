@@ -1,4 +1,5 @@
 from appfd.models import *
+from django.db.models import Q
 
 # takes in a location as input text and returns the location
 def resolve(text):
@@ -12,11 +13,8 @@ def resolve(text):
         count = locations.count()
 
         if count == 0:
-
-            """
             print "count is 0"
-            locations = Place.objects.filter(name__icontains=text).order_by('-population')
-            print "locations icontains are", locations
+            locations = Place.objects.filter(aliases__alias=text).order_by('admin_level','-population')
             count = locations.count()
             if count == 0:
                 print "count is still 0"
@@ -26,9 +24,7 @@ def resolve(text):
             else:
                 print "count > 0"
                 return locations[0]
-            """
-            return None
-                
+
         elif count == 1:
             print "count is 1 so returning", locations[0]
             return locations[0]
@@ -40,4 +36,4 @@ def resolve(text):
 
 def run(text=None):
     print "running resolve with ", text
-    resolve(text=text)
+    print "resolved", resolve(text=text)

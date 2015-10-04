@@ -1,4 +1,5 @@
 app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$element', '$interval', function($scope, $http, $window, $compile, $element, $interval) {
+    console.log("starting ViewController");
 
     $scope.flipCoordinates = function(obj){
         console.log('statrintg filpcoords with', obj);
@@ -39,16 +40,28 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
 
         function onEachFeature(feature, layer)
         {
-            try
-            {
-                layer.bindPopup(feature.properties.name);
-            }
-            catch(err){console.log("err is", err);}
+            try{
+            properties = feature.properties;
+            console.log("properties are", properties);
+            var popup_html = "";
+            popup_html += "<h3>" + (properties.name || properties.location);
+            if (properties.date_pretty) popup_html += " (" + properties.date_pretty + ")";
+            popup_html += "</h3>";
+            if(properties['context']) popup_html += "<p>" + properties.context + "</p>";
+            console.log("popup_html is", popup_html);
+            layer.bindPopup(popup_html);
+            }catch(err){console.error("err is", err);}
         }
+        console.log("onEachFeature is", onEachFeature);
 
         var mainLayer = L.geoJson(undefined,{onEachFeature:onEachFeature, style:mainLayerStyle});
         var featureGroup = L.featureGroup([mainLayer]);
         featureGroup.addTo(map);
+
+       //var sliderControl = L.control.sliderControl({position: "topright", layer: mainLayer});
+       //map.addControl(sliderControl);
+
+
         map.setView([0,0],1);
  
 
@@ -70,6 +83,7 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
                     setTimeout(function(){
                         map.invalidateSize();
                         window.scrollTo(0,400);
+                        sliderControl.startSlider();
                     },100);
                 }
             });

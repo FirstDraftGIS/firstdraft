@@ -1,0 +1,252 @@
+Principality of Andorra  -->  Andorra
+United Arab Emirates  -->  United Arab Emirates
+Islamic Republic of Afghanistan  -->  Afghanistan
+Antigua and Barbuda  -->  Antigua and Barbuda
+Anguilla  -->  Anguilla
+Republic of Albania  -->  Albania
+Republic of Armenia  -->  Armenia
+Republic of Angola  -->  Angola
+Antarctica  -->  Antarctica
+Argentine Republic  -->  Argentina
+American Samoa, Territory of  -->  United States
+Republic of Austria  -->  Austria
+Commonwealth of Australia  -->  Australia
+Aruba  -->  Aruba
+Ahvenanmaan LÃ¤Ã¤ni  -->  Ahvenanmaan LÃ¤Ã¤ni
+Republic of Azerbaijan  -->  Azerbaijan
+Bosnia and Herzegovina  -->  Bosnia and Herzegovina
+Barbados  -->  Barbados
+Bangladesh  -->  Bangladesh
+Kingdom of Belgium  -->  Belgium
+Burkina Faso  -->  Burkina Faso
+Republic of Bulgaria  -->  Bulgaria
+Kingdom of Bahrain  -->  Bahrain
+Republic of Burundi  -->  Burundi
+Republic of Benin  -->  Benin
+Saint-BarthÃ©lemy  -->  Saint-BarthÃ©lemy
+Bermuda  -->  Bermuda
+Brunei Darussalam  -->  Brunei Darussalam
+Plurinational State of Bolivia  -->  Bolivia
+Bonaire, Saint Eustatius and Saba  -->  Saba
+Federative Republic of Brazil  -->  Brazil
+Commonwealth of The Bahamas  -->  Bahamas
+Kingdom of Bhutan  -->  Bhutan
+Bouvet Island  -->  Bouvet Island
+Republic of Botswana  -->  Botswana
+Republic of Belarus  -->  Belarus
+Belize  -->  Belize
+Canada  -->  Canada
+Territory of Cocos (Keeling) Islands  -->  Cocos (Keeling) Islands
+Democratic Republic of the Congo  -->  Congo
+Central African Republic  -->  Central African Republic
+Republic of the Congo  -->  Congo
+Switzerland  -->  Switzerland
+Republic of CÃ´te dâIvoire  -->  CÃ´te dâIvoire
+Cook Islands  -->  Cook Islands
+Republic of Chile  -->  Chile
+Republic of Cameroon  -->  Cameroon
+Peopleâs Republic of China  -->  China
+Republic of Colombia  -->  Colombia
+Republic of Costa Rica  -->  Costa Rica
+Republic of Cuba  -->  Cuba
+Republic of Cabo Verde  -->  Cabo Verde
+Country of CuraÃ§ao  -->  CuraÃ§ao
+Territory of Christmas Island  -->  Christmas Island
+Republic of Cyprus  -->  Cyprus
+Czech Republic  -->  Czech Republic
+Federal Republic of Germany  -->  Germany
+Republic of Djibouti  -->  Djibouti
+Kingdom of Denmark  -->  Denmark
+Dominica  -->  Dominica
+Dominican Republic  -->  Dominican Republic
+Peopleâs Democratic Republic of Algeria  -->  Algeria
+Republic of Ecuador  -->  Ecuador
+Republic of Estonia  -->  Estonia
+Arab Republic of Egypt  -->  Egypt
+Western Sahara  -->  Western Sahara
+State of Eritrea  -->  Eritrea
+Kingdom of Spain  -->  Spain
+Federal Democratic Republic of Ethiopia  -->  Ethiopia
+Republic of Finland  -->  Finland
+Republic of Fiji  -->  Fiji
+Falkland Islands (Islas Malvinas)  -->  Falkland Islands (Islas Malvinas)
+Federated States of Micronesia  -->  Micronesia
+Faroe Islands  -->  Faroe Islands
+Republic of France  -->  France
+Gabonese Republic  -->  Gabon
+United Kingdom of Great Britain and Northern Ireland  -->  Great Britain and Northern Ireland
+Grenada  -->  Grenada
+Georgia  -->  Georgia
+Guyane  -->  Guyane
+Bailiwick of Guernsey  -->  Guernsey
+Republic of Ghana  -->  Ghana
+Gibraltar  -->  Gibraltar
+Greenland  -->  Greenland
+Gambia  -->  Gambia
+Republic of Guinea  -->  Guinea
+Guadeloupe  -->  Guadeloupe
+Republic of Equatorial Guinea  -->  Equatorial Guinea
+Hellenic Republic  -->  Greece
+South Georgia and the South Sandwich Islands  -->  South Georgia and the South Sandwich Islands
+Republic of Guatemala  -->  Guatemala
+Guam  -->  Guam
+Republic of Guinea-Bissau  -->  Guinea-Bissau
+Co-operative Republic of Guyana  -->  Guyana
+Hong Kong Special Administrative Region  -->  Hong Kong Special Administrative Region
+Territory of Heard Island and McDonald Islands  -->  Heard Island and McDonald Islands
+Republic of Honduras  -->  Honduras
+Republic of Croatia  -->  Croatia
+Republic of Haiti  -->  Haiti
+Hungary  -->  Hungary
+Republic of Indonesia  -->  Indonesia
+Ireland  -->  Ireland
+State of Israel  -->  Israel
+Isle of Man  -->  Man
+Republic of India  -->  India
+British Indian Ocean Territory  -->  Wales
+Republic of Iraq  -->  Iraq
+Islamic Republic of Iran  -->  Iran
+Republic of Iceland  -->  Iceland
+Repubblica Italiana  -->  Repubblica Italiana
+Bailiwick of Jersey  -->  Jersey
+Jamaica  -->  Jamaica
+Hashemite Kingdom of Jordan  -->  Jordan
+Japan  -->  Japan
+Republic of Kenya  -->  Kenya
+Kyrgyz Republic  -->  Kyrgyzstan
+Kingdom of Cambodia  -->  Cambodia
+Republic of Kiribati  -->  Kiribati
+Union of the Comoros  -->  Comoros
+Federation of Saint Kitts and Nevis  -->  Saint Kitts and Nevis
+Democratic Peopleâs Republic of Korea  -->  Korea
+Republic of Korea  -->  Korea
+Republic of Kosovo  -->  Kosovo
+State of Kuwait  -->  Kuwait
+Cayman Islands  -->  Cayman Islands
+Republic of Kazakhstan  -->  Kazakhstan
+Lao Peopleâs Democratic Republic  -->  Laos
+Lebanon  -->  Lebanon
+Saint Lucia  -->  Saint Lucia
+Principality of Liechtenstein  -->  Liechtenstein
+Democratic Socialist Republic of Sri Lanka  -->  Sri Lanka
+Republic of Liberia  -->  Liberia
+Kingdom of Lesotho  -->  Lesotho
+Republic of Lithuania  -->  Lithuania
+Grand Duchy of Luxembourg  -->  Luxembourg
+Republic of Latvia  -->  Latvia
+Libya  -->  Libya
+Kingdom of Morocco  -->  Morocco
+Principality of Monaco  -->  Monaco
+Republic of Moldova  -->  Moldova
+Montenegro  -->  Montenegro
+Saint-Martin  -->  Saint-Martin
+Republic of Madagascar  -->  Madagascar
+Republic of the Marshall Islands  -->  Marshall Islands
+Republic of Macedonia  -->  Macedonia
+Republic of Mali  -->  Mali
+Union of Burma  -->  Burma
+Mongolia  -->  Mongolia
+Macau Special Administrative Region  -->  Macau Special Administrative Region
+Commonwealth of the Northern Mariana Islands  -->  Northern Mariana Islands
+Martinique  -->  Martinique
+Islamic Republic of Mauritania  -->  Mauritania
+Montserrat  -->  Montserrat
+Republic of Malta  -->  Malta
+Republic of Mauritius  -->  Mauritius
+Republic of Maldives  -->  Maldives
+Republic of Malawi  -->  Malawi
+Mexico  -->  Mexico
+Malaysia  -->  Malaysia
+Republic of Mozambique  -->  Mozambique
+Republic of Namibia  -->  Namibia
+Nouvelle-CalÃ©donie  -->  Nouvelle-CalÃ©donie
+Republic of Niger  -->  Niger
+Territory of Norfolk Island  -->  Norfolk Island
+Federal Republic of Nigeria  -->  Nigeria
+Republic of Nicaragua  -->  Nicaragua
+Kingdom of the Netherlands  -->  Netherlands
+Kingdom of Norway  -->  Norway
+Federal Democratic Republic of Nepal  -->  Nepal
+Nauru  -->  Nauru
+Niue  -->  Niue
+New Zealand  -->  New Zealand
+Sultanate of Oman  -->  Oman
+Republic of Panama  -->  Panama
+Republic of Peru  -->  Peru
+PolynÃ©sie FranÃ§aise  -->  PolynÃ©sie FranÃ§aise
+Independent State of Papua New Guinea  -->  Papua New Guinea
+Republic of the Philippines  -->  Philippines
+Islamic Republic of Pakistan  -->  Pakistan
+Republic of Poland  -->  Poland
+Saint-Pierre et Miquelon  -->  Saint-Pierre et Miquelon
+Pitcairn, Henderson, Ducie and Oeno Islands  -->  Pitcairn, Henderson, Ducie and Oeno Islands
+Puerto Rico  -->  Puerto Rico
+Palestine  -->  Palestine
+Portuguese Republic  -->  Portugal
+Republic of Palau  -->  Palau
+Republic of Paraguay  -->  Paraguay
+State of Qatar  -->  Qatar
+Reunion  -->  Reunion
+RomÃ¢nia  -->  RomÃ¢nia
+Serbia  -->  Serbia
+Russian Federation  -->  Russia
+Republic of Rwanda  -->  Rwanda
+Kingdom of Saudi Arabia  -->  Saudi Arabia
+Solomon Islands  -->  Solomon Islands
+Republic of Seychelles  -->  Seychelles
+Republic of the Sudan  -->  Sudan
+South Sudan  -->  South Sudan
+Kingdom of Sweden  -->  Sweden
+Republic of Singapore  -->  Singapore
+Saint Helena, Ascension, and Tristan da Cunha  -->  Saint Helena, Ascension, and Tristan da Cunha
+Republic of Slovenia  -->  Slovenia
+Svalbard and Jan Mayen  -->  Svalbard
+Slovak Republic  -->  Slovakia
+Republic of Sierra Leone  -->  Sierra Leone
+Repubblica di San Marino  -->  Repubblica di San Marino
+Republic of Senegal  -->  Senegal
+Somalia  -->  Somalia
+Republic of Suriname  -->  Suriname
+Sao Tome and Principe  -->  Sao Tome and Principe
+Republic of El Salvador  -->  El Salvador
+Sint Maarten  -->  Sint Maarten
+Syrian Arab Republic  -->  Syria
+Kingdom of Swaziland  -->  Swaziland
+Turks and Caicos Islands  -->  Turkey
+Republic of Chad  -->  Chad
+Territory of the French Southern and Antarctic Lands  -->  French Southern Territories
+Togolese Republic  -->  Togo
+Kingdom of Thailand  -->  Thailand
+Republic of Tajikistan  -->  Tajikistan
+Tokelau  -->  Tokelau
+Democratic Republic of Timor-Leste  -->  Timor-Leste
+Turkmenistan  -->  Turkmenistan
+Republic of Tunisia  -->  Tunisia
+Kingdom of Tonga  -->  Tonga
+Republic of Turkey  -->  Turkey
+Republic of Trinidad and Tobago  -->  Trinidad and Tobago
+Tuvalu  -->  Tuvalu
+Taiwan  -->  Taiwan
+United Republic of Tanzania  -->  Tanzania
+Ukraine  -->  Ukraine
+Republic of Uganda  -->  Uganda
+United States Minor Outlying Islands  -->  United States Minor Outlying Islands
+United States  -->  United States
+Oriental Republic of Uruguay  -->  Uruguay
+Republic of Uzbekistan  -->  Uzbekistan
+State of the Vatican City  -->  Vatican City State
+Saint Vincent and the Grenadines  -->  Saint Vincent and the Grenadines
+Bolivarian Republic of Venezuela  -->  Venezuela
+British Virgin Islands  -->  Wales
+Virgin Islands of the United States  -->  United States
+Socialist Republic of Vietnam  -->  Vietnam
+Republic of Vanuatu  -->  Vanuatu
+Wallis et Futuna  -->  Wallis et Futuna
+Independent State of Samoa  -->  Samoa
+Republic of Yemen  -->  Yemen
+Mayotte  -->  Mayotte
+Republic of South Africa  -->  South Africa
+Republic of Zambia  -->  Zambia
+Republic of Zimbabwe  -->  Zimbabwe
+invalid literal for int() with base 10: ''
+invalid literal for int() with base 10: ''
