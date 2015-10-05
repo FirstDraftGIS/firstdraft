@@ -347,8 +347,12 @@ def create(job):
     # make directory to store files
     directory = "/home/usrfd/maps/" + key + "/"
     mkdir(directory)
-    with open(directory + key + ".geojson", "wb") as f:
+
+    path_to_geojson = directory + key + ".geojson"
+    with open(path_to_geojson, "wb") as f:
         f.write(serialized)
+
+    create_shapefile_from_geojson(path_to_geojson)
 
 def create_map_from_link(job):
     print "starting create with", job
@@ -374,46 +378,66 @@ def create_map_from_link(job):
     # save text to file
     with open(directory + filename, "wb") as f:
         f.write(text.encode('utf-8'))
+
+    features = []
+    for obj in getLocationsAndDatesFromEnglishText(text):
+        properties = obj
+        location = obj['location']
+        place = resolve.resolve(location)
+        if place:
+            properties['geonameid'] = place.geonameid
+            point = place.point
+            geometry = Point((point.x,point.y))
+        if 'date' in properties:
+            date = properties['date']
+            if instance(date, datetime):
+                properties['start_time'] = properties['end_time'] = properties['date'] = date.strftime('%y-%m-%d')
+                properties['date_pretty'] = date.strftime('%m/%d/%y')
+        feature = Feature(geometry=geometry, properties=properties)
+        features.append(feature)
+
+    print "features are", features
+    featureCollection = FeatureCollection(features)
+    serialized = geojson.dumps(featureCollection, sort_keys=True)
  
-    places = []
-    for location in getLocationsFromEnglishText(text):
-
-        #making sure we don't try to resolve single letters like U
-        if len(location) > 1:
-            place = resolve.resolve(location)
-            if place and place not in places:
-                places.append(place)
-
-    print "places are", places
-    serialized = serialize('geojson', places, geometry_field='point', fields=('geonameid', 'name','point',))
-
     # make directory to store files
     path_to_geojson = directory + key + ".geojson"
     with open(path_to_geojson, "wb") as f:
         f.write(serialized)
 
-    call(['ogr2ogr','-f','ESRI Shapefile',directory+key+'.shp',path_to_geojson])
+    create_shapefile_from_geojson(path_to_geojson)
 
+def create_shapefile_from_geojson(path_to_geojson):
+    try:
+        print "starting create_shapefile_from_geojson"
 
-    path_to_dbf = directory + key + ".dbf"
-    print "path_to_dbf is", path_to_dbf 
-    path_to_prj = directory + key + ".prj"
-    print "path_to_prj is", path_to_prj 
-    path_to_shx = directory + key + ".shx"
-    print "path_to_shx is", path_to_shx 
-    path_to_shp = directory + key + ".shp"
-    print "path_to_shp is", path_to_shp 
-    path_to_zip = directory + key + ".zip"
-    print "path_to_zip is", path_to_zip 
-    call(['zip',key+".zip",key+'.dbf',key+'.prj',key+'.shx',key+'.shp'],cwd=directory)
+        cwd = '/'.join(path_to_geojson.split('/')[0:-1]) + '/'
 
-    # remove leftover shapefile parts
-    remove(path_to_dbf)
-    remove(path_to_prj)
-    remove(path_to_shx)
-    remove(path_to_shp)
+        x = path_to_geojson.replace("geojson","")
+        path_to_zip = x + 'zip'
+        path_to_dbf = x + 'dbf'
+        path_to_prj = x + 'prj'
+        path_to_shx = x + 'shx'
+        path_to_shp = x + 'shp'
 
+        print "path_to_geojson is", path_to_geojson
+        print "path_to_shp is", path_to_shp
 
+        call(['ogr2ogr','-f','ESRI Shapefile', path_to_shp, path_to_geojson])
+        try:
+            print 'zip ' + path_to_zip + ' ' + path_to_dbf + ' ' + path_to_prj + ' ' + path_to_shx + ' ' + path_to_shp
+            call(['zip', path_to_zip, path_to_dbf, path_to_prj, path_to_shx, path_to_shp], cwd=cwd)
+        except Exception as e:
+            print "ERROR X", e
+
+        # remove leftover shapefile parts
+        remove(path_to_dbf)
+        remove(path_to_prj)
+        remove(path_to_shx)
+        remove(path_to_shp)
+    except Exception as e:
+        print '\nERROR in create_shapefile_from_geojson', e,'\n'
+   
 
 def create_map_from_link_to_file(job):
     print "starting create_from_file with", job
