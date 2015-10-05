@@ -335,8 +335,11 @@ def create(job):
             if 'date' in properties:
                 date = properties['date']
                 if isinstance(date, datetime):
-                    properties['start_time'] = properties['end_time'] = properties['date'] = date.strftime("%y-%m-%d")
-                    properties['date_pretty'] = date.strftime("%m/%d/%y")
+                    if date.year >= 1900:
+                        properties['start_time'] = properties['end_time'] = properties['date'] = date.strftime('%y-%m-%d')
+                        properties['date_pretty'] = date.strftime('%m/%d/%y')
+                    else:
+                        properties['date'] = None
             feature = Feature(geometry=geometry, properties=properties)
             features.append(feature)
 
@@ -390,9 +393,12 @@ def create_map_from_link(job):
             geometry = Point((point.x,point.y))
         if 'date' in properties:
             date = properties['date']
-            if instance(date, datetime):
-                properties['start_time'] = properties['end_time'] = properties['date'] = date.strftime('%y-%m-%d')
-                properties['date_pretty'] = date.strftime('%m/%d/%y')
+            if isinstance(date, datetime):
+                if date.year >= 1900:
+                    properties['start_time'] = properties['end_time'] = properties['date'] = date.strftime('%y-%m-%d')
+                    properties['date_pretty'] = date.strftime('%m/%d/%y')
+                else:
+                    properties['date'] = None
         feature = Feature(geometry=geometry, properties=properties)
         features.append(feature)
 
@@ -413,28 +419,28 @@ def create_shapefile_from_geojson(path_to_geojson):
 
         cwd = '/'.join(path_to_geojson.split('/')[0:-1]) + '/'
 
-        x = path_to_geojson.replace("geojson","")
-        path_to_zip = x + 'zip'
-        path_to_dbf = x + 'dbf'
-        path_to_prj = x + 'prj'
-        path_to_shx = x + 'shx'
-        path_to_shp = x + 'shp'
+        filename_base = path_to_geojson.split("/")[-1].split(".")[0]
+        filename_zip = filename_base + '.zip'
+        filename_dbf = filename_base + '.dbf'
+        filename_prj = filename_base + '.prj'
+        filename_shx = filename_base + '.shx'
+        filename_shp = filename_base + '.shp'
+        path_to_shp = cwd + filename_shp
 
         print "path_to_geojson is", path_to_geojson
-        print "path_to_shp is", path_to_shp
 
         call(['ogr2ogr','-f','ESRI Shapefile', path_to_shp, path_to_geojson])
         try:
-            print 'zip ' + path_to_zip + ' ' + path_to_dbf + ' ' + path_to_prj + ' ' + path_to_shx + ' ' + path_to_shp
-            call(['zip', path_to_zip, path_to_dbf, path_to_prj, path_to_shx, path_to_shp], cwd=cwd)
+            call(['zip', filename_zip, filename_dbf, filename_prj, filename_shx, filename_shp], cwd=cwd)
         except Exception as e:
             print "ERROR X", e
 
         # remove leftover shapefile parts
-        remove(path_to_dbf)
-        remove(path_to_prj)
-        remove(path_to_shx)
-        remove(path_to_shp)
+        remove(cwd+filename_dbf)
+        remove(cwd+filename_prj)
+        remove(cwd+filename_shx)
+        remove(cwd+filename_shp)
+
     except Exception as e:
         print '\nERROR in create_shapefile_from_geojson', e,'\n'
    
