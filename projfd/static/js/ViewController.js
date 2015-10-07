@@ -43,11 +43,12 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
             try{
             properties = feature.properties;
             console.log("properties are", properties);
-            var popup_html = "";
+            var popup_html = "<div style='max-height: 250px; overflow-y: auto;'>";
             popup_html += "<h3>" + (properties.name || properties.location);
             if (properties.date_pretty) popup_html += " (" + properties.date_pretty + ")";
             popup_html += "</h3>";
             if(properties['context']) popup_html += "<p>" + properties.context + "</p>";
+            popup_html += "</div>";
             console.log("popup_html is", popup_html);
             layer.bindPopup(popup_html);
             }catch(err){console.error("err is", err);}

@@ -3,6 +3,7 @@ from appfd.forms import *
 from appfd.models import *
 from appfd.scripts import excel, resolve, tables
 from appfd.scripts.excel import *
+from bnlp import clean as bnlp_clean
 from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
 import csv
 from datetime import datetime
@@ -375,7 +376,7 @@ def create_map_from_link(job):
     if not link.startswith("http"):
         print "we assume that the user didn't include the protocol"
         link = "http://" + link
-    text = get(link).text
+    text = bnlp_clean(get(link).text)
  
 
     # save text to file
@@ -391,16 +392,16 @@ def create_map_from_link(job):
             properties['geonameid'] = place.geonameid
             point = place.point
             geometry = Point((point.x,point.y))
-        if 'date' in properties:
-            date = properties['date']
-            if isinstance(date, datetime):
-                if date.year >= 1900:
-                    properties['start_time'] = properties['end_time'] = properties['date'] = date.strftime('%y-%m-%d')
-                    properties['date_pretty'] = date.strftime('%m/%d/%y')
-                else:
-                    properties['date'] = None
-        feature = Feature(geometry=geometry, properties=properties)
-        features.append(feature)
+            if 'date' in properties:
+                date = properties['date']
+                if isinstance(date, datetime):
+                    if date.year >= 1900:
+                        properties['start_time'] = properties['end_time'] = properties['date'] = date.strftime('%y-%m-%d')
+                        properties['date_pretty'] = date.strftime('%m/%d/%y')
+                    else:
+                        properties['date'] = None
+            feature = Feature(geometry=geometry, properties=properties)
+            features.append(feature)
 
     print "features are", features
     featureCollection = FeatureCollection(features)
