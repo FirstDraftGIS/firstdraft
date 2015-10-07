@@ -5,6 +5,7 @@ from appfd.scripts import excel, resolve, tables
 from appfd.scripts.excel import *
 from bnlp import clean as bnlp_clean
 from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
+from bscrp import getRandomUserAgentString
 import csv
 from datetime import datetime
 from django.conf import settings
@@ -376,7 +377,9 @@ def create_map_from_link(job):
     if not link.startswith("http"):
         print "we assume that the user didn't include the protocol"
         link = "http://" + link
-    text = bnlp_clean(get(link).text)
+
+    headers = {"User-Agent": getRandomUserAgentString()}
+    text = bnlp_clean(get(link, headers=headers).text)
  
 
     # save text to file

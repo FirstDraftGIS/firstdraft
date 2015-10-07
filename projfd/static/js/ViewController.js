@@ -68,26 +68,35 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
 
         $scope.stop = function(){$interval.cancel(promise);};
 
+        var number_of_attempts_to_get_map = 0;
         var promise = $interval( function(){
-            $http.get('/get_map/' + $scope.$parent.job + '/geojson').then(function(response) {
-                console.log("got map", response);
-                if (response.data)
-                {
-                    $scope.stop();
-                    mainLayer.addData(response.data);
-                    //map.fitBounds(featureGroup.getBounds());
-                    console.log('mainLayer is', mainLayer);
-                    //console.log('featureGroup is', featureGroup.getBounds());
-                    $scope.$parent.show_downloads = true;
-                    map.setView([0,0],1);
-                    $scope.show_map = true;
-                    setTimeout(function(){
-                        map.invalidateSize();
-                        window.scrollTo(0,400);
-                        sliderControl.startSlider();
-                    },100);
-                }
-            });
+            number_of_attempts_to_get_map++;
+            if (number_of_attempts_to_get_map > 30)
+            {
+                $scope.stop();
+            }
+            else
+            {
+                $http.get('/get_map/' + $scope.$parent.job + '/geojson').then(function(response) {
+                    console.log("got map", response);
+                    if (response.data)
+                    {
+                        $scope.stop();
+                        mainLayer.addData(response.data);
+                        //map.fitBounds(featureGroup.getBounds());
+                        console.log('mainLayer is', mainLayer);
+                        //console.log('featureGroup is', featureGroup.getBounds());
+                        $scope.$parent.show_downloads = true;
+                        map.setView([0,0],1);
+                        $scope.show_map = true;
+                        setTimeout(function(){
+                            map.invalidateSize();
+                            window.scrollTo(0,400);
+                            sliderControl.startSlider();
+                        },100);
+                    }
+                });
+            }
         }, 2000);
 
     };
