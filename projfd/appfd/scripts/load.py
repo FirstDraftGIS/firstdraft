@@ -302,18 +302,19 @@ def run(path):
         print "for path_to_shp", path_to_shp
         #raw_input()
 
-        if "adm1" in path:
+        if "adm1" in path_to_shp:
             admin_level = 1
-        elif "adm2" in path:
+        elif "adm2" in path_to_shp:
             admin_level = 2
-        elif "adm3" in path:
+        elif "adm3" in path_to_shp:
             admin_level = 3
-        elif "adm4" in path:
+        elif "adm4" in path_to_shp:
             admin_level = 4
-        elif "adm5" in path:
+        elif "adm5" in path_to_shp:
             admin_level = 5
 
-
+        print "admin_level is", admin_level
+        #raw_input()
         ds = DataSource(path_to_shp)
         print "ds is", ds
         print "dir(ds) = ", dir(ds)
