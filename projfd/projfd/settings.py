@@ -134,11 +134,11 @@ USE_TZ = True
 STATIC_ROOT = "/home/usrfd/firstdraft/projfd/static/"
 
 #  if computer name starts with ip, indicating on aws, then use static directory hosted by apache
-if check_output(['uname','-n']).startswith("ip"):
-    STATIC_URL = 'http://dev.firstdraftgis.com/static/'
-else:
-    STATIC_URL = '/static/'
-#STATIC_URL = '/static/'
+#if check_output(['uname','-n']).startswith("ip"):
+#    STATIC_URL = 'http://firstdraftgis.com/static/'
+#else:
+#    STATIC_URL = '/static/'
+STATIC_URL = '/static/'
 
 DEFAULT_CHARSET = 'utf-8'
 FILE_CHARSET = 'utf-8'
