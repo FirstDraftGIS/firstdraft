@@ -6,6 +6,7 @@ from appfd.scripts.excel import *
 from bnlp import clean as bnlp_clean
 from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
 from bscrp import getRandomUserAgentString
+from collections import Counter
 import csv
 from datetime import datetime
 from django.conf import settings
@@ -25,6 +26,7 @@ from django.template.defaultfilters import slugify
 from django.utils.crypto import get_random_string
 from django.views.decorators.csrf import csrf_protect
 from itertools import groupby, islice
+from location_extractor import *
 from magic import from_file
 from multiprocessing import Process
 from openpyxl import load_workbook
@@ -36,6 +38,7 @@ from geojson import Feature, FeatureCollection, MultiPolygon, Point
 import geojson
 from json import dumps, loads
 from requests import get
+from appfd.scripts.resolve import *
 from sendfile import sendfile
 from subprocess import call, check_output
 from urllib import quote, quote_plus, urlretrieve
@@ -324,28 +327,7 @@ def create(job):
 
     key = job['key']
 
-    features = []
-    for obj in getLocationsAndDatesFromEnglishText(job['data']):
-        properties = obj
-        location = obj['location']
-        place = resolve.resolve(location)
-        if place:
-            properties['geonameid'] = place.geonameid
-            if place:
-                point = place.point
-                geometry = Point((point.x,point.y))
-            if 'date' in properties:
-                date = properties['date']
-                if isinstance(date, datetime):
-                    if date.year >= 1900:
-                        properties['start_time'] = properties['end_time'] = properties['date'] = date.strftime('%y-%m-%d')
-                        properties['date_pretty'] = date.strftime('%m/%d/%y')
-                    else:
-                        properties['date'] = None
-            feature = Feature(geometry=geometry, properties=properties)
-            features.append(feature)
-
-    print "features are", features
+    features = resolve_locations(extract_locations_with_context(text))
     featureCollection = FeatureCollection(features)
     serialized = geojson.dumps(featureCollection, sort_keys=True)
 
@@ -360,7 +342,7 @@ def create(job):
     create_shapefile_from_geojson(path_to_geojson)
 
 def create_map_from_link(job):
-    print "starting create with", job
+    print "starting create_map_from_link with", job
 
     key = job['key']
 
@@ -386,27 +368,8 @@ def create_map_from_link(job):
     with open(directory + filename, "wb") as f:
         f.write(text.encode('utf-8'))
 
-    features = []
-    for obj in getLocationsAndDatesFromEnglishText(text):
-        properties = obj
-        location = obj['location']
-        place = resolve.resolve(location)
-        if place:
-            properties['geonameid'] = place.geonameid
-            point = place.point
-            geometry = Point((point.x,point.y))
-            if 'date' in properties:
-                date = properties['date']
-                if isinstance(date, datetime):
-                    if date.year >= 1900:
-                        properties['start_time'] = properties['end_time'] = properties['date'] = date.strftime('%y-%m-%d')
-                        properties['date_pretty'] = date.strftime('%m/%d/%y')
-                    else:
-                        properties['date'] = None
-            feature = Feature(geometry=geometry, properties=properties)
-            features.append(feature)
+    features = resolve_locations(extract_locations_with_context(text))
 
-    print "features are", features
     featureCollection = FeatureCollection(features)
     serialized = geojson.dumps(featureCollection, sort_keys=True)
  
