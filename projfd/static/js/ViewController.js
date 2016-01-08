@@ -47,10 +47,11 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
             popup_html += "<h3>" + (properties.name || properties.location);
             if (properties.date_pretty) popup_html += " (" + properties.date_pretty + ")";
             popup_html += "</h3>";
-            if(properties['admin_level']) popup_html += "<b>admin level: </b>" + properties.admin_level;
-            if(properties['pcode']) popup_html += "<b>pcode: </b>" + properties.pcode;
-            if(properties['geonameid']) popup_html += "<b>geonameid: </b>" + properties.geonameid;
-            if(properties['context']) popup_html += "<p>" + properties.context + "</p>";
+            if(properties['confidence']) popup_html += "<b>confidence: </b>" + properties.confidence + "</br>";
+            if(properties['admin_level']) popup_html += "<b>admin level: </b>" + properties.admin_level + "</br>";
+            if(properties['pcode']) popup_html += "<b>pcode: </b>" + properties.pcode + "</br>";
+            if(properties['geonameid']) popup_html += "<b>geonameid: </b>" + properties.geonameid + "</br>";
+            if(properties['context']) popup_html += "<p><b>context: </b>" + properties.context + "</p>";
             popup_html += "</div>";
             console.log("popup_html is", popup_html);
             layer.bindPopup(popup_html);

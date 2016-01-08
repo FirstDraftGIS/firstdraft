@@ -33,6 +33,7 @@ from openpyxl import load_workbook
 from operator import itemgetter
 from os import listdir, mkdir, remove
 from os.path import isfile
+from PyPDF2 import PdfFileReader
 import geojson, json, requests, StringIO, sys, zipfile
 from geojson import Feature, FeatureCollection, MultiPolygon, Point
 import geojson
@@ -342,7 +343,7 @@ def create(job):
     create_shapefile_from_geojson(path_to_geojson)
 
 def create_map_from_link(job):
-    print "starting create_map_from_link with", job
+    print "starting create_map_from_link with", job['key']
 
     key = job['key']
 
@@ -351,7 +352,7 @@ def create_map_from_link(job):
     mkdir(directory)
 
     # get url
-    link = job['link']
+    link = job['link'].strip()
 
     # get web page text
     filename = link.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
@@ -379,6 +380,8 @@ def create_map_from_link(job):
         f.write(serialized)
 
     create_shapefile_from_geojson(path_to_geojson)
+
+#    Order.objects.get(token=job['key']).finish()
 
 def create_shapefile_from_geojson(path_to_geojson):
     try:
@@ -455,6 +458,46 @@ def create_from_file(job):
     elif filename.endswith('.csv'):
         print "user uploaded a csv file!"
         create_map_from_csv(job)
+    elif filename.endswith(".pdf"):
+        print "user uploaded a pdf file!"
+        create_map_from_pdf(job)
+
+def create_map_from_pdf(job):
+    print "starting create_map_from_pdf with", job
+    directory = "/home/usrfd/maps/" + job['key'] + "/"
+    filename = job['filename']
+    file_obj = job['file']
+
+    if 'filepath' not in job:
+        # make directory to store excel file and maps
+        mkdir(directory)
+
+        filepath = directory + "/" + filename
+        print "filepath = ", filepath
+
+        # save file to disk
+        with open(filepath, 'wb+') as destination:
+            for chunk in file_obj.chunks():
+                destination.write(chunk)
+        print "wrote file"
+    else:
+        filepath = job['filepath']
+        print "filepath = ", filepath
+
+    locations = extract_locations_with_context(file_obj)
+    print "in views,  locations are", len(locations)
+    features = resolve_locations(locations)
+    print "in views, features are", len(features)
+   
+    featureCollection = FeatureCollection(features)
+    serialized = geojson.dumps(featureCollection, sort_keys=True)
+ 
+    # make directory to store files
+    path_to_geojson = directory + job['key'] + ".geojson"
+    with open(path_to_geojson, "wb") as f:
+        f.write(serialized)
+
+    create_shapefile_from_geojson(path_to_geojson)
 
 def create_map_from_csv(job):
     print "starting create_map_from_csv with", job
@@ -685,9 +728,11 @@ def start_link(request):
     print "starting start_link"
     if request.method == 'POST':
         print "request.method is post"
+        key = get_random_string(25)
+        #Order.objects.create(token=key)
         job = {
               'link': loads(request.body)['link'],
-              'key': get_random_string(25)
+              'key': key
         }
         Process(target=create_map_from_link, args=(job,)).start()
         return HttpResponse(job['key'])
