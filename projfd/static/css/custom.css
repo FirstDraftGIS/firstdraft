@@ -82,8 +82,8 @@ footer{padding: 15px;}
 
 
 .card.team{max-width: 300px; display: inline-block; height: 100px;background-color: rgb(231,207,245);}
-.card.team img{width: 50px; height: 100px; display: inline-block; position: absolute; left: 0; top: 0;}
-.card.team .right{display: inline-block; width: 200px; margin-left: 50px;}
+.card.team img{width: 100px; height: 100px; display: inline-block; position: absolute; left: 0; top: 0;}
+.card.team .right{display: inline-block; width: 200px; margin-left: 100px;}
 .card.team .right .name{color: rgb(0,0,0); font-weight: bold;}
 .card.team .right .contact a {font-size: 10pt;}
 .jumbotron{font-size: 10pt;}

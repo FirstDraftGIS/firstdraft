@@ -16,7 +16,7 @@ urlpatterns += [
     url(r'^$', views.index, name="index"),
     #url(r'about$', views.about, name='about'),
     #url(r'activate/(?P<key>[^\./]+)$', views.activate, name='activate'),
-    #url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
     #url(r'change_email$', views.change_email, name='change_email'),
     #url(r'change_password$', views.change_password, name='change_password'),
     url(r'^contact$', views.contact, name='contact'),
