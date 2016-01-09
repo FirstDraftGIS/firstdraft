@@ -4,6 +4,7 @@ from geojson import Feature, FeatureCollection, MultiPolygon, Point
 from django.db.models import Q
 from multiprocessing import *
 from random import shuffle
+from super_python import *
 from sys import exit
 from timeit import default_timer
 from time import sleep
@@ -11,15 +12,15 @@ from threading import *
 
 # takes in a list of locations and resovles them to features in the database
 def resolve_locations(locations):
-    print "starting resolve_locations with", type(locations)
-    print "locations = ", len(locations), locations[:5]
+    p("starting resolve_locations with", type(locations))
+    p("locations = ", len(locations), locations[:5])
 
     #defaults
     country_code = None
 
 
     list_of_names_of_locations = [location['name'] for location in locations]
-    print "list_of_names_of_locations", len(list_of_names_of_locations), list_of_names_of_locations[:5]
+    p("list_of_names_of_locations", len(list_of_names_of_locations), list_of_names_of_locations[:5])
 
     shuffle(list_of_names_of_locations)
     
@@ -27,7 +28,7 @@ def resolve_locations(locations):
     list_of_names_of_locations = list(set(list_of_names_of_locations))
 
     sample = list_of_names_of_locations[:10]
-    print "sample is", sample
+    p("sample is", sample)
 
     places = Place.objects.filter(name__in=sample).order_by("name","admin_level","pcode","-population").distinct("name")
     if places.count() == 0:
@@ -35,16 +36,16 @@ def resolve_locations(locations):
         places = Place.objects.filter(name__in=sample).order_by("name","admin_level","pcode","-population").distinct("name")
         
     if places.count() > 0:
-        print "places are", places
-        print "x is", [place.country_code for place in places]
+        p("places are", places)
+        p("x is", [place.country_code for place in places])
         most_common_country_code, most_common_count = Counter([place.country_code for place in places]).most_common(1)[0]
         most_common_frequency = float(most_common_count) / places.count()
-        print "most_common_country_code = ", most_common_country_code
-        print "most_common_count = ", most_common_count
+        p("most_common_country_code = ", most_common_country_code)
+        p("most_common_count = ", most_common_count)
         if most_common_country_code and most_common_frequency >= 0.5:
             country_code = most_common_country_code
 
-    print "country_code = ", country_code
+    p("country_code = ", country_code)
     d = {}
 
     base = Place.objects.order_by("name","admin_level","pcode","-population").distinct("name")
@@ -55,16 +56,16 @@ def resolve_locations(locations):
         d[place.name] = {'confidence': 'high', 'place': place}
 
     missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in d] 
-    print "missing = ", len(missing), missing[:5]
-    print "after alias", d
+    p("missing = ", len(missing), missing[:5])
+    p("after alias", d)
     if missing:
         for place in base.filter(aliases__alias__in=missing):
-            print "place via alias is", place.name
+            p("place via alias is", place.name)
             d[place.name] = {'confidence': 'medium', 'place': place}
 
         if country_code:
             missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in d] 
-            print "missing = ", len(missing), missing[:5]
+            p("missing = ", len(missing), missing[:5])
             for missing_place in missing:
                 matched = list(Place.objects.raw("""
                     WITH place_ldist as (
@@ -75,11 +76,11 @@ def resolve_locations(locations):
                     SELECT * FROM place_ldist WHERE ldistance <= 2 ORDER BY ldistance, admin_level, pcode, -1 * population;
                 """))
                 if matched:
-                    print "missing_place is", missing_place
+                    p("missing_place is", missing_place)
                     d[missing_place] = {'confidence': 'low', 'place': matched[0]}
 
-    print "d is", d
-    print "found ", len(d.keys()), "places"
+    p("d is", d)
+    p("found ", len(d.keys()), "places")
 
     features = []
     for location in locations:
@@ -105,7 +106,7 @@ def resolve_locations(locations):
             else:
                 properties['country_code'] = country_code = Place.objects.get(admin_level=0, mpoly__contains=point).country_code
                 place.update({"country_code": country_code})
-                print "set country_code to ", country_code
+                p("set country_code to ", country_code)
 
             if 'date' in location:
                 date = location['date']
@@ -117,14 +118,14 @@ def resolve_locations(locations):
             if feature:
                 features.append(feature)
 
-    print "features final are", len(features)
+    p("features final are", len(features))
 
     return features
 
 
 # takes in a location as input text and returns the location
 def resolve(text):
-    print "starting resolve with text", text
+    p("starting resolve with text", text)
 
     if text:
         #should give preference to citiesd
@@ -134,7 +135,7 @@ def resolve(text):
         count = locations.count()
 
         if count == 0:
-            print "count is 0"
+            p("count is 0")
             locations = Place.objects.filter(aliases__alias=text).order_by('admin_level','pcode','-population')
             count = locations.count()
             if count == 0:
