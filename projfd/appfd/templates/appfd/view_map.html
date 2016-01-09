@@ -13,6 +13,22 @@
         maxZoom: 18
     }).addTo(map);
 
+    var downloadBox = L.Control.extend({
+        "options": {
+            "position": "topright",
+        },
+        "onAdd": function(map) {
+            console.log("starting onAdd with", map);
+            var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+            container.style.backgroundColor = 'white';
+            container.style.width = '100px';
+            container.style.height = '85px';
+            container.innerHTML = "<div class='btn' style='padding: 5px'><b>Download</b><a href='/get_map/" + job + "/geojson' target='_blank'>GeoJSON</a><a href='/get_map/" + job + "/csv' target='_blank'>CSV</a></div>";
+            return container;
+        }
+    });
+
+    map.addControl(new downloadBox());
 
     var mainLayerStyle = {
         "color": "#ff0000",

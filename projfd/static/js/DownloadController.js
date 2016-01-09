@@ -21,6 +21,17 @@ app.controller('DownloadController', ['$scope', '$http', '$window', '$compile', 
             });
         }, 2000);
 
+        var promise_csv = $interval( function(){
+            console.log("will request",'/does_map_exist/' + $scope.$parent.job + '/csv'); 
+            $http.get('/does_map_exist/' + $scope.$parent.job + '/csv').then(function(response) {
+                console.log("got from does_map_exist", response);
+                if (response.data === "True")
+                {
+                    $scope.stop();
+                    document.getElementById("href_csv").href = $scope.href_csv = "/get_map/" + $scope.$parent.job + "/csv";
+                }
+            });
+        }, 2000);
 
     };
 

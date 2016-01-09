@@ -341,6 +341,7 @@ def create(job):
         f.write(serialized)
 
     create_shapefile_from_geojson(path_to_geojson)
+    create_csv_from_geojson(path_to_geojson)
 
 def create_map_from_link(job):
     print "starting create_map_from_link with", job['key']
@@ -380,8 +381,24 @@ def create_map_from_link(job):
         f.write(serialized)
 
     create_shapefile_from_geojson(path_to_geojson)
+    create_csv_from_geojson(path_to_geojson)
 
 #    Order.objects.get(token=job['key']).finish()
+
+def create_csv_from_geojson(path_to_geojson):
+
+    try:
+
+        print "starting create_csv_from_geojson with ", path_to_geojson
+        cwd = '/'.join(path_to_geojson.split('/')[0:-1]) + '/'
+        filename_base = path_to_geojson.split("/")[-1].split(".")[0]
+        filename_csv = filename_base + '.csv'
+        path_to_csv = cwd + filename_csv
+        call(['ogr2ogr','-f','CSV', path_to_csv, path_to_geojson, '-lco', 'GEOMETRY=AS_XY'])
+
+    except Exception as e:
+        print '\nERROR in create_shapefile_from_geojson', e,'\n'
+   
 
 def create_shapefile_from_geojson(path_to_geojson):
     try:
@@ -498,6 +515,7 @@ def create_map_from_pdf(job):
         f.write(serialized)
 
     create_shapefile_from_geojson(path_to_geojson)
+    create_csv_from_geojson(path_to_geojson)
 
 def create_map_from_csv(job):
     print "starting create_map_from_csv with", job
@@ -674,8 +692,6 @@ def does_map_exist(request, job, extension):
     except Exception as e:
         print e
         return HttpResponse("")
-
-
 
 #basically looks for the directory that corresponds to the job
 # and returns whatever file in their that ends with geojson
