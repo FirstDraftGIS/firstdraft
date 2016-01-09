@@ -75,7 +75,7 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
         var number_of_attempts_to_get_map = 0;
         var promise = $interval( function(){
             number_of_attempts_to_get_map++;
-            if (number_of_attempts_to_get_map > 30)
+            if (number_of_attempts_to_get_map > 100)
             {
                 $scope.stop();
             }
