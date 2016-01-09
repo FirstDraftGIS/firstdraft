@@ -2,9 +2,27 @@
 {% load staticfiles %}
 {% block content %}
 <div id="map_full" style="position: absolute; top: 50px; left: 0; right: 0; bottom: 0;"></div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">In what format would you like to download it?</h4>
+      </div>
+      <div class="modal-body">
+          <div><a id='download_link_csv' target='_blank'>CSV</a></div>
+          <div><a id='download_link_geojson' target='_blank'>GeoJSON</a></div>
+          <div><a id='download_link_shp' target='_blank'>Shapefile</a></div>
+      </div>
+   </div>
+  </div>
+</div>
 <script>
 
     job = '{{job}}';
+    document.getElementById('download_link_csv').href = '/get_map/' + job + '/csv';
+    document.getElementById('download_link_geojson').href = '/get_map/' + job + '/geojson';
+    document.getElementById('download_link_shp').href = '/get_map/' + job + '/zip';
 
     map = L.map('map_full');
     map.setView([0,0],2);
@@ -19,12 +37,10 @@
         },
         "onAdd": function(map) {
             console.log("starting onAdd with", map);
-            var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-            container.style.backgroundColor = 'white';
-            container.style.width = '100px';
-            container.style.height = '95px';
-            container.innerHTML = "<div class='btn' style='padding: 5px'><b>Download</b><a href='/get_map/" + job + "/geojson' target='_blank'>GeoJSON</a><a href='/get_map/" + job + "/csv' target='_blank'>CSV</a></div>";
-            return container;
+            var downloadButtonControl = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+            downloadButtonControl.style.boxShadow = 'none';
+            downloadButtonControl.innerHTML = "<div style='padding: 5px'><button type='button' class='btn btn-primary btn-md' data-toggle='modal' data-target='#myModal'>Download</button></div>";
+            return downloadButtonControl
         }
     });
 
