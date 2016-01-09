@@ -41,10 +41,14 @@ class Activation(Model):
 class Alias(Model):
     alias = CharField(max_length=200, null=True, blank=True, db_index=True)
     language = CharField(max_length=7, null=True, blank=True, db_index=True)
-    def __str__(self):
-        return self.alias.encode("utf-8")
     class Meta:
         ordering = ['alias']
+    def __str__(self):
+        return self.alias.encode("utf-8")
+    def update(self, d):
+        for k,v in d.iteritems():
+            setattr(self,k,v)
+        self.save()
 
 class AliasPlace(Model):
     alias = ForeignKey('Alias')
@@ -80,7 +84,7 @@ class Place(Model):
     objects = GeoManager()
     point = PointField(null=True, blank=True)
     population = BigIntegerField(null=True, blank=True)
-    pcode = CharField(max_length=200, null=True, blank=True)
+    pcode = CharField(max_length=200, null=True, blank=True, db_index=True)
     skeleton = MultiLineStringField(null=True, blank=True)
     timezone = CharField(max_length=200, null=True, blank=True)
 
@@ -91,6 +95,10 @@ class Place(Model):
             return self.id
     class Meta:
         ordering = ['name']
+    def update(self, d):
+        for k,v in d.iteritems():
+            setattr(self,k,v)
+        self.save()
 
 class ParentChild(Model):
     parent = ForeignKey('Place', related_name="parentplace")

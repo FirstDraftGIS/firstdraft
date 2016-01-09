@@ -12,10 +12,12 @@ import os, urllib, zipfile
 import shutil
 from os import listdir, mkdir
 from os.path import isdir, isfile
+from random import shuffle
 from requests import get, head
 from subprocess import call
 from urllib import urlretrieve, unquote
 from bnlp import trim_location
+from super_python import *
 from sys import exit
 
 from django.utils.crypto import get_random_string
@@ -373,25 +375,46 @@ def run(path):
         print "dir(ds) = ", dir(ds)
         layers = list(ds)
         print "layers are", layers
-        for layer in ds:
+        layer_parsing = [(layer, parse_layer(layer)) for layer in layers]
+
+        # we want to sort the layers by admin level
+        # we add the top-level parents in first,
+        # so we can link a new feature to its existing parent
+        layer_parsing = sorted(layer_parsing, key = lambda tup: tup[1]['admin_level'])
+
+        for layer, d in layer_parsing:
             print "layer is", layer
-            #raw_input()
+            raw_input()
             print "dir(layer) is", dir(layer)
             print "layer.fields = ", layer.fields
-
-            # if can't find admin_level from layer.name, just use whatever had before
-            d = parse_layer(layer)
 
             if 'admin_level' in d and d['admin_level']:
                 admin_level = d['admin_level']
 
             geom_type = str(layer.geom_type)
             features = list(layer)
+            print "we shuffle the features because later on if we hit the same country_code 20 times, we don't try to get it by db lookup anymore"
+            shuffle(features)
+
             number_of_features = len(features)
             print "\tnumber_of_features = ", number_of_features
             #raw_input()
+            country_code = None
+            country_codes = set()
             for i, feature in enumerate(features):
                 try:
+
+                    # after we have gone through 10 features
+                    # which were randomly shufffled
+                    # if same country_code for all of them
+                    # then set country_code
+                    # and don't make db call to find out cc again
+                    if i == 10:
+                        if len(country_codes) == 1:
+                            cc = country_codes.pop()
+                            if cc is not None:
+                                country_code = cc
+
 #                    if i % 500 != 0: continue
                     print "\nfor feature", i, "of", number_of_features
                     fields = {'admin_level': admin_level}
@@ -432,13 +455,24 @@ def run(path):
                     print "\tgeom_type = ", geom_type               
 
                     #need to load lsibwvs for country polygons
-                    if "country_code" not in fields:
-                        try:
-                            fields['country_code'] = Place.objects.get(admin_level=0, mpoly__contains=fields['point']).country_code
-                        except Exception as e:
-                            print e
+                    print i, "country_code is", country_code
+                    if not country_code:
+                        if "country_code" not in fields:
+                            try:
+                                fields['country_code'] = cc = Place.objects.get(admin_level=0, mpoly__contains=fields['point']).country_code
+                                country_codes.add(cc)
+                            except Exception as e:
+                                print e
+                    #raw_input()
 
                     print "fields are", fields
+                    # look up place and see if one is nearby or whatever
+#                    qs = Place.objects.filter(name=name)
+#                    print "qs is", qs
+#                    for p in qs:
+#                        print "p is", p.__dict__
+
+
                     place = Place.objects.get_or_create(**fields)[0]
                     if "parent_pcode" in d:
                         parent_pcode = feature.get(d['parent_pcode'])
