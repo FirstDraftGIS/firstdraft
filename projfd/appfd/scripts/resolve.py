@@ -28,7 +28,7 @@ def resolve_locations(locations):
     # convert to set because we only want uniques
     list_of_names_of_locations = list(set(list_of_names_of_locations))
 
-    sample = list_of_names_of_locations[:10]
+    sample = list_of_names_of_locations[:20]
     p("sample is", sample)
 
     places = Place.objects.filter(name__in=sample).order_by("name","admin_level","pcode","-population").distinct("name")
