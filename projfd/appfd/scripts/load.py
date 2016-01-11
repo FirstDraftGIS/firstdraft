@@ -131,6 +131,7 @@ def get_name_and_alias_fields(layer, fields, field_types):
     name_fields = get_name_fields(layer, fields, field_types) or get_name_fields(layer, fields, field_types, min_completeness=0.4, min_uniqueness=0.4)
 
     name_fields_in_english = [name_field for name_field in name_fields if name_field['language'] == "English"]
+    print "name_fields_in_english = ", name_fields_in_english
     primary_name_field = name_fields_in_english[0] if name_fields_in_english else name_fields[0]
     primary_name = primary_name_field['name']
     alias_fields = [name_field for name_field in name_fields if name_field != primary_name_field]
@@ -458,7 +459,10 @@ def run(path):
 
                     #need to load lsibwvs for country polygons
                     print i, "country_code is", country_code
-                    if not country_code:
+                    if country_code:
+                        if "country_code" not in fields:
+                            fields['country_code'] = country_code
+                    else:
                         if "country_code" not in fields:
                             try:
                                 fields['country_code'] = cc = Place.objects.get(admin_level=0, mpoly__contains=fields['point']).country_code
