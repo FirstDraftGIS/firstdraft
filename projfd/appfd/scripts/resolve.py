@@ -16,6 +16,7 @@ def resolve_locations(locations):
     p("locations = ", len(locations), locations[:5])
 
     #defaults
+    most_common_country_code = None
     country_code = None
 
 
@@ -48,12 +49,29 @@ def resolve_locations(locations):
     p("country_code = ", country_code)
     d = {}
 
-    base = Place.objects.order_by("name","admin_level","pcode","-population").distinct("name")
+    base = Place.objects.order_by("name","admin_level","pcode","-population")
+    # if already know country code
     if country_code:
-        base = base.filter(country_code=country_code)
-
-    for place in base.filter(name__in=list_of_names_of_locations):
-        d[place.name] = {'confidence': 'high', 'place': place}
+        for place in base.filter(country_code=country_code).filter(name__in=list_of_names_of_locations).distinct('name'):
+            d[place.name] = {'confidence': 'high', 'place': place}
+    else:
+        # even if we don't get the same country code for everything
+        # we still bias are location resolution by the most commonly mentioned country
+        # this helps avoid matching locations in far away countries that happen to share the same name
+        places = list(base.filter(name__in=list_of_names_of_locations))
+        #print "\nplaces =", places
+        names = set([place.name for place in places])
+        #print "\nnames =", names
+        for name in names:
+            #print "\nname = ", name
+            places_matching_name = [place for place in places if place.name == name]
+            #print "\nplaces_matching_name = ", places_matching_name
+            places_matching_most_common_country_code = [place for place in places_matching_name if place.country_code == most_common_country_code]
+            if places_matching_most_common_country_code:
+                place = places_matching_most_common_country_code[0]
+            else:
+                place = places_matching_name[0]
+            d[name] = {'confidence': 'high', 'place': place}
 
     missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in d] 
     p("missing = ", len(missing), missing[:5])

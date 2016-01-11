@@ -1,8 +1,11 @@
 #-*- coding: utf-8 -*-
+from datetime import datetime
 from django.core.validators import RegexValidator
 from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.contrib.gis.db.models import *
+from pytz import utc
+from shutil import rmtree
 
 class Alert(Model):
     colors = (("danger", "danger"),("info", "info"),("success", "success"),("warning","warning"))
@@ -12,6 +15,12 @@ class Alert(Model):
     user = OneToOneField(User, blank=True, null=True)
     def __str__(self):
         return self.text
+
+#class Account(Model):
+#    max_orders = IntegerField() # the maximum number of order this account can make per month
+    
+
+    
 
 class AlternateName(Model):
     geonameid = IntegerField(db_index=True)
@@ -63,7 +72,32 @@ class Email(Model):
     entered = DateTimeField(auto_now_add=True)
 
 class Order(Model):
-    token = CharField(max_length=200, null=True, blank=True)
+    complete = BooleanField(default=False)
+    duration = IntegerField(max_length=5, null=True) # how long it took to process the order
+    end = DateTimeField(null=True)
+    start = DateTimeField(auto_now_add=True)
+    token = CharField(max_length=200, unique=True) # the random string that's used to find the order in the maps
+
+    def __str__(self):
+        return self.token
+
+    def d(self):
+        self.delete_map()
+        self.delete()
+
+    def delete_map(self):
+        rmtree("/home/usrfd/maps/" + self.token)
+
+    def finish(self):
+        self.complete = True
+        self.end = end = datetime.now().replace(tzinfo=utc)
+        self.duration = (end - self.start).total_seconds()
+        self.save()
+
+    def update(self, d):
+        for k,v in d.iteritems():
+            setattr(self,k,v)
+        self.save()
 
 # should add in org and person model at some point, so can cross locate story based on people or orgs if no location names given
 
@@ -117,6 +151,13 @@ class TeamMember(Model):
 
 class Translator(Model):
     name = CharField(max_length=200, null=True, blank=True)
+
+#class UserOrder(Model):
+#    user = ForeignKey(User)
+#    order = ForeignKey("Order", unique)
+
+#    def __str__(self):
+#        return self.user + ":" + self.order
 
 
 # can also use topics to cirumscribe locations via topic area

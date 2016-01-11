@@ -42,6 +42,7 @@ from requests import get
 from appfd.scripts.resolve import *
 from sendfile import sendfile
 from subprocess import call, check_output
+from super_python import unpack
 from urllib import quote, quote_plus, urlretrieve
 from openpyxl import load_workbook
 #import sys
@@ -327,7 +328,7 @@ def create(job):
     print "starting create with", job
 
     key = job['key']
-
+    text = job['data']
     features = resolve_locations(extract_locations_with_context(text))
     featureCollection = FeatureCollection(features)
     serialized = geojson.dumps(featureCollection, sort_keys=True)
@@ -338,10 +339,12 @@ def create(job):
 
     path_to_geojson = directory + key + ".geojson"
     with open(path_to_geojson, "wb") as f:
+        print "writing"
         f.write(serialized)
+        print "wrote"
 
-    create_shapefile_from_geojson(path_to_geojson)
-    create_csv_from_geojson(path_to_geojson)
+    print "listdir is", isfile(path_to_geojson)
+    finish_order(key)
 
 def create_map_from_link(job):
     print "starting create_map_from_link with", job['key']
@@ -380,10 +383,7 @@ def create_map_from_link(job):
     with open(path_to_geojson, "wb") as f:
         f.write(serialized)
 
-    create_shapefile_from_geojson(path_to_geojson)
-    create_csv_from_geojson(path_to_geojson)
-
-#    Order.objects.get(token=job['key']).finish()
+    finish_order(key)
 
 def create_csv_from_geojson(path_to_geojson):
 
@@ -462,6 +462,19 @@ def create_map_from_link_to_file(job):
     elif filename.endswith('.csv'):
         create_map_from_csv(job)
 
+    finish_order(key)
+
+def finish_order(key):
+
+    path_to_geojson = "/home/usrfd/maps/" + key + "/" + key + ".geojson"
+    create_shapefile_from_geojson(path_to_geojson)
+    create_csv_from_geojson(path_to_geojson)
+
+    from django.db import connection 
+    connection.close()
+    order = Order.objects.get(token=key).finish()
+    print "finished order", order
+
 def create_from_file(job):
     print "starting create_from_file with", job
     content_type = job['file'].content_type
@@ -478,6 +491,8 @@ def create_from_file(job):
     elif filename.endswith(".pdf"):
         print "user uploaded a pdf file!"
         create_map_from_pdf(job)
+
+    finish_order(job['key'])
 
 def create_map_from_pdf(job):
     print "starting create_map_from_pdf with", job
@@ -514,8 +529,6 @@ def create_map_from_pdf(job):
     with open(path_to_geojson, "wb") as f:
         f.write(serialized)
 
-    create_shapefile_from_geojson(path_to_geojson)
-    create_csv_from_geojson(path_to_geojson)
 
 def create_map_from_csv(job):
     print "starting create_map_from_csv with", job
@@ -730,9 +743,13 @@ def upload(request):
     print "starting upload"
     if request.method == 'POST':
         print "request.method is post"
+        key = get_random_string(25)
+        Order.objects.create(token=key)
+        from django.db import connection 
+        connection.close()
         job = {
               'data': loads(request.body)['story'],
-              'key': get_random_string(25)
+              'key': key
         }
         Process(target=create, args=(job,)).start()
         return HttpResponse(job['key'])
@@ -745,7 +762,9 @@ def start_link(request):
     if request.method == 'POST':
         print "request.method is post"
         key = get_random_string(25)
-        #Order.objects.create(token=key)
+        Order.objects.create(token=key)
+        from django.db import connection 
+        connection.close()
         job = {
               'link': loads(request.body)['link'],
               'key': key
@@ -762,9 +781,13 @@ def start_link_to_file(request):
     print "starting start_link"
     if request.method == 'POST':
         print "request.method is post"
+        key = get_random_string(25)
+        Order.objects.create(token=key)
+        from django.db import connection 
+        connection.close()
         job = {
               'link': loads(request.body)['link'],
-              'key': get_random_string(25)
+              'key': key
         }
         Process(target=create_map_from_link_to_file, args=(job,)).start()
         return HttpResponse(job['key'])
@@ -789,9 +812,13 @@ def upload_file(request):
         print "form is", form
         if form.is_valid():
             print "form is valid"
+            key = get_random_string(25)
+            Order.objects.create(token=key)
+            from django.db import connection 
+            connection.close()
             job = {
               'file': request.FILES['file'],
-              'key': get_random_string(25)
+              'key': key 
             }
             print "job is", job
             Process(target=create_from_file, args=(job,)).start()
