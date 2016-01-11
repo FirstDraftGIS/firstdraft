@@ -153,7 +153,7 @@ def get_name_fields(layer, fields, field_types, min_completeness=0.8, min_unique
         number_of_unique_values = len(values_set)
         completeness = float(len([value for value in values_list if value])) / float(number_of_values)
         uniqueness = float(number_of_unique_values) / float(number_of_values)
-        if field_type == "OFTString" and completeness > min_completeness and uniqueness > min_uniqueness and not isGibberish(values_set) and number_of_unique_values > 10 and isNameList(values_set):
+        if "pc" not in field_lower and field_type == "OFTString" and completeness > min_completeness and uniqueness > min_uniqueness and not isGibberish(values_set) and number_of_unique_values > 10 and isNameList(values_set):
             language = detect_language(values_list)
             name_fields.append({"name": field, "uniqueness": uniqueness, "language": language})
 
@@ -419,7 +419,9 @@ def run(path):
                     print "\nfor feature", i, "of", number_of_features
                     fields = {'admin_level': admin_level}
 
+                    print "d['name'] = ", d['name']
                     name = feature.get(d['name'])
+                    print "name is", name
                     if len(name) > 2:
                         fields['name'] = name
                     else:
