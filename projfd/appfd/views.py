@@ -9,6 +9,7 @@ from bscrp import getRandomUserAgentString
 from collections import Counter
 import csv
 from datetime import datetime
+from docx import Document
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -491,6 +492,9 @@ def create_from_file(job):
     elif filename.endswith(".pdf"):
         print "user uploaded a pdf file!"
         create_map_from_pdf(job)
+    elif filename.endswith(".docx"):
+        print "user uploaded a docx file!"
+        create_map_from_docx(job)
 
     finish_order(job['key'])
 
@@ -620,6 +624,45 @@ def create_map_from_csv(job):
 
     print "finished creating geojson from csv file"
     f.close()
+
+def create_map_from_docx(job):
+    print "starting create_from_docx with", job
+    directory = "/home/usrfd/maps/" + job['key'] + "/"
+    filename = job['filename']
+    if 'filepath' not in job:
+        file_obj = job['file']
+
+        # make directory to store excel file and maps
+        mkdir(directory)
+
+        filepath = directory + "/" + filename
+
+        # save file to disk
+        with open(filepath, 'wb+') as destination:
+            for chunk in file_obj.chunks():
+                destination.write(chunk)
+        print "wrote file"
+    else:
+        filepath = job['filepath']
+
+    document = Document(job['file'])
+    print "documenbt = document"
+    text = "\r\n\r\n".join([paragraph.text for paragraph in document.paragraphs])
+    print "text is", text[:500]
+    tables = document.tables
+    print "tables are", tables
+    locations = extract_locations_with_context(text)
+    print "in views,  locations are", len(locations)
+    features = resolve_locations(locations)
+    print "in views, features are", len(features)
+   
+    featureCollection = FeatureCollection(features)
+    serialized = geojson.dumps(featureCollection, sort_keys=True)
+ 
+    # make directory to store files
+    path_to_geojson = directory + job['key'] + ".geojson"
+    with open(path_to_geojson, "wb") as f:
+        f.write(serialized)
 
 def create_from_xl(job):
     print "starting create_from_xl with", job
