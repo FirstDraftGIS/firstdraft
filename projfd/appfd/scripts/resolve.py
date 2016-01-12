@@ -53,9 +53,12 @@ def resolve_locations(locations):
     d = {}
 
     base = Place.objects.order_by("name","admin_level","pcode","-population")
+    if country_code:
+        base = base.filter(country_code=country_code)
+
     # if already know country code
     if country_code:
-        for place in base.filter(country_code=country_code).filter(name__in=list_of_names_of_locations).distinct('name'):
+        for place in base.filter(name__in=list_of_names_of_locations).distinct('name'):
             d[place.name] = {'confidence': 'high', 'place': place}
     else:
         # even if we don't get the same country code for everything
@@ -70,19 +73,33 @@ def resolve_locations(locations):
             places_matching_name = [place for place in places if place.name == name]
             #print "\nplaces_matching_name = ", places_matching_name
             places_matching_country_code = [place for place in places_matching_name if place.country_code == most_common_country_code] or [place for place in places_matching_name if place.country_code == second_most_common_country_code]
-            if places_matching_country_code:
-                place = places_matching_country_code[0]
-            else:
-                place = places_matching_name[0]
+            place = places_matching_country_code[0] if places_matching_country_code else places_matching_name[0]
             d[name] = {'confidence': 'high', 'place': place}
 
     missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in d] 
     p("missing = ", len(missing), missing[:5])
     p("after alias", d)
     if missing:
-        for place in base.filter(aliases__alias__in=missing):
-            p("place via alias is", place.name)
-            d[place.name] = {'confidence': 'medium', 'place': place}
+
+        # VIA ALIAS
+        print "NOW, RESOLVING PLACES VIA ALIAS"
+        places = list(base.filter(aliases__alias__in=missing))
+        print ">\tplaces = ", places
+        if country_code:
+            print ">\tcountry_code = True"
+            for place in places:
+                if place.name not in d:
+                    d[place.name] = {'confidence': 'medium', 'place': place}
+                    p("place via alias is", place.name)
+        else:
+            print "\tcountry_code = False"
+            names = set([place.name for place in places])
+            print "\ynames = ", names
+            for name in names:
+                places_matching_name = [place for place in places if place.name == name]
+                places_matching_country_code = [place for place in places_matching_name if place.country_code == most_common_country_code] or [place for place in places_matching_name if place.country_code == second_most_common_country_code]
+                place = places_matching_country_code[0] if places_matching_country_code else places_matching_name[0]
+                d[name] = {'confidence': 'high', 'place': place}
 
         if country_code:
             missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in d] 
@@ -119,7 +136,13 @@ def resolve_locations(locations):
                 properties['pcode'] = pcode
 
             point = place.point
+
+            if point is None:
+                place.point = point = place.mpoly.centroid
+                place.save()
+
             geometry = Point((point.x, point.y))
+                
 
             country_code = place.country_code
             if country_code:
