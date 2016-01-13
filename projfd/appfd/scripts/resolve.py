@@ -59,21 +59,31 @@ def resolve_locations(locations):
     # if already know country code
     if country_code:
         for place in base.filter(name__in=list_of_names_of_locations).distinct('name'):
+            #print "place with country_code is", place
             d[place.name] = {'confidence': 'high', 'place': place}
     else:
         # even if we don't get the same country code for everything
         # we still bias are location resolution by the most commonly mentioned country
         # this helps avoid matching locations in far away countries that happen to share the same name
         places = list(base.filter(name__in=list_of_names_of_locations))
-        #print "\nplaces =", places
+        #print "\nplaces without cc =", places
         names = set([place.name for place in places])
         #print "\nnames =", names
         for name in names:
             #print "\nname = ", name
             places_matching_name = [place for place in places if place.name == name]
             #print "\nplaces_matching_name = ", places_matching_name
-            places_matching_country_code = [place for place in places_matching_name if place.country_code == most_common_country_code] or [place for place in places_matching_name if place.country_code == second_most_common_country_code]
-            place = places_matching_country_code[0] if places_matching_country_code else places_matching_name[0]
+            
+            # first see if any countries mentioned... it's highly unlikely someone is refering to China Main
+            places_matching_admin_level_zero = [place for place in places_matching_name if place.admin_level == 0]
+            #print "places_matching_admin_level_zero", places_matching_admin_level_zero
+
+            if places_matching_admin_level_zero:
+                place = places_matching_admin_level_zero[0]
+            else: 
+                places_matching_country_code = [place for place in places_matching_name if place.country_code == most_common_country_code] or [place for place in places_matching_name if place.country_code == second_most_common_country_code]
+                place = places_matching_country_code[0] if places_matching_country_code else places_matching_name[0]
+
             d[name] = {'confidence': 'high', 'place': place}
 
     missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in d] 
