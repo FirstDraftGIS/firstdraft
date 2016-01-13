@@ -2,6 +2,7 @@ app.controller('UploadController', ['$scope', '$http', '$window', '$compile', '$
     var inputWebpage = document.getElementById("url_to_webpage");
     var inputFile = document.getElementById("url_to_file");
     var textarea = document.getElementById("story");
+    var uploadFile = document.getElementById("uploadFile");
     $scope.focusOnTextArea = function()
     {
         textarea.focus();

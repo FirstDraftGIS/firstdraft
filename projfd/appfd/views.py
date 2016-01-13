@@ -649,8 +649,14 @@ def create_map_from_docx(job):
     print "documenbt = document"
     text = "\r\n\r\n".join([paragraph.text for paragraph in document.paragraphs])
     print "text is", text[:500]
-    tables = document.tables
-    print "tables are", tables
+    # convert to list of list of column values
+    for table in document.tables:
+        columns = []
+        for column in table.columns:
+            values = [cell.text for cell in column.cells]
+            columns.append(values)
+
+        print "columns are ", columns
     locations = extract_locations_with_context(text)
     print "in views,  locations are", len(locations)
     features = resolve_locations(locations)

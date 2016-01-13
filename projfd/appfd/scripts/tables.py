@@ -42,6 +42,7 @@ def clean(value):
 
 # takes in a sheet and returns which column holds the locations
 # erroneously assume that there is only one location column
+# rows are lists of lists
 def getLocationColumn(rows):
     # looks quickly and see if keyword mentioned
     for column_index, value in enumerate(rows[0]):
@@ -57,3 +58,8 @@ def getLocationColumn(rows):
             if not isinstance(value, float) or isinstance(value, int):
                 if Place.objects.filter(name=value).count() > 0:
                     return column_index
+
+# takes in a list of lists
+# each element in a list of column values
+def getLocationsFromColumns(columns):
+    return
