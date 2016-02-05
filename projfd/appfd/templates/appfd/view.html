@@ -1,3 +1,15 @@
 <div ng-controller="ViewController">
+<div ng-show="loading_map">
+    <div class="spinnerContainer">
+        <div class="spinnerWrapper">
+            <div class="spinner">
+                <div>
+                    <p style="position: absolute; margin-top: -15px">Making</p>
+                    <p style="position: absolute; margin-left: 15px; margin-top: 15px;">Map</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div ng-show="show_map"><div id="map" style="position:relative;"></div></div>
 </div>

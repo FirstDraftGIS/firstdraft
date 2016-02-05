@@ -17,6 +17,7 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
 
 
     $scope.activate = function(){
+        $scope.loading_map = true;
         map = L.map('map');
         map.setView([0,0],1);
 
@@ -93,6 +94,7 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
                         $scope.$parent.show_downloads = true;
                         map.setView([0,0],1);
                         $scope.show_map = true;
+                        $scope.loading_map = false;
                         setTimeout(function(){
                             map.invalidateSize();
                             window.scrollTo(0,400);

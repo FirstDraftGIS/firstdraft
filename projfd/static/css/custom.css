@@ -116,13 +116,13 @@ footer{text-align: center;}
 
 
 
-.loaderWrapper{padding: 45px;}
-.loader2 {
+.spinnerWrapper{padding: 45px;}
+.spinner {
   margin: 4em auto;
   font-size: 25px;
   width: 1em;
   height: 1em;
-  border-radius: 50%;
+  border-radius: 20%;
   position: relative;
   text-indent: -1em;
   -webkit-animation: load5 1.1s infinite ease;
