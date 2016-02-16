@@ -29,11 +29,6 @@
 <link rel = "icon" type = "image/ico" href="logo.ico"/>
 <link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
 
-<!-- Google Analytics -->
-<script>
-</script>
-
-
 <link rel="apple-touch-icon" sizes="57x57" href="{% static 'img/logo.png' %}">
 <link rel="apple-touch-icon" sizes="60x60" href="{% static 'img/logo.png' %}">
 <link rel="apple-touch-icon" sizes="72x72" href="{% static 'img/logo.png' %}">
@@ -69,5 +64,6 @@ Warning! JavaScript is not enabled.
 {% block content %}
 {% endblock %}
 {% include "appfd/footer.html" %}
+{% include "appfd/ga.html" %}
 </body>
 </html>
