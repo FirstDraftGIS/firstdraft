@@ -203,3 +203,19 @@ sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.co
 ```
 sudo service apache2 restart;
 ```
+
+##### Load Initial Data
+```
+python manage.py runscript loadGeoNames
+python manage.py runscript loadAlternateNames
+python manage.py runscript loadCountryInfo
+python manage.py runscript loadLSIBWVS
+python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-adiministrative-boundaries"
+python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-village-boundaries"
+python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-village-locations"
+
+# to-do: figure out admin level for new towns based on looking at parent admin level and see if 100% same admin level
+python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-town-locations"
+
+python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/honduras-admin-level-1-boundaries"
+```
