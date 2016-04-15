@@ -1,3 +1,5 @@
+[![Requirements Status](https://requires.io/github/DanielJDufour/firstdraft/requirements.svg?branch=master)](https://requires.io/github/DanielJDufour/firstdraft/requirements/?branch=master)
+
 # firstdraft
 Automatically generate first drafts of maps
 
