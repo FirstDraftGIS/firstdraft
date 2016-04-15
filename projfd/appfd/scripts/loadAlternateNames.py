@@ -1,35 +1,45 @@
 from appfd.models import *
-from django.contrib.gis.gdal import DataSource
-import os, urllib, zipfile
+from django.db import connection, transaction
+from datetime import datetime
+from os.path import isfile
 from urllib import urlretrieve
+from zipfile import ZipFile
 
 def run():
+    start = datetime.now()
+    print "starting loadAlternateNames at ", start
+    
+    path_to_dir = '/home/usrfd/data/geonames/'
+    path_to_zip = path_to_dir + 'alternateNames.zip'
+    if not isfile(path_to_zip):
+        print "retrieving alternateNames.zip . . . ",
+        urlretrieve('http://download.geonames.org/export/dump/alternateNames.zip', path_to_zip)
+        print "done"
+        print "unzipping alternateNames.zip . . . ",
+        with ZipFile(path_to_zip, "r") as z:
+            z.extractall(path_to_dir)
+        print "done"
 
-    if not os.path.isfile('/tmp/alternateNames.zip'):
-        urlretrieve('http://download.geonames.org/export/dump/alternateNames.zip', '/tmp/alternateNames.zip')
-        with zipfile.ZipFile('/tmp/alternateNames.zip', "r") as z:
-            z.extractall('/tmp/')
+    # truncate existing AlternateName table
+    cursor = connection.cursor()
+    cursor.execute("TRUNCATE appfd_alias CASCADE")
+    cursor.execute("TRUNCATE appfd_aliasplace CASCADE")
 
-    with open('/tmp/alternateNames.txt') as f:
-        for index, line in enumerate(f):
-          try:
-            line_split = line.decode("utf-8").strip().split("\t")
-            geonameid = int(line_split[0])
-            language = line_split[2]
-            alternate_name = line_split[3]
-            
-            #if index == 200:
-            #    break
+    throughs_to_create = []
+    with open(path_to_dir + 'alternateNames.txt') as f:
+        counter = 0
+        for line in f:
+            counter += 1
+            geonameid, _, language, alternate_name, _, _, _, _ = line.decode("utf-8").split("\t")
+            alias_id = ((Alias.objects.filter(alias=alternate_name) or [None])[0] or Alias.objects.create(alias=alternate_name, language=language)).id
+            place_id = (Place.objects.filter(geonameid=geonameid).values_list("id", flat=True) or [None])[0]
+            if place_id:
+                AliasPlace.objects.get_or_create(alias_id=alias_id, place_id=place_id)
+            if counter % 1000 == 0:
+                print "line: " + str(counter)
 
-            if language != "link":
-                print "line ", index, ": ", line_split
-
-                alias = Alias.objects.get_or_create(alias=alternate_name)[0]
-                alias.language = language[:2]
-                alias.save()
-
-                place = Place.objects.get(geonameid=geonameid)
-
-                AliasPlace.objects.get_or_create(alias=alias, place=place)
-          except Exception as e:
-            print e
+    end = datetime.now()
+    total_seconds = (end - start).total_seconds()
+    print "total_seconds = ", total_seconds
+    with open("log.txt", "a") as f:
+        f.write("Loading alternateNames took " + str(total_seconds) + " seconds.")
