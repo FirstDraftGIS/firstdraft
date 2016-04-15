@@ -1,99 +1,40 @@
 from appfd.models import *
-from csv import reader
+from datetime import datetime
 from django.contrib.gis.geos import Point
 from django.db import connection
+from sys import exit
 
 def run():
-    print "running loadGeoNames"
+    start = datetime.now()
+    print "starting loadGeoNames at ", start
 
-    # most have user create fdw extension with
-    # CREATE EXTENSION file_fdw;
+    # delete all those that have a geonameid
+    print "deleting all places...",
+    cursor = connection.cursor()
+    #cursor.execute("DELETE FROM appfd_place WHERE geonameid IS NOT NULL CASCADE") 
+    cursor.execute("TRUNCATE appfd_alias CASCADE")
+    cursor.execute("TRUNCATE appfd_alternatename CASCADE")
+    cursor.execute("TRUNCATE appfd_place CASCADE")
+    print "done"
 
-    # deletes all rows from place table`
-    #TRUNCATE appfd_place CASCADE;
-#    Place.objects.all().delete()
-#    cursor = connection.cursor()
-#    c.execute("""
-#    COPY appfd_geoname
-#    FROM '/home/usrfd/data/geonames/allCountries.txt'
-#    WITH (FORMAT 'text', DELIMITER E'\t', NULL 'NULL');
-#    """)
- 
-#    cursor.execute("""
-"""        CREATE SERVER geoname_server FOREIGN DATA WRAPPER file_fdw;
-        CREATE FOREIGN TABLE appfd_geoname (
-            geonameid integer,
-            name varchar(200),
-            asciiname varchar(200),
-            alternatenames varchar(10000),
-            latitude decimal(8),
-            longitude decimal(8),
-            feature_class char(1),
-            feature_code varchar(10),
-            country_code varchar(2),
-            cc2 varchar(200),
-            admin1_code varchar(20),
-            admin2_code varchar(80),
-            admin3_code varchar(20),
-            admin4_code varchar(20),
-            population bigint,
-            elevation integer,
-            dem integer,
-            timezone varchar(40),
-            modification_date varchar(40)
-        )
-        SERVER geoname_server
-        OPTIONS ( filename '/home/usrfd/data/geonames/allCountries.txt', format 'text' );
-
-    INSERT INTO appfd_place (geonameid, name, point) SELECT geonameid, name, ST_SetSRID(ST_POINT(longitude, latitude), 4326) FROM appfd_geoname LIMIT 10;
-
-
-     this command runs it in the background
-sudo -u postgres psql -c "INSERT INTO appfd_place (geonameid, name, point) SELECT geonameid, name, ST_SetSRID(ST_POINT(longitude, latitude), 4326) FROM appfd_geoname;" dbfd &
-
-sudo -u postgres psql -c "CREATE INDEX name_idx ON appfd_place (name);" dbfd &
-
-CREATE INDEX name_idx ON appfd_place USING gin(to_tsvector(name));
-
-
-"""
-#""")
-#    c.execute("""
-#    COPY appfd_place (,,,null,column0,null,null,column1)
-#    FROM '/home/usrfd/data/geonames/allCountries.txt'
-#    WITH (FORMAT 'text', DELIMITER E'\t', NULL 'NULL');
-#    """)
- 
-#    cursor.execute("UPDATE bar SET foo = 1 WHERE baz = %s", [self.baz])
-#    cursor.execute("""
-#LOAD DATA INFILE "/home/usrfd/data/geonames/allCountries.txt"
-#INTO TABLE appfd_place 
-#CHARACTER SET 'utf8'
-#FIELDS TERMINATED BY '\t'
-#
-#    """
-    """
-    counter = 0
     with open("/home/usrfd/data/geonames/allCountries.txt", "r") as f:
+        counter = 0
+        places_to_create = []
         for line in f:
-            #print "line is", line
-            line_split = line.strip().split("\t")
-            #print "line_split is", line_split
-           # #print "geonameid = ", int(line_split[0])
-            place = Place.objects.get_or_create(geonameid=int(line_split[0]))[0]
-            place.name = line_split[1]
-            #print "place.name is", line_split[1]
-            place.point = Point(x=float(line_split[5]),y=float(line_split[4])) 
-            place.save()
-
-            #print counter, "-"
             counter += 1
-            if counter % 1000 == 0:
-                print counter
-            else:
-               counter += 1
-  
-    """
-    #f = open("/home/usrfd/data/geonames/allCountries.txt", "r")
-    #Entry.objects.bulk_create([Place(geonameid=line[0],name=line[1],point=Point(x=float(line[5]),y=float(line[4]))) for line in csv.reader(f, delimiter='\t', quotechar='|')])
-    #f.close()
+
+            geonameid, name, asciiname, alternatenames, latitude, longitude, feature_class, feature_code, country_code, cc2, admin1_code, admin2_code, admin3_code, admin4_code, population, elevation, dem, timezone, modification_date = line.split("\t")
+
+            places_to_create.append(Place(id=counter, admin_level=None, admin1_code=admin1_code, admin2_code=admin2_code, country_code=country_code, geonameid=geonameid, name=name, point=Point(x=float(longitude), y=float(latitude)), population=float(population), timezone=timezone))
+
+            if counter % 100000 == 0:
+                Place.objects.bulk_create(places_to_create)
+                places_to_create = []
+                print "created and reset places_to_create to blank"
+
+    end = datetime.now()
+    total_seconds = (end - start).total_seconds()
+    print "total_seconds = ", total_seconds
+    with open("log.txt", "wb") as f:
+        f.write("Loading geonames took " + str(total_seconds) + " seconds.")
+        

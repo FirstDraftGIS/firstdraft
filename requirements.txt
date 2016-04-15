@@ -1,5 +1,10 @@
+bdates
+bnlp
+bscrp
 beautifulsoup4
 boto
+date-extractor
+demonyms
 djangorestframework
 django-extensions
 django-filter
@@ -10,6 +15,8 @@ fabric-virtualenv
 fabvenv
 fexpect
 geojson
+language-detector
+location-extractor
 markdown
 mod_wsgi
 nltk
@@ -22,7 +29,10 @@ python-magic
 python-mimeparse
 python-social-auth
 pytz
+sphinx
+sphinx-autobuild
 requests
 stop-words
+super_python
 titlecase
 virtualenv
