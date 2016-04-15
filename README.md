@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/DanielJDufour/firstdraft.svg?branch=master)](https://travis-ci.org/DanielJDufour/firstdraft)
 [![Requirements Status](https://requires.io/github/DanielJDufour/firstdraft/requirements.svg?branch=master)](https://requires.io/github/DanielJDufour/firstdraft/requirements/?branch=master)
 
 # firstdraft
