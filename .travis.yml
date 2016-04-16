@@ -9,6 +9,11 @@ services:
 addons:
   - postgresql: "9.4"
 
+language: python
+
+python:
+  - "2.7"
+
 install:
   - sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" install apache2 apache2-dev apache2-mpm-prefork apt-file build-essential cmake curl libapache2-mod-wsgi libboost-all-dev libcgal-dev libgdal1-dev libgeos-dev libgmp3-dev libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg libproj-dev libpq-dev python-qgis python-virtualenv qgis vim zip libxslt1-dev
 
