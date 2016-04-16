@@ -9,9 +9,9 @@ python:
 #    - "3.5"
 
 before_install:
-    - sudo apt-get update
-    - sudo apt-get install -y apache2 apache2-dev apache2-mpm-prefork apt-file build-essential cmake curl default-jdk default-jre fabric git libapache2-mod-wsgi libboost-all-dev libcgal-dev libgdal1-dev libgeos-dev libgmp3-dev libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg libproj-dev libpq-dev maven nodejs npm  postgresql postgresql-contrib postgis postgresql-server-dev-all python python-dev python-pip python-qgis python-virtualenv qgis vim xvfb zip libxslt1-dev
-
+    - sudo apt-get -y update
+    - sudo apt-get -y dist-upgrade
+    - sudo apt-get install -y apache2 apache2-dev apache2-mpm-prefork apt-file build-essential cmake curl default-jdk default-jre fabric git libapache2-mod-wsgi libboost-all-dev libcgal-dev libgdal1-dev libgeos-dev libgmp3-dev libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg libproj-dev libpq-dev maven nodejs npm pgadmin3 postgis postgresql postgresql-contrib postgresql-server-dev-all python python-dev python-pip python-qgis python-virtualenv qgis vim xvfb zip libxslt1-dev
 
 
 install: "pip install -r requirements.txt"
