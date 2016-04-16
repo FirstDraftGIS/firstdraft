@@ -4,7 +4,7 @@ dist: trusty
 
 install: True
 
-script: sudo_build.sh
+script: sudo ./sudo_build.sh
 
 notifications:
     email:
