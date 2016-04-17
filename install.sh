@@ -26,7 +26,7 @@ sudo -H chown usrfd:usrfd /home/usrfd/firstdraft -R
 echo "INSTALLING PYTHON PACKAGES"
 sudo -H -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
 #sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -r /home/usrfd/firstdraft/requirements.txt --root /home/usrfd/venv --install-option="--prefix='/home/usrfd/venv/local'""
-sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -r /home/usrfd/firstdraft/requirements.txt"
+sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -r /home/usrfd/firstdraft/requirements.txt -vvv"
 
 echo "CREATING TABLES"
 sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdraft/projfd && python manage.py makemigrations"
