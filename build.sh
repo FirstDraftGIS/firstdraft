@@ -1,5 +1,5 @@
-#sudo -u usrfd git clone http://github.com/danieljdufour/firstdraft.git /home/usrfd/firstdraft;
-#sudo chown usrfd:usrfd /home/usrfd/firstdraft -R;
+# create local user that will hold the code 
+
 #sudo -u usrfd bash -c "cd /home/usrfd && virtualenv venv;"
 #sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
 
