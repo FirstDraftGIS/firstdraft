@@ -15,7 +15,7 @@ echo "CREATING user usrfd"
 sudo useradd usrfd -m
 
 echo "CLONING firstdraft into /home/usrfd/firstdraft"
-sudo -u usrfd bash -c "cd /home/usrfd && git clone https://github.com/DanielJDufour/firstdraft.git"
+sudo -H -u usrfd bash -c "cd /home/usrfd && git clone https://github.com/DanielJDufour/firstdraft.git"
 echo ""
 echo "/home/usrfd/firstdraft is"
 ls -alsh /home/usrfd/firstdraft
@@ -24,8 +24,8 @@ echo ""
 sudo chown usrfd:usrfd /home/usrfd/firstdraft -R
 
 echo "INSTALLING PYTHON PACKAGES"
-sudo -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
-sudo -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -requirement /home/usrfd/firstdraft/requirements.txt --root /home/usrfd/venv --install-option="--prefix='/home/usrfd/venv/local'""
+sudo -H -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
+sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -requirement /home/usrfd/firstdraft/requirements.txt --root /home/usrfd/venv --install-option="--prefix='/home/usrfd/venv/local'""
 
 echo "CREATING TABLES"
 sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdraft/projfd && python manage.py makemigrations"
