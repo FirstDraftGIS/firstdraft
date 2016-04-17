@@ -4,16 +4,11 @@ bscrp
 beautifulsoup4
 boto
 date-extractor
-demonyms
 djangorestframework
 django-extensions
 django-filter
 django-guardian
 django-sendfile
-fabric
-fabric-virtualenv
-fabvenv
-fexpect
 geojson
 language-detector
 location-extractor
@@ -29,8 +24,6 @@ python-magic
 python-mimeparse
 python-social-auth
 pytz
-sphinx
-sphinx-autobuild
 requests
 stop-words
 super_python
