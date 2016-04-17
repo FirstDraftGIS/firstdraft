@@ -108,7 +108,6 @@ DATABASES = {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'dbfd',
         'USER': 'usrfd',
-        'PASSWORD': passwordForUsrfdPostgresql,
         'PORT': 5432,
     }
 }
