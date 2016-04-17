@@ -23,6 +23,7 @@ python-dateutil
 python-magic
 python-mimeparse
 python-social-auth
+pyvirtualdisplay
 pytz
 requests
 stop-words
