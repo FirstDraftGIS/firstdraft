@@ -1,7 +1,7 @@
-sudo curl http://download.geonames.org/export/dump/allCountries.zip -O /tmp/allCountries.zip
-sudo unzip allCountries.zip /tmp/.
+cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip
+#sudo unzip allCountries.zip /tmp/.
 # takes about 20 min an an AWS Medium EC2 Ubuntu 15.04
-sudo -Hu postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;
+#sudo -Hu postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;
 
 #python manage.py runscript loadGeoNames
 #python manage.py runscript loadAlternateNames
