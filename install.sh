@@ -29,8 +29,8 @@ sudo -H -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -r /home/usrfd/firstdraft/requirements.txt"
 
 echo "CREATING TABLES"
-sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdraft/projfd && python manage.py makemigrations"
-sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdraft/projfd && python manage.py migrate"
+sudo -Hu usrfd bash -c "source venv/bin/activate && cd firstdraft/projfd && python manage.py makemigrations"
+sudo -Hu usrfd bash -c "source venv/bin/activate && cd firstdraft/projfd && python manage.py migrate"
 
 # create maps directory that will store maps (e.g., geojsons, shapefiles, CSV's)
 sudo -u usrfd bash -c "mkdir /home/usrfd/maps";
