@@ -12,7 +12,6 @@ django-sendfile
 geojson
 language-detector
 location-extractor
-markdown
 mod_wsgi
 nltk
 numpy
@@ -26,6 +25,7 @@ python-social-auth
 pyvirtualdisplay
 pytz
 requests
+selenium
 stop-words
 super_python
 titlecase
