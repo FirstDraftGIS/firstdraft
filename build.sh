@@ -1,10 +1,4 @@
-# create local user that will hold the code 
 
-#sudo -u usrfd bash -c "cd /home/usrfd && virtualenv venv;"
-#sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
-
-#sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdraft/projfd && python manage.py makemigrations"
-#sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdraft/projfd && python manage.py migrate"
 
 #sudo wget http://download.geonames.org/export/dump/allCountries.zip -O /tmp/allCountries.zip
 #cd /tmp && sudo unzip allCountries.zip
@@ -43,5 +37,4 @@
 #sudo -u usrfd bash -c "echo \"alias m='cd /home/usrfd && source venv/bin/activate && cd /home/usrfd/firstdraft/projfd && python manage.py makemigrations && python manage.py migrate'\" >> /home/usrfd/.bashrc && . /home/usrfd/.bashrc"
 #sudo -u usrfd bash -c "echo \"alias s='cd /home/usrfd && source venv/bin/activate && cd /home/usrfd/firstdraft/projfd && python manage.py shell'\" && . /home/usrfd/.bashrc"
 
-# create maps directory that will store maps (e.g., geojsons, shapefiles, CSV's)
-#sudo -u usrfd bash -c "mkdir /home/usrfd/maps";
+
