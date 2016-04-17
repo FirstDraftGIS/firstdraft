@@ -20,3 +20,6 @@ echo "\n INSTALLING PYTHON PACKAGES \n"
 sudo -u usrfd bash -c "cd /home/usrfd && virtualenv venv;"
 sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
 
+echo "\n CREATING TABLES \n"
+sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdraft/projfd && python manage.py makemigrations"
+sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdraft/projfd && python manage.py migrate"
