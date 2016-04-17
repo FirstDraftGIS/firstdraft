@@ -48,7 +48,7 @@ class Activation(Model):
         return str(self.key[:10]) + "..."
 
 class Alias(Model):
-    alias = CharField(max_length=200, null=True, blank=True, db_index=True)
+    alias = CharField(max_length=200, null=True, blank=True, db_index=True, unique=True)
     language = CharField(max_length=7, null=True, blank=True, db_index=True)
     class Meta:
         ordering = ['alias']
@@ -73,9 +73,9 @@ class Email(Model):
 
 class Order(Model):
     complete = BooleanField(default=False)
-    duration = IntegerField(max_length=5, null=True) # how long it took to process the order
+    duration = IntegerField(null=True) # how long it took to process the order
     end = DateTimeField(null=True)
-    start = DateTimeField(auto_now_add=True)
+    start = DateTimeField(auto_now_add=True, null=True) # it will never be null, but have to do this because migration asks for default otherwise
     token = CharField(max_length=200, unique=True) # the random string that's used to find the order in the maps
 
     def __str__(self):
@@ -141,6 +141,11 @@ class ParentChild(Model):
     #makes sure we can't repeat parent child in db
     class Meta:
         unique_together = (("parent","child"))
+
+# or should I name it attribution??
+#class Source(Model):
+#    name = CharField(max_length=200)
+#    url
 
 class TeamMember(Model):
     email = EmailField(null=True, blank=True)
