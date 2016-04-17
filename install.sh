@@ -3,10 +3,10 @@ echo "INSTALLING APT PACKAGES"
 sudo DEBIAN_FRONTEND=noninteractive apt-get -qq -y -o Dpkg::Options::="--force-confnew" install apache2 apache2-dev apache2-mpm-prefork apt-file build-essential curl libapache2-mod-wsgi libpq-dev vim zip libxslt1-dev
 
 echo "CREATING DATABASE"
-sudo psql -U postgres -c "CREATE extension postgis"
-sudo psql -U postgres -c "CREATE extension postgis_topology"
-sudo psql -U postgres -c "CREATE extension fuzzystrmatch"
 sudo psql -U postgres -c 'CREATE database dbfd'
+sudo psql -U postgres -c "CREATE extension postgis" dbfd
+sudo psql -U postgres -c "CREATE extension postgis_topology" dbfd
+sudo psql -U postgres -c "CREATE extension fuzzystrmatch" dbfd
 sudo psql -U postgres -c 'CREATE user usrfd'
 sudo psql -U postgres -c 'ALTER DATABASE dbfd OWNER TO usrfd'
 
