@@ -34,16 +34,16 @@ from openpyxl import load_workbook
 from operator import itemgetter
 from os import listdir, mkdir, remove
 from os.path import isfile
-from PyPDF2 import PdfFileReader
 import geojson, json, requests, StringIO, sys, zipfile
 from geojson import Feature, FeatureCollection, MultiPolygon, Point
 import geojson
 from json import dumps, loads
+from re import findall
 from requests import get
 from appfd.scripts.resolve import *
 from sendfile import sendfile
 from subprocess import call, check_output
-from super_python import unpack
+from super_python import superfy
 from urllib import quote, quote_plus, urlretrieve
 from openpyxl import load_workbook
 #import sys
@@ -186,6 +186,10 @@ def contact(request):
     return render(request, "appfd/contact.html", {})
 
 
+def contributing(request):
+    return render(request, "appfd/contributing.html", {})
+
+
 # this method takes in data as text and returns a geojson of the map
 def crunch(request):
     try:
@@ -199,6 +203,9 @@ def crunch(request):
 
 def disclaimers(request):
     return render(request, "appfd/disclaimers.html", {})
+
+def help(request):
+    return render(request, "appfd/help.html", {})
 
 def index(request):
     print "starting index with request"
@@ -330,7 +337,11 @@ def create(job):
 
     key = job['key']
     text = job['data']
-    features = resolve_locations(extract_locations_with_context(text))
+    # basically this is a hack, so that if you paste in text
+    # it assumes everything that is capitalized could be a place
+    names = list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text)))
+    print "names are", names
+    features = resolve_locations(extract_locations_with_context(text, names))
     featureCollection = FeatureCollection(features)
     serialized = geojson.dumps(featureCollection, sort_keys=True)
 
@@ -499,9 +510,14 @@ def create_from_file(job):
     finish_order(job['key'])
 
 def create_map_from_pdf(job):
+
     print "starting create_map_from_pdf with", job
-    directory = "/home/usrfd/maps/" + job['key'] + "/"
+
+    # unpack job dictionary key, file and maybe filepath
+    key = job['key']
     filename = job['filename']
+
+    directory = "/home/usrfd/maps/" + key + "/"
     file_obj = job['file']
 
     if 'filepath' not in job:
@@ -516,9 +532,6 @@ def create_map_from_pdf(job):
             for chunk in file_obj.chunks():
                 destination.write(chunk)
         print "wrote file"
-    else:
-        filepath = job['filepath']
-        print "filepath = ", filepath
 
     locations = extract_locations_with_context(file_obj)
     print "in views,  locations are", len(locations)
@@ -529,7 +542,7 @@ def create_map_from_pdf(job):
     serialized = geojson.dumps(featureCollection, sort_keys=True)
  
     # make directory to store files
-    path_to_geojson = directory + job['key'] + ".geojson"
+    path_to_geojson = directory + key + ".geojson"
     with open(path_to_geojson, "wb") as f:
         f.write(serialized)
 
