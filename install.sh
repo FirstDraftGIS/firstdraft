@@ -15,7 +15,7 @@ echo "CREATING user usrfd"
 sudo useradd usrfd -m
 
 echo "CLONING firstdraft into /home/usrfd/firstdraft"
-sudo -u usrfd git clone http://github.com/danieljdufour/firstdraft.git /home/usrfd/firstdraft
+sudo -u usrfd bash -c "git clone http://github.com/danieljdufour/firstdraft.git /home/usrfd/firstdraft"
 echo ""
 echo "/home/usrfd/firstdraft is"
 ls -alsh /home/usrfd/firstdraft
