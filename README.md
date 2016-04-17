@@ -5,12 +5,22 @@
 # firstdraft
 Automatically generate first drafts of maps
 
-###Installation Guide
-firstdraft = name of the repository
-projfd = name of the Django project
-appfd = name of the Django app
-dbfd = name of the database
-usrfd = name of the local user
+# Features
+| Languages Supported |
+| ------------------- |
+| Arabic |
+| English |
+| Spanish|
+
+#### Important Names
+| name | thing |
+| --------- | --------- |
+| firstdraft | git repo |
+| projfd | Django project |
+| appfd | Django app |
+| dbfd | database |
+| usrfd | user|
+
 
 #### Some Python Packages Installed 
 * beautifulsoup4 is used for web scraping
