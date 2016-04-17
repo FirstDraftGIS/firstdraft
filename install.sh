@@ -20,6 +20,8 @@ sudo chown usrfd:usrfd /home/usrfd/firstdraft -R
 
 echo "INSTALLING PYTHON PACKAGES"
 sudo -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
+echo "Created virtualenv at ls /home/usrfd"
+ls -alsh /home/usrfd
 sudo -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
 
 echo "CREATING TABLES"
