@@ -22,6 +22,7 @@ echo "INSTALLING PYTHON PACKAGES"
 sudo -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
 echo "Created virtualenv at ls /home/usrfd"
 ls -alsh /home/usrfd
+ls -alsh /home/usrfd/firstdraft
 sudo -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
 
 echo "CREATING TABLES"
