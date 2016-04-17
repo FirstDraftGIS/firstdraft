@@ -15,11 +15,9 @@ echo "CREATING user usrfd"
 sudo useradd usrfd -m
 
 echo "CLONING firstdraft into /home/usrfd/firstdraft"
-ls -alsh /home
-ls -alsh /home/usrfd
 sudo -u usrfd git clone http://github.com/danieljdufour/firstdraft.git /home/usrfd/firstdraft
-echo "CLONED"
 sudo chown usrfd:usrfd /home/usrfd/firstdraft -R
+ls -alsh /home/usrfd
 
 echo "INSTALLING PYTHON PACKAGES"
 sudo -u usrfd bash -c "cd /home/usrfd && virtualenv venv;"
