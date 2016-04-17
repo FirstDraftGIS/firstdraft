@@ -12,15 +12,16 @@ appfd = name of the Django app
 dbfd = name of the database
 usrfd = name of the local user
 
-### Some Python Packages Installed 
+#### Some Python Packages Installed 
 * beautifulsoup4 is used for web scraping
 * boto is used to connect with AWS
 * django is the framework that runs the site
+* Pillow is used by Django for ImageField
 * psycopg2 connects the Django site to the database
 * python-social-auth is used so people can login via Facebook, Google and other things
 * Psycopg is a PostgreSQL database adapater for Python
 
-# Some APT Packages
+#### Some APT Packages Installed
 * apache: webserver
 * apache2-dev: python_mod needs this
 * apache2-mpm-prefork: unknown
@@ -34,7 +35,6 @@ usrfd = name of the local user
 * libjson0...: for Json-C dependency for postgis
 * libpq-dev: needed to install psycopg2 database adapater
 * pkg-config: postgis dependency
-* python-pip: is used to install python packages
 * vim: used to edit files in terminal
 
 ####Create Admin User
