@@ -16,7 +16,6 @@ mod_wsgi
 nltk
 numpy
 openpyxl
-pillow
 psycopg2
 python-dateutil
 python-magic
@@ -28,4 +27,3 @@ selenium
 stop-words
 super_python
 titlecase
-virtualenv
