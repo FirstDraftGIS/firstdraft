@@ -18,6 +18,7 @@ numpy
 openpyxl
 psycopg2
 python-dateutil
+python-docx
 python-magic
 python-social-auth
 pyvirtualdisplay
