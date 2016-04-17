@@ -16,8 +16,8 @@ CREATE FOREIGN TABLE appfd_geoname (
             admin3_code varchar(20),
             admin4_code varchar(20),
             population bigint,
-            elevation integer,
-            dem integer,
+            elevation varchar(100),
+            dem varchar(100),
             timezone varchar(40),
             modification_date varchar(40)
         )
