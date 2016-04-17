@@ -1,5 +1,6 @@
 echo "INSTALLING APT PACKAGES"
-sudo DEBIAN_FRONTEND=noninteractive apt-get -qq -y -o Dpkg::Options::="--force-confnew" install apache2 apache2-dev apache2-mpm-prefork apt-file build-essential cmake curl libapache2-mod-wsgi libboost-all-dev libcgal-dev libgdal1-dev libgeos-dev libgmp3-dev libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg libproj-dev libpq-dev python python-dev python-qgis python-virtualenv qgis vim zip libxslt1-dev
+#sudo DEBIAN_FRONTEND=noninteractive apt-get -qq -y -o Dpkg::Options::="--force-confnew" install apache2 apache2-dev apache2-mpm-prefork apt-file build-essential cmake curl libapache2-mod-wsgi libboost-all-dev libcgal-dev libgdal1-dev libgeos-dev libgmp3-dev libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg libproj-dev libpq-dev python python-dev python-qgis python-virtualenv qgis vim zip libxslt1-dev
+sudo DEBIAN_FRONTEND=noninteractive apt-get -qq -y -o Dpkg::Options::="--force-confnew" install apache2 apache2-dev apache2-mpm-prefork apt-file build-essential curl libapache2-mod-wsgi libpq-dev python python-dev python-qgis python-virtualenv qgis vim zip libxslt1-dev
 
 echo "CREATING DATABASE"
 sudo psql -U postgres -c "CREATE extension postgis"
