@@ -16,13 +16,15 @@ sudo useradd usrfd -m
 
 echo "CLONING firstdraft into /home/usrfd/firstdraft"
 sudo -u usrfd git clone http://github.com/danieljdufour/firstdraft.git /home/usrfd/firstdraft
+echo ""
+echo "/home/usrfd/firstdraft is"
+ls -alsh /home/usrfd/firstdraft
+echo ""
+echo ""
 sudo chown usrfd:usrfd /home/usrfd/firstdraft -R
 
 echo "INSTALLING PYTHON PACKAGES"
 sudo -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
-echo "Created virtualenv at ls /home/usrfd"
-ls -alsh /home/usrfd
-ls -alsh /home/usrfd/firstdraft
 sudo -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
 
 echo "CREATING TABLES"
