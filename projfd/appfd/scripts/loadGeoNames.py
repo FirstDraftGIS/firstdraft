@@ -34,7 +34,8 @@ def run():
 
     end = datetime.now()
     total_seconds = (end - start).total_seconds()
-    print "total_seconds = ", total_seconds
+    message = "Loading geonames took " + str(total_seconds) + " seconds."
+    print message
     with open("log.txt", "wb") as f:
-        f.write("Loading geonames took " + str(total_seconds) + " seconds.")
+        f.write(message)
         
