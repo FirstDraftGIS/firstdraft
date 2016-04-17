@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/DanielJDufour/firstdraft.svg?branch=master)](https://travis-ci.org/DanielJDufour/firstdraft)
 [![Requirements Status](https://requires.io/github/DanielJDufour/firstdraft/requirements.svg?branch=master)](https://requires.io/github/DanielJDufour/firstdraft/requirements/?branch=master)
+[![Hex.pm](https://img.shields.io/hexpm/l/plug.svg?maxAge=2592000?style=plastic)]()
 
 # firstdraft
 Automatically generate first drafts of maps
@@ -26,27 +27,13 @@ usrfd = name of the local user
 * apt-file: useful for looking up which packages have which files
 * autoconf: used by postgis autogen.sh
 * build-essential: includes c++ compilier we need for sfcgal
-* cmake: required for sfcgal
 * curl: download files from internet
 * git: used to download code from github repositories
 * postgresql: the database that stores the information
 * libapache2-mod-wsgi: installed for wsgi
-* libboost-all-dev (aka boost): required for sfcgal
-* libcgal-dev: required for sfcgal
-* libgdal1-dev: gdal-config, file from it is required for compiling postgis from source
-* libgeos-dev: it's file geos-config is required for compiling postgis from source
-* libgmp3-dev (aka gmp): required for sfcgal
 * libjson0...: for Json-C dependency for postgis
-* libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg (aka mpfr): required for sfcgal
-* libproj-dev: compiling postgis from source requires the file proj_api.h
 * libpq-dev: needed to install psycopg2 database adapater
 * pkg-config: postgis dependency
-* postgis: NOT INCLUDING. MUST BUILD FROM SOURCE
-* postgresql-9.3-postgis-2.1: connects postgresql to postgis 
-* postgresql-contrib: postgis requires it
-* postgresql-server-dev-all: includes all postgres stuff needed; includes postgresql-server-dev-X.Y, which is needed to install psycopg2 database adapater
-* python: code language that django uses
-* python-dev:
 * python-pip: is used to install python packages
 * vim: used to edit files in terminal
 
