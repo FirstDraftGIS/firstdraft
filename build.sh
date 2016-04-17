@@ -1,4 +1,18 @@
+# takes about 20 min an an AWS Medium EC2 Ubuntu 15.04
+sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;
 
+#python manage.py runscript loadGeoNames
+#python manage.py runscript loadAlternateNames
+#python manage.py runscript loadCountryInfo
+#python manage.py runscript loadLSIBWVS
+#python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-adiministrative-boundaries"
+#python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-village-boundaries"
+#python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-village-locations"
+
+# to-do: figure out admin level for new towns based on looking at parent admin level and see if 100% same admin level
+#python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-town-locations"
+
+#python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/honduras-admin-level-1-boundaries"
 
 #sudo wget http://download.geonames.org/export/dump/allCountries.zip -O /tmp/allCountries.zip
 #cd /tmp && sudo unzip allCountries.zip
