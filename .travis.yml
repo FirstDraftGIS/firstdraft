@@ -2,6 +2,8 @@ sudo: required
 
 dist: trusty
 
+language: generic
+
 # this makes sure postgresql service is running
 services:
   - postgresql
