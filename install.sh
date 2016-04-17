@@ -17,11 +17,10 @@ sudo useradd usrfd -m
 echo "CLONING firstdraft into /home/usrfd/firstdraft"
 sudo -u usrfd git clone http://github.com/danieljdufour/firstdraft.git /home/usrfd/firstdraft
 sudo chown usrfd:usrfd /home/usrfd/firstdraft -R
-ls -alsh /home/usrfd
 
 echo "INSTALLING PYTHON PACKAGES"
-sudo -u usrfd bash -c "cd /home/usrfd && virtualenv venv;"
-sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
+sudo -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
+sudo -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && pip install -r /home/usrfd/firstdraft/requirements.txt;"
 
 echo "CREATING TABLES"
 sudo -u usrfd bash -c "cd /home/usrfd && source venv/bin/activate && cd firstdraft/projfd && python manage.py makemigrations"
