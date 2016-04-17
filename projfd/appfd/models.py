@@ -76,7 +76,7 @@ class Order(Model):
     duration = IntegerField(null=True) # how long it took to process the order
     end = DateTimeField(null=True)
     start = DateTimeField(auto_now_add=True, null=True) # it will never be null, but have to do this because migration asks for default otherwise
-    token = CharField(max_length=200, unique=True) # the random string that's used to find the order in the maps
+    token = CharField(max_length=200, null=True, unique=True) # the random string that's used to find the order in the maps
 
     def __str__(self):
         return self.token
