@@ -9,11 +9,6 @@ services:
 addons:
   - postgresql: "9.4"
 
-language: python
-
-python:
-  - "2.7"
-
 install: sudo bash install.sh
 
 script:
