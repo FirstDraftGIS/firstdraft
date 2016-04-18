@@ -9,11 +9,11 @@
 #python manage.py runscript loadCountryInfo
 #python manage.py runscript loadLSIBWVS
 sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/myanmar-adiministrative-boundaries'"
-#sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/myanmar-village-boundaries'"
-#sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/myanmar-village-locations'"
+sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/myanmar-village-boundaries'"
+sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/myanmar-village-locations'"
 # to-do: figure out admin level for new towns based on looking at parent admin level and see if 100% same admin level
-#sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/myanmar-town-locations'"
-#sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/honduras-admin-level-1-boundaries'"
+sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/myanmar-town-locations'"
+sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/honduras-admin-level-1-boundaries'"
 
 #sudo wget http://download.geonames.org/export/dump/alternateNames.zip
 #cd /tmp && sudo unzip alternateNames.zip
