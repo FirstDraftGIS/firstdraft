@@ -8,7 +8,7 @@
 #python manage.py runscript loadAlternateNames
 #python manage.py runscript loadCountryInfo
 #python manage.py runscript loadLSIBWVS
-sudo -Hu usrfd bash -c "cd /home/usrfd/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/myanmar-adiministrative-boundaries'"
+sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/myanmar-adiministrative-boundaries'"
 #python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-village-boundaries"
 #python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-village-locations"
 
