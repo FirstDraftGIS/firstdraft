@@ -1,13 +1,14 @@
-cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip
-cd /tmp && unzip allCountries.zip
+# commenting out this loading geonames stuff now because free travis ci doens't have enough memory
+#cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip
+#cd /tmp && unzip allCountries.zip
 # takes about 20 min an an AWS Medium EC2 Ubuntu 15.04
-sudo -Hu postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;
+#sudo -Hu postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd;
 
 #python manage.py runscript loadGeoNames
 #python manage.py runscript loadAlternateNames
 #python manage.py runscript loadCountryInfo
 #python manage.py runscript loadLSIBWVS
-#python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-adiministrative-boundaries"
+sudo -Hu usrfd bash -c "cd /home/usrfd/projfd python manage.py runscript load --script-args='https://data.hdx.rwlabs.org/dataset/myanmar-adiministrative-boundaries'"
 #python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-village-boundaries"
 #python manage.py runscript load --script-args="https://data.hdx.rwlabs.org/dataset/myanmar-village-locations"
 
