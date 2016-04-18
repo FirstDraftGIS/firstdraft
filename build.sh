@@ -1,3 +1,4 @@
+echo "STARTING build.sh"
 # commenting out this loading geonames stuff now because free travis ci doens't have enough memory
 #cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip
 #cd /tmp && unzip allCountries.zip
@@ -47,3 +48,4 @@ sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscr
 #sudo -u usrfd bash -c "echo \"alias s='cd /home/usrfd && source venv/bin/activate && cd /home/usrfd/firstdraft/projfd && python manage.py shell'\" && . /home/usrfd/.bashrc"
 
 
+echo "FINISHING build.sh"
