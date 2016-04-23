@@ -1,6 +1,6 @@
 echo "starting Jenkinsfile"
 
-node('linux ubuntu ec2') {
+node('ec2-slave') {
   echo "starting ec2-slave"
   echo "finishing ec2-slave"
 }
