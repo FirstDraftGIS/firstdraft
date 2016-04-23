@@ -38,6 +38,10 @@ sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python /home/usr
 echo "CREATING MAPS FOLDER"
 sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
 
+echo "LOADING GEONAMES"
+date
+sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd
+date
 
 echo "SETTING UP APACHE" 
 sudo a2enmod wsgi
