@@ -39,7 +39,10 @@ echo "CREATING MAPS FOLDER"
 sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
 
 
-echo "ENABLING wsgi mod" 
-sudo a2enmod wsgi;
+echo "SETTING UP APACHE" 
+sudo a2enmod wsgi
+sudo cp /home/usrfd/firstdraft/fd.conf /etc/apache2/sites-available/fd.conf
+sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.conf
+sudo service apache2 restart
 
 echo "FINISHING build_slave.sh"
