@@ -38,4 +38,8 @@ sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python /home/usr
 echo "CREATING MAPS FOLDER"
 sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
 
+
+echo "ENABLING wsgi mod" 
+sudo a2enmod wsgi;
+
 echo "FINISHING build_slave.sh"
