@@ -39,6 +39,8 @@ echo "CREATING MAPS FOLDER"
 sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
 
 echo "LOADING GEONAMES"
+cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip
+cd /tmp && unzip allCountries.zip
 date
 sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd
 date
