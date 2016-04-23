@@ -12,7 +12,6 @@ sudo npm install npm -g;
 # if node command not found link it to existing nodejs command
 if [ ! -f /usr/bin/node ]; then sudo ln -s /usr/bin/nodejs /usr/bin/node; fi
 
-
 echo "SETTING UP DATABASE"
 sudo service postgresql restart
 sudo -u postgres psql -c "CREATE USER usrfd;";
@@ -21,17 +20,13 @@ sudo -u postgres psql -c "ALTER DATABASE dbfd OWNER TO usrfd;"
 sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology; CREATE EXTENSION fuzzystrmatch;" dbfd
 
 echo "CREATE USER usrfd"
-if [ -z "$(getent passwd usrfd)" ]; then sudo useradd usrfd -m; fi
+sudo useradd usrfd -m
 
-if [ ! -d /home/usrfd/firstdraft ]; then
-  echo "CLONING firstdraft into /home/usrfd/firstdraft"
-  sudo -H -u usrfd bash -c "cd /home/usrfd && git clone https://github.com/FirstDraftGIS/firstdraft.git";
-fi
+echo "CLONING firstdraft into /home/usrfd/firstdraft"
+sudo -H -u usrfd bash -c "cd /home/usrfd && git clone https://github.com/FirstDraftGIS/firstdraft.git";
 
-if [ ! -d /home/usrfd/venv ]; then
-  echo "CREATING VIRUTAL ENVIRONMENT"
-  sudo -H -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
-fi
+echo "CREATING VIRUTAL ENVIRONMENT"
+sudo -H -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
 
 echo "INSTALLING PYTHON PACKAGES"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -r /home/usrfd/firstdraft/requirements.txt"
@@ -41,8 +36,6 @@ sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python /home/usr
 sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python /home/usrfd/firstdraft/projfd/manage.py migrate"
 
 echo "CREATING MAPS FOLDER"
-if [ ! -d /home/usrfd/maps ]; then
-  sudo -u usrfd bash -c "mkdir /home/usrfd/maps";
-fi
+sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
 
 echo "FINISHING build_slave.sh"
