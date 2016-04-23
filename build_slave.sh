@@ -28,8 +28,10 @@ echo "CLONING firstdraft into /home/usrfd/firstdraft"
 sudo -H -u usrfd bash -c "cd /home/usrfd && git clone https://github.com/DanielJDufour/firstdraft.git"
 sudo -H chown usrfd:usrfd /home/usrfd/firstdraft -R
 
-echo "INSTALLING PYTHON PACKAGES"
+echo "CREATING VIRUTAL ENVIRONMENT"
 sudo -H -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
+
+echo "INSTALLING PYTHON PACKAGES"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -r /home/usrfd/firstdraft/requirements.txt"
 
 echo "CREATING TABLES"
