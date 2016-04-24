@@ -44,6 +44,7 @@ cd /tmp && unzip allCountries.zip
 date
 #sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd
 echo "about to load"
+sudo cat /home/usrfd/firstdraft/projfd/appfd/scripts/loadGeoNames.py
 sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python /home/usrfd/firstdraft/projfd/manage.py runscript loadGeoNames"
 echo "loaded"
 date
