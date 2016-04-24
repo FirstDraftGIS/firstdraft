@@ -29,6 +29,11 @@ sudo useradd usrfd -m
 echo "CLONING firstdraft into /home/usrfd/firstdraft"
 sudo -H -u usrfd bash -c "cd /home/usrfd && git clone https://github.com/FirstDraftGIS/firstdraft.git";
 
+echo "COPY PostgreSQL Configuration FILE pg_hba.conf"
+path_to_pg_hba_conf=$(locate pg_hba.conf | grep "^/etc/postgresql/[0-9].[0-9]/main/pg_hba.conf$")
+sudo cp /home/usrfd/firstdraft/pg_hba.conf path_to_pg_hba_conf
+sudo chown postgres:postgres path_to_pg_hba_conf
+
 echo "CREATING VIRUTAL ENVIRONMENT"
 sudo -H -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
 
