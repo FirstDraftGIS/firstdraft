@@ -17,7 +17,7 @@ def run():
     cursor.execute("TRUNCATE appfd_place CASCADE")
     print "done"
 
-    with open("/home/usrfd/data/geonames/allCountries.txt", "r") as f:
+    with open("/tmp/allCountries.txt", "r") as f:
         counter = 0
         places_to_create = []
         for line in f:
