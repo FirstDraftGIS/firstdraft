@@ -42,7 +42,8 @@ echo "LOADING GEONAMES"
 cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip
 cd /tmp && unzip allCountries.zip
 date
-sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd
+#sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd
+sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd python manage.py runscript loadGeoNames"
 date
 
 echo "SETTING UP APACHE" 
