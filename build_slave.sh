@@ -33,6 +33,7 @@ echo "COPY PostgreSQL Configuration FILE pg_hba.conf"
 path_to_pg_hba_conf=$(locate pg_hba.conf | grep "^/etc/postgresql/[0-9].[0-9]/main/pg_hba.conf$")
 sudo cp /home/usrfd/firstdraft/pg_hba.conf path_to_pg_hba_conf
 sudo chown postgres:postgres path_to_pg_hba_conf
+sudo service postgresql restart
 
 echo "CREATING VIRUTAL ENVIRONMENT"
 sudo -H -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
