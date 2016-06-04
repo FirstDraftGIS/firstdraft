@@ -14,16 +14,22 @@ if [ ! -f /usr/bin/node ]; then sudo ln -s /usr/bin/nodejs /usr/bin/node; fi
 
 echo "SETTING UP DATABASE"
 sudo service postgresql restart
+
+echo "RESETING POSTGRESQL TO DEFAULT CONDITIONS"
+sudo -u postgres psql -c "DROP DATABASE IF EXISTS dbfd;"
+sudo -u postgres psql -c "DROP ROLE IF EXISTS usrfd;"
+
+echo "CREATING POSTGRESQL USER AND DATABASE"
 sudo -u postgres psql -c "CREATE USER usrfd;";
 sudo -u postgres psql -c "CREATE DATABASE dbfd;"
 sudo -u postgres psql -c "ALTER DATABASE dbfd OWNER TO usrfd;"
 sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology; CREATE EXTENSION fuzzystrmatch;" dbfd
 
-echo "DELETE USER"
+echo "DELETE SYSTEM USER"
 # wipes the slates clean
 sudo deluser --remove-all-files usrfd
 
-echo "CREATE USER usrfd"
+echo "CREATE SYSTEM USER usrfd"
 sudo useradd usrfd -m
 
 echo "CLONING firstdraft into /home/usrfd/firstdraft"
