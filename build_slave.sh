@@ -29,7 +29,6 @@ echo "DELETE SYSTEM USER"
 sudo rm -fr /home/usrfd
 echo "DELETED usrfd's home directory"
 sudo deluser usrfd
-echo "DELETED usrfd"
 
 echo "CREATE SYSTEM USER usrfd"
 sudo useradd usrfd -m
