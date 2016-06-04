@@ -57,7 +57,7 @@ echo "LOADING GEONAMES"
 sudo rm -fr /tmp/allCountries.*
 cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip
 cd /tmp && unzip allCountries.zip
-sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd
+sudo python /home/usrfd/firstdraft/loadGeoNames.py
 
 echo "SETTING UP APACHE" 
 sudo a2enmod wsgi
