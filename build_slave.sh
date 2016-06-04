@@ -57,7 +57,7 @@ echo "CREATING MAPS FOLDER"
 sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
 
 echo "LOADING GEONAMES"
-sudo rm /tmp/allCountries.*
+sudo rm -fr /tmp/allCountries.*
 cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip
 cd /tmp && unzip allCountries.zip
 sudo -u postgres psql -f /home/usrfd/firstdraft/load_geonames.sql dbfd
