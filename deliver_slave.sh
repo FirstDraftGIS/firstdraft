@@ -4,7 +4,6 @@ echo "slave_instance_id: $slave_instance_id"
 
 aws ec2 stop-instances --instance-ids $slave_instance_id
 
-
 echo "figuring out version by lookin at previous one"
 
 echo "waiting to make image until stopped"
@@ -23,7 +22,7 @@ echo "instance $slave_instance_id is stopped"
 name="FDGIS_`date +%Y_%m_%d_%H_%M_%S`"
 echo "name: $name"
 description="First Draft GIS cut at `date +%Y-%m-%dT%H:%M:%S`"
-description="FirstDraftGIS"
+description="First Draft GIS"
 echo "description: $description"
 image_id=$(aws ec2 create-image --instance-id $slave_instance_id --name '$name' --description '$description' | grep -P '(?<="ImageId": ")ami-[a-z]*(?=")' --only-matching)
 echo "image_id: $image_id"
@@ -40,5 +39,7 @@ while true; do
 done
 
 aws ec2 terminate-instances --dry-run --instance-ids $slave_instance_id
+
+
 
 echo "finishing deliver_slave"
