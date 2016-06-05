@@ -52,9 +52,11 @@ else
     echo "deregistered"
 fi
 
-aws ec2 copy-image --source-region "us-east-1" --source-image-id "$image_id" --name "First Draft GIS" --description "First Draft GIS automatically creates maps"
+id_of_public_image=$(aws ec2 copy-image --source-region "us-east-1" --source-image-id "$image_id" --name "First Draft GIS" --description "First Draft GIS automatically creates maps" | grep -P '(?<="ImageId": ")ami-[a-z\d]+(?=")' --only-matching)
+echo "id_of_public_image: $id_of_public_image"
 
-
+echo "Making ami public, so everyone can launch First Draft GIS"
+aws ec2 modify-image-attribute --image-id $id_of_public_image --launch-permission "{\"Add\":[{\"Group\":\"all\"}]}"
 
 
 
