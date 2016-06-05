@@ -17,6 +17,6 @@ node('master') {
     echo "ending deliver"
 }
 
-print(SLAVE_NAME)
+print("SLAVE_NAME: " + SLAVE_NAME)
 
 echo "finishing Jenkinsfile"
