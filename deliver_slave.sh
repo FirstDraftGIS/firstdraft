@@ -24,7 +24,7 @@ echo "name: $name"
 description="First Draft GIS cut at `date +%Y-%m-%dT%H:%M:%S`"
 description="First Draft GIS"
 echo "description: $description"
-image_id=$(aws ec2 create-image --instance-id $slave_instance_id --name '$name' --description '$description' | grep -P '(?<="ImageId": ")ami-[a-z]*(?=")' --only-matching)
+image_id=$(aws ec2 create-image --instance-id $slave_instance_id --name $name --description '$name' | grep -P '(?<="ImageId": ")ami-[a-z]*(?=")' --only-matching)
 echo "image_id: $image_id"
 
 echo "waiting until image is created in order to terminate"
