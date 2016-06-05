@@ -7,7 +7,7 @@ node('ec2') {
   echo "finishing ec2-slave"
 }
 
-step {
+node {
     echo "starting deliver"
     sh "aws copy-image --source-region us-east-1 --source-image-id ami-4917552c --name FDGIS"
     echo "ending deliver"
