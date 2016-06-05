@@ -13,6 +13,7 @@ slave_instance_id = slave_name.find(/i\-[a-z\d]+/)
 
 node('master') {
     echo "starting deliver"
+    sh "whoami"
     sh "aws ec2 create-image --instance-id " + slave_instance_id + " --name 'FDGIS' --description 'First Draft GIS' --region us-east-1"
     echo "ending deliver"
 }
