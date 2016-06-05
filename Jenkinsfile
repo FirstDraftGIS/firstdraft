@@ -1,16 +1,4 @@
-import com.amazonaws.auth.AWSCredentials
-import com.amazonaws.auth.PropertiesCredentials
-import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.AmazonEC2Client
-
 echo "starting Jenkinsfile"
-
-// some code from http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/tutorial-spot-instances-java.html
-AWSCredentials credentials = null
-file = File("/var/lib/jenkins/AwsCredentials.properties")
-credentials = PropertiesCredentials(file)
-AmazonEC2 ec2 = AmazonEC2Client(credentials)
-
 
 def slave_name = ""
 
