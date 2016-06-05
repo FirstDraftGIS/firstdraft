@@ -7,7 +7,8 @@ echo "starting Jenkinsfile"
 
 // some code from http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/tutorial-spot-instances-java.html
 AWSCredentials credentials = null
-credentials = PropertiesCredentials(File("/var/lib/jenkins/AwsCredentials.properties"))
+file = File("/var/lib/jenkins/AwsCredentials.properties")
+credentials = PropertiesCredentials(file)
 AmazonEC2 ec2 = AmazonEC2Client(credentials)
 
 
