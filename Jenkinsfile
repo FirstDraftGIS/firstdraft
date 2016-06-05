@@ -4,8 +4,8 @@ node('ec2') {
   echo "starting ec2-slave"
   sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/build_slave.sh -O /tmp/build_slave.sh'
   //sh 'sudo bash /tmp/build_slave.sh'
-  sh "instanceid=$(curl http://169.254.169.254/latest/meta-data/instance-id)"
-  sh "echo $instanceid"
+  //sh "instanceid=$(curl http://169.254.169.254/latest/meta-data/instance-id)"
+  //sh "echo $instanceid"
   echo "finishing ec2-slave"
 }
 
