@@ -9,6 +9,9 @@ node('ec2') {
   echo "finishing ec2-slave"
 }
 
+println(instance)
+println(slaves)
+
 for (aSlave in hudson.model.Hudson.instance.slaves) {
   println('Name: ' + aSlave.name);
 }
