@@ -17,12 +17,12 @@ while true; do
     break;
   fi
 done
-
-
+echo "instance $slave_instance_id is stopped"
 
 
 description="First Draft GIS cut at `date +%Y-%m-%dT%H:%M:%S`"
-image_id=$(aws ec2 create-image --instance-id $slave_instance_id --name 'FirstDraftGIS' --description $description | grep -P '(?<="ImageId": ")ami-[a-z]*(?=")' --only-matching
+echo "description: $description"
+image_id=$(aws ec2 create-image --instance-id $slave_instance_id --name 'FirstDraftGIS' --description $description | grep -P '(?<="ImageId": ")ami-[a-z]*(?=")' --only-matching)
 echo "image_id: $image_id"
 
 echo "waiting until image is created in order to terminate"
