@@ -2,13 +2,12 @@ import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.PropertiesCredentials
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.AmazonEC2Client
-import src.samples.GettingStartedApp
 
 echo "starting Jenkinsfile"
 
 // some code from http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/tutorial-spot-instances-java.html
 AWSCredentials credentials = null
-credentials = PropertiesCredentials(GettingStartedApp.class.getResourceAsStream("AwsCredentials.properties"))
+credentials = PropertiesCredentials(new File("/var/lib/jenkins/AwsCredentials.properties"))
 AmazonEC2 ec2 = AmazonEC2Client(credentials)
 
 
