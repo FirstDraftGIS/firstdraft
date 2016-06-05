@@ -10,6 +10,7 @@ node('ec2') {
 }
 
 slave_instance_id = slave_name.find(/i-[a-z\d]{5,}/)
+println(slave_instance_id)
 
 node('master') {
     echo "starting deliver"
