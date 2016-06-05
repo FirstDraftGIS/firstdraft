@@ -37,7 +37,7 @@ while true; do
   fi
 done
 
-aws ec2 terminate-instances --dry-run --instance-ids $slave_instance_id
+aws ec2 terminate-instances --instance-ids $slave_instance_id
 
 
 
