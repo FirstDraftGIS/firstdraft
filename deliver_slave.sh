@@ -23,7 +23,8 @@ name="FDGIS_`date +%Y_%m_%d_%H_%M_%S`"
 echo "name: $name"
 description="First Draft GIS cut at `date +%Y-%m-%dT%H:%M:%S`"
 echo "description: $description"
-image_id=$(aws ec2 create-image --instance-id $slave_instance_id --name "$name" --description "$name" | grep -P '(?<="ImageId": ")ami-[a-z\d]+(?=")' --only-matching)
+description=name
+image_id=$(aws ec2 create-image --instance-id $slave_instance_id --name "$name" --description "$description" | grep -P '(?<="ImageId": ")ami-[a-z\d]+(?=")' --only-matching)
 echo "image_id: $image_id"
 
 echo "waiting until image is created"
@@ -37,17 +38,23 @@ while true; do
   fi
 done
 
-image_id=$(aws ec2 describe-images --owners self --filters Name=name,Values="First Draft GIS" | grep -P '(?<="ImageId": ")ami-[a-z\d]+(?=")' --only-matching)
-echo "image_id: $image_id"
-if [ "$image_id" == "" ];then
-   echo "image_id is blank"
+echo "deleting instance because we do not need that anymore"
+aws ec2 terminate-instances --instance-ids $slave_instance_id
+echo "terminated $slave_instance_id"
+
+id_of_image_to_deregister=$(aws ec2 describe-images --owners self --filters Name=name,Values="First Draft GIS" | grep -P '(?<="ImageId": ")ami-[a-z\d]+(?=")' --only-matching)
+echo "id_of_image_to_deregister: $id_of_image_to_deregister"
+if [ "$id_of_image_to_deregister" == "" ];then
+   echo "id_of_image_to_deregister is blank"
 else
-    echo "image_id is NOT blank, so deregister"
-    aws ec2 deregister-image --image-id $image_id
+    echo "id_of_image_to_deregister is NOT blank, so deregister"
+    aws ec2 deregister-image --image-id $id_of_image_to_deregister
     echo "deregistered"
 fi
 
-aws ec2 terminate-instances --instance-ids $slave_instance_id
+aws ec2 copy-image --source-region "us-east-1" --source-image-id "$image_id" --name "First Draft GIS" --description "First Draft GIS automatically creates maps"
+
+
 
 
 
