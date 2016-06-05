@@ -30,6 +30,14 @@ node('master') {
     sleep 10
     sh "aws ec2 create-image --instance-id " + slave_instance_id + " --name 'FDGIS' --description 'First Draft GIS' --region us-east-1"
     
+    //keep sleeping until ami is describe as available
+    //sh "while aws ec2 describe-images --image-ids " + slave_instance_id
+    sh "while true; do "
+    + " echo 'sleeping 10 seconds';"
+    + " sleep 10;"
+    + " state=$(aws ec2 describe-images --image-ids ami-48aa5425 | grep -P '(?<=\"State\": \")[a-z]*(?=\")' --only-matching);"
+    + " if '$state' == 'available'; then break;"
+    + " done;"
     sh "aws ec2 terminate-instances --dry-run --instance-ids " + slave_instance_id
     
     echo "ending deliver"
