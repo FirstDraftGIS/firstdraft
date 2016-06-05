@@ -5,8 +5,8 @@ echo "slave_instance_id: $slave_instance_id"
 function wait_until_image_is_created {
   echo "starting wait_until_image_is_created with $1"
   while true; do
-    echo "    sleeping 10 seconds"
-    sleep 10
+    echo "    sleeping 15 seconds"
+    sleep 15
     state=$(aws ec2 describe-images --image-ids $1 | grep -P '(?<="State": ")[a-z]*(?=")' --only-matching)
     echo "    state: $state"
     if [ "$state" = "available" ]; then
@@ -22,10 +22,10 @@ echo "figuring out version by lookin at previous one"
 
 echo "waiting to make image until stopped"
 while true; do
-  echo "sleeping 10 seconds"
-  sleep 10
+  echo "    sleeping 15 seconds"
+  sleep 15
   status=$(aws ec2 describe-instance-status --instance-ids  $slave_instance_id --include-all-instances)
-  echo "status: $status"
+  echo "    status: $status"
   if [[ $status == *"stopped"* ]]; then
     break;
   fi
