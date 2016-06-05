@@ -1,5 +1,6 @@
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.PropertiesCredentials
+import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.AmazonEC2Client
 
 echo "starting Jenkinsfile"
