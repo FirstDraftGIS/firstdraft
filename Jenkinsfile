@@ -9,7 +9,8 @@ node('ec2') {
   echo "finishing ec2-slave"
 }
 
-slave_instance_id = slave_name.find(/i\-[a-z\d]+/)
+//slave_instance_id = slave_name.find(/i\-[a-z\d]+/)
+slave_instance_id = slave_name[14..]
 
 node('master') {
     echo "starting deliver"
