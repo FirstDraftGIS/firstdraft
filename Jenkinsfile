@@ -15,7 +15,8 @@ slave_instance_id = slave_name.find(/i\-[a-z\d]+/)
 node('master') {
     echo "starting deliver"
     env.slave_instance_id = slave_instance_id
-    sh "sudo bash deliver_slave.sh"
+    sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/deliver_slave.sh -O /tmp/deliver_slave.sh'
+    sh "bash /tmp/deliver_slave.sh"
     echo "ending deliver"
 }
 
