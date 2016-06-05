@@ -27,9 +27,8 @@ sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_top
 
 echo "DELETE SYSTEM USER"
 sudo pkill -u usrfd
-sudo rm -fr /home/usrfd
 sudo deluser usrfd --force --remove--home
-sudo rm -fr /home/usrfd
+sudo deluser --group usrfd
 
 echo "CREATE SYSTEM USER usrfd"
 sudo useradd usrfd -m
