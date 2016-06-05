@@ -1,17 +1,19 @@
 echo "starting Jenkinsfile"
 
-def SLAVE_NAME = ""
+def slave_name = ""
 
 node('ec2') {
   echo "starting ec2-slave"
-  SLAVE_NAME = env.NODE_NAME
+  slave_name = env.NODE_NAME
   sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/build_slave.sh -O /tmp/build_slave.sh'
   echo "finishing ec2-slave"
 }
 
+slave_instance_id = slave_name.find(/i-[a-z\d]{5,}/)
+
 node('master') {
     echo "starting deliver"
-    sh "aws ec2 create-image --instance-id " + SLAVE_NAME + " --name 'FDGIS' --description 'First Draft GIS'"
+    sh "aws ec2 create-image --instance-id " + slave_instance_id + " --name 'FDGIS' --description 'First Draft GIS'"
     echo "ending deliver"
 }
 
