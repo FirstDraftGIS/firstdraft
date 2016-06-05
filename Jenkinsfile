@@ -7,11 +7,12 @@ node('ec2') {
   echo "finishing ec2-slave"
 }
 
+this.binding.variables.each {k,v -> println "$k = $v"}
+
 node {
     echo "starting deliver"
     //sh "aws ec2 "
     //sh "aws ec2 copy-image --source-region us-east-1 --source-image-id ami-4917552c --name FDGIS --region us-east-1"
-    this.binding.variables.each {k,v -> println "$k = $v"}
     //sh "aws ec2 create-image --instance-id --name 'FDGIS' --description 'First Draft GIS'
     echo "ending deliver"
 }
