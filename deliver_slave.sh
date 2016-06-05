@@ -55,7 +55,7 @@ if [ "$id_of_image_to_deregister" == "" ];then
 else
     echo "id_of_image_to_deregister is NOT blank, so deregister"
     aws ec2 deregister-image --image-id $id_of_image_to_deregister
-    echo "deregistered"
+    echo "deregistered $id_of_image_to_deregister"
 fi
 
 id_of_public_image=$(aws ec2 copy-image --source-region "us-east-1" --source-image-id "$image_id" --name "First Draft GIS" --description "First Draft GIS automatically creates maps" | grep -P '(?<="ImageId": ")ami-[a-z\d]+(?=")' --only-matching)
