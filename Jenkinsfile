@@ -12,7 +12,7 @@ n = node('ec2') {
   echo "finishing ec2-slave"
 }
 
-print("instanceid is", instanceid)
+echo("instanceid is", instanceid)
 
 node {
     echo "starting deliver"
