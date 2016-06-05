@@ -9,7 +9,8 @@ node('ec2') {
 
 node {
     echo "starting deliver"
-    sh "aws copy-image --source-region us-east-1 --source-image-id ami-4917552c --name FDGIS"
+    //sh "aws ec2 "
+    sh "aws ec2 copy-image --source-region us-east-1 --source-image-id ami-4917552c --name FDGIS"
     echo "ending deliver"
 }
 
