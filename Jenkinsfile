@@ -9,7 +9,7 @@ n = node('ec2') {
   echo "finishing ec2-slave"
 }
 
-println("n:", n)
+print(n)
 
 node {
     echo "starting deliver"
