@@ -26,7 +26,9 @@ sudo -u postgres psql -c "ALTER DATABASE dbfd OWNER TO usrfd;"
 sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology; CREATE EXTENSION fuzzystrmatch;" dbfd
 
 echo "DELETE SYSTEM USER"
-sudo deluser usrfd --force
+sudo pkill -u usrfd
+sudo rm -fr /home/usrfd
+sudo deluser usrfd --force --remove
 sudo rm -fr /home/usrfd
 
 echo "CREATE SYSTEM USER usrfd"
