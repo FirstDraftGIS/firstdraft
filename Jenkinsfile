@@ -7,7 +7,7 @@ n = node('ec2') {
   //sh "instanceid=$(curl http://169.254.169.254/latest/meta-data/instance-id)"
   //sh "echo $instanceid"
   sh "instanceid=\$(curl http://169.254.169.254/latest/meta-data/instance-id)"
-  echo "instance id is \$instanceid"
+  echo "instance id is $instanceid"
   //sh "aws ec2 create-image --instance-id --name 'FDGIS' --description 'First Draft GIS'
   echo "finishing ec2-slave"
 }
