@@ -32,7 +32,7 @@ while true; do
   sleep 10
   state=$(aws ec2 describe-images --image-ids $image_id | grep -P '(?<="State": ")[a-z]*(?=")' --only-matching)
   echo "state: $state"
-  if "$state" == "available"; then
+  if [[ "$state" == "available" ]]; then
     break;
   fi
 done
