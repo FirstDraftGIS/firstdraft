@@ -78,6 +78,7 @@ sudo python /home/usrfd/firstdraft/loadGeoNames.py
 echo "SETTING UP APACHE" 
 sudo a2enmod wsgi
 sudo cp /home/usrfd/firstdraft/fd.conf /etc/apache2/sites-available/fd.conf
+sudo rm /etc/apache2/sites-enabled/fd.conf
 sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.conf
 sudo service apache2 restart
 
