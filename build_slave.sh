@@ -30,6 +30,8 @@ sudo -u postgres psql -c "CREATE DATABASE dbfd;"
 sudo -u postgres psql -c "ALTER DATABASE dbfd OWNER TO usrfd;"
 sudo -u postgres psql -c 'GRANT ALL ON DATABASE dbfd TO "www-data";'
 sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "www-data";' dbfd;
+sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "www-data";' dbfd;
+sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO "www-data";' dbfd;
 sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology; CREATE EXTENSION fuzzystrmatch;" dbfd
 
 echo "DELETE SYSTEM USER"
@@ -58,6 +60,11 @@ sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate
 echo "CREATING TABLES"
 sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python /home/usrfd/firstdraft/projfd/manage.py makemigrations"
 sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python /home/usrfd/firstdraft/projfd/manage.py migrate"
+
+echo "UPDATE DATABASE PERMISSIONS TO ACCOUNT FOR MIGRATIONS"
+sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "www-data";' dbfd;
+sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "www-data";' dbfd;
+sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO "www-data";' dbfd;
 
 echo "CREATING MAPS FOLDER"
 sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
