@@ -21,11 +21,14 @@ sudo service postgresql restart
 echo "RESETING POSTGRESQL TO DEFAULT CONDITIONS"
 sudo -u postgres psql -c "DROP DATABASE IF EXISTS dbfd;"
 sudo -u postgres psql -c "DROP ROLE IF EXISTS usrfd;"
+sudo -u postgres psql -c "DROP ROLE IF EXISTS www-data;"
 
 echo "CREATING POSTGRESQL USER AND DATABASE"
 sudo -u postgres psql -c "CREATE USER usrfd;";
+sudo -u postgres psql -c 'CREATE USER "www-data";'
 sudo -u postgres psql -c "CREATE DATABASE dbfd;"
 sudo -u postgres psql -c "ALTER DATABASE dbfd OWNER TO usrfd;"
+sudo -u postgres psql -c 'GRANT ALL ON DATABASE dbfd TO "www-data";'
 sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology; CREATE EXTENSION fuzzystrmatch;" dbfd
 
 echo "DELETE SYSTEM USER"
