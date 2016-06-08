@@ -1,5 +1,5 @@
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import imp, os
+import getpass, imp, os
 from django.utils.crypto import get_random_string
 from subprocess import check_output
 
@@ -98,7 +98,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'dbfd',
-        'USER': 'usrfd',
+        'USER': getpass.getuser(), # gets current user running this file
         'PORT': 5432,
     }
 }
