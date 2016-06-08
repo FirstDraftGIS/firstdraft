@@ -107,7 +107,7 @@ class Place(Model):
     admin2_code = CharField(max_length=100, null=True, blank=True, db_index=True)
     aliases = ManyToManyField('Alias', through="AliasPlace", related_name="place_from_placealias+")
     area_sqkm = IntegerField(null=True, blank=True)
-    country_code = CharField(max_length=2, null=True, blank=True, db_index=True)
+    country_code = CharField(max_length=10, null=True, blank=True, db_index=True)
     district_num = IntegerField(null=True, blank=True)
     fips = IntegerField(null=True, blank=True, db_index=True)
     geonameid = IntegerField(null=True, blank=True, db_index=True)
