@@ -51,7 +51,8 @@ INSTALLED_APPS = (
     'social.apps.django_app.default',
     'mod_wsgi.server',
     'rest_framework',
-    'appfd'
+    'appfd',
+    'behave_django'
 )
 
 MIDDLEWARE_CLASSES = (
