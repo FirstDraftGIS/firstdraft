@@ -54,7 +54,7 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
             if(properties['geonameid']) popup_html += "<b>geonameid: </b>" + properties.geonameid + "</br>";
             if(properties['context']) popup_html += "<p><b>context: </b>" + properties.context + "</p>";
             popup_html += "</div>";
-            console.log("popup_html is", popup_html);
+            console.log("popup_html is", popup_html.substring(0,100));
             layer.bindPopup(popup_html);
             }catch(err){console.error("err is", err);}
         }
@@ -98,7 +98,7 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
                         setTimeout(function(){
                             map.invalidateSize();
                             window.scrollTo(0,400);
-                            sliderControl.startSlider();
+                            //sliderControl.startSlider();
                         },100);
                     }
                 });
