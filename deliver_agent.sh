@@ -1,6 +1,6 @@
-echo "starting deliver_slave"
+echo "starting deliver_agent"
 
-echo "slave_instance_id: $slave_instance_id"
+echo "agent_instance_id: $agent_instance_id"
 
 function wait_until_image_is_created {
   echo "starting wait_until_image_is_created with $1"
@@ -16,7 +16,7 @@ function wait_until_image_is_created {
   echo "finishing wait_until_image_is_created"
 }
 
-aws ec2 stop-instances --instance-ids $slave_instance_id
+aws ec2 stop-instances --instance-ids $agent_instance_id
 
 echo "figuring out version by lookin at previous one"
 
@@ -24,13 +24,13 @@ echo "waiting to make image until stopped"
 while true; do
   echo "    sleeping 15 seconds"
   sleep 15
-  status=$(aws ec2 describe-instance-status --instance-ids  $slave_instance_id --include-all-instances)
+  status=$(aws ec2 describe-instance-status --instance-ids  $agent_instance_id --include-all-instances)
   echo "    status: $status"
   if [[ $status == *"stopped"* ]]; then
     break;
   fi
 done
-echo "instance $slave_instance_id is stopped"
+echo "instance $agent_instance_id is stopped"
 
 
 name="FDGIS_`date +%Y_%m_%d_%H_%M_%S`"
@@ -38,15 +38,15 @@ echo "name: $name"
 description="First Draft GIS cut at `date +%Y-%m-%dT%H:%M:%S`"
 echo "description: $description"
 description=name
-image_id=$(aws ec2 create-image --instance-id $slave_instance_id --name "$name" --description "$description" | grep -P '(?<="ImageId": ")ami-[a-z\d]+(?=")' --only-matching)
+image_id=$(aws ec2 create-image --instance-id $agent_instance_id --name "$name" --description "$description" | grep -P '(?<="ImageId": ")ami-[a-z\d]+(?=")' --only-matching)
 echo "image_id: $image_id"
 
 
 wait_until_image_is_created $image_id
 
 echo "deleting instance because we do not need that anymore"
-aws ec2 terminate-instances --instance-ids $slave_instance_id
-echo "terminated $slave_instance_id"
+aws ec2 terminate-instances --instance-ids $agent_instance_id
+echo "terminated $agent_instance_id"
 
 id_of_image_to_deregister=$(aws ec2 describe-images --owners self --filters Name=name,Values="First Draft GIS" | grep -P '(?<="ImageId": ")ami-[a-z\d]+(?=")' --only-matching)
 echo "id_of_image_to_deregister: $id_of_image_to_deregister"
@@ -68,4 +68,4 @@ aws ec2 modify-image-attribute --image-id $id_of_public_image --launch-permissio
 
 
 
-echo "finishing deliver_slave"
+echo "finishing deliver_agent"
