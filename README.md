@@ -4,7 +4,7 @@
 # firstdraft
 Automatically generate first drafts of maps
 
-# installation
+# Installation
 The quickest way to get First Draft GIS up and running is to launch the First Draft GIS AMI on AWS found here: https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Images:visibility=public-images;search=First%20Draft%20GIS;sort=name
 
 
