@@ -1,22 +1,26 @@
 echo "starting Jenkinsfile"
 
-def slave_name = ""
+def agent_name = ""
+
 
 node('ec2') {
-  echo "starting ec2-slave"
-  slave_name = env.NODE_NAME
-  sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/build_slave.sh -O /tmp/build_slave.sh'
-  sh 'sudo bash /tmp/build_slave.sh'
-  echo "finishing ec2-slave"
+  stage "Build"
+  agent_name = env.NODE_NAME
+  sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/build_agent.sh -O /tmp/build_agent.sh'
+  sh 'sudo bash /tmp/build_agent.sh'
+
+  stage "Test"
+  sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/test_agent.sh -O /tmp/test_agent.sh'
+  sh 'sudo bash /tmp/test_agent.sh'
 }
+agent_instance_id = agent_name.find(/i\-[a-z\d]+/)
 
-slave_instance_id = slave_name.find(/i\-[a-z\d]+/)
-
+stage "Deliver"
 node('master') {
     echo "starting deliver"
-    env.slave_instance_id = slave_instance_id
-    sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/deliver_slave.sh -O /tmp/deliver_slave.sh'
-    sh "bash /tmp/deliver_slave.sh"
+    env.agent_instance_id = agent_instance_id
+    sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/deliver_agent.sh -O /tmp/deliver_agent.sh'
+    sh "bash /tmp/deliver_agent.sh"
     echo "ending deliver"
 }
 
