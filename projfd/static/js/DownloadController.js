@@ -7,7 +7,8 @@ app.controller('DownloadController', ['$scope', '$http', '$window', '$compile', 
         console.log("$scope.href_geojson is", $scope.href_geojson);
 
 
-        $scope.stop = function(){$interval.cancel(promise_shp);};
+        $scope.stop_shp = function(){$interval.cancel(promise_shp);};
+        $scope.stop_csv = function(){$interval.cancel(promise_csv);};
 
         var promise_shp = $interval( function(){
             console.log("will request",'/does_map_exist/' + $scope.$parent.job + '/zip'); 
@@ -15,7 +16,7 @@ app.controller('DownloadController', ['$scope', '$http', '$window', '$compile', 
                 console.log("got from does_map_exist", response);
                 if (response.data === "True")
                 {
-                    $scope.stop();
+                    $scope.stop_shp();
                     document.getElementById("href_shp").href = $scope.href_shp = "/get_map/" + $scope.$parent.job + "/zip";
                 }
             });
@@ -27,7 +28,7 @@ app.controller('DownloadController', ['$scope', '$http', '$window', '$compile', 
                 console.log("got from does_map_exist", response);
                 if (response.data === "True")
                 {
-                    $scope.stop();
+                    $scope.stop_csv();
                     document.getElementById("href_csv").href = $scope.href_csv = "/get_map/" + $scope.$parent.job + "/csv";
                 }
             });
