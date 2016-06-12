@@ -158,3 +158,7 @@ REST_FRAMEWORK = {
 SENDFILE_BACKEND = 'sendfile.backends.mod_wsgi'
 SENDFILE_ROOT = 'home/usrfd/maps'
 SENDFILE_URL = '/maps'
+
+
+#://pythonhosted.org/django-guardian/configuration.html 
+ANONYMOUS_USER_ID = -1
