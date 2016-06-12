@@ -30,7 +30,7 @@ with open("/tmp/allCountries.txt", "r") as f:
       try:
         counter += 1
         geonameid, name, asciiname, alternatenames, latitude, longitude, feature_class, feature_code, country_code, cc2, admin1_code, admin2_code, admin3_code, admin4_code, population, elevation, dem, timezone, modification_date = line.split("\t")
-        point = wkb_w.write_hex(Point(float(latitude), float(longitude), srid=4326))
+        point = wkb_w.write_hex(Point(float(longitude), float(latitude), srid=4326))
         writer.writerow([ counter, "", admin1_code, admin2_code, "", country_code, "", "", geonameid, "", "", name, "", point, population, "", "", timezone ])
         if counter % 1000000 == 0:
              print counter, ":", str((datetime.now() - start).total_seconds()), "seconds so far"
