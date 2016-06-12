@@ -68,7 +68,7 @@ sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public
 
 echo "CREATING MAPS FOLDER"
 sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
-sudo chmod "www-data":"www-data" -R /home/usrfd/maps
+sudo chown "www-data":"www-data" -R /home/usrfd/maps
 
 echo "LOADING GEONAMES"
 sudo rm -fr /tmp/allCountries.*
