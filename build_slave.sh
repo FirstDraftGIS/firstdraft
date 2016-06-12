@@ -72,7 +72,7 @@ sudo chown "www-data":"www-data" -R /home/usrfd/maps
 
 echo "LOADING GEONAMES"
 sudo rm -fr /tmp/allCountries.*
-cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip
+cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip --no-verbose
 cd /tmp && unzip allCountries.zip
 sudo python /home/usrfd/firstdraft/loadGeoNames.py
 
