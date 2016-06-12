@@ -1,9 +1,12 @@
-[![Build Status](https://travis-ci.org/DanielJDufour/firstdraft.svg?branch=master)](https://travis-ci.org/DanielJDufour/firstdraft)
 [![Requirements Status](https://requires.io/github/DanielJDufour/firstdraft/requirements.svg?branch=master)](https://requires.io/github/DanielJDufour/firstdraft/requirements/?branch=master)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg?maxAge=2592000?style=plastic)]()
 
 # firstdraft
 Automatically generate first drafts of maps
+
+# installation
+The quickest way to get First Draft GIS up and running is to launch the First Draft GIS AMI on AWS found here: https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Images:visibility=public-images;search=First%20Draft%20GIS;sort=name
+
 
 # Features
 | Languages Supported |
