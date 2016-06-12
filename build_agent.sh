@@ -1,4 +1,4 @@
-echo "STARTING build_slave.sh"
+echo "STARTING build_agent.sh"
 
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" update
 
@@ -83,4 +83,4 @@ sudo rm /etc/apache2/sites-enabled/fd.conf
 sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.conf
 sudo service apache2 restart
 
-echo "FINISHING build_slave.sh"
+echo "FINISHING build_agent.sh"
