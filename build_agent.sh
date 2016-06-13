@@ -75,6 +75,7 @@ sudo rm -fr /tmp/allCountries.*
 cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip --no-verbose
 cd /tmp && unzip allCountries.zip
 sudo python /home/usrfd/firstdraft/loadGeoNames.py
+sudo --set-home -u usrfd bash -c 'source ~/venv/bin/activate && cd ~/firstdraft/projfd && python ~/firstdraft/projfd/manage.py runscript loadCountryInfo'
 
 echo "SETTING UP APACHE" 
 sudo a2enmod wsgi
