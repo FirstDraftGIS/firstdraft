@@ -8,7 +8,7 @@ from urllib import urlretrieve
 def run():
     print "starting loadCountryInfo"
     start = datetime.now()
-    pathToCountryInfoFile = '/home/usrfd/data/geonames/countryInfo.txt' 
+    pathToCountryInfoFile = '/tmp/countryInfo.txt' 
 
     if not isfile(pathToCountryInfoFile):
         urlretrieve('http://download.geonames.org/export/dump/countryInfo.txt', pathToCountryInfoFile)
