@@ -1,3 +1,5 @@
+set -o errexit
+
 echo "STARTING build_agent.sh"
 
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" update
