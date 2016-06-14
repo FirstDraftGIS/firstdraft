@@ -1,3 +1,5 @@
+set -o errexit
+
 echo "Starting test_agent.sh"
 
 echo "running behave tests"
