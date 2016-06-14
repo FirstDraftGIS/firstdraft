@@ -1,3 +1,4 @@
+# abort script if any problems 
 set -o errexit
 
 echo "STARTING build_agent.sh"
