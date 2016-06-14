@@ -1,3 +1,6 @@
+# abort script if any problems 
+set -o errexit
+
 echo "starting deliver_agent"
 
 echo "agent_instance_id: $agent_instance_id"
