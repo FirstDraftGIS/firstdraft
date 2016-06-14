@@ -41,8 +41,14 @@ echo "DELETE SYSTEM USER"
 
 
 if [[ $(getent passwd usrfd) ]]; then # if user usrfd exists
-  if [[ $(pgrep -u usrfd) ]]; then sudo pkill -u usrfd; fi # if processes owned by user usrfd, kill them
+  if [[ $(pgrep -u usrfd) ]]; then
+    sudo pkill -u usrfd;
+  else
+    echo "there are no processes owned by usrfd"
+  fi # if processes owned by user usrfd, kill them
   sudo deluser usrfd --force --remove-home;
+else
+  echo "user usrfd does not exist, so no user to delete"
 fi
 
 # if usrfd group exists, delete it
