@@ -37,7 +37,7 @@ sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public
 sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology; CREATE EXTENSION fuzzystrmatch;" dbfd
 
 echo "DELETE SYSTEM USER"
-sudo pkill -u usrfd
+if [[ $(pgrep -u usrfd) ]]; then sudo pkill -u usrfd; fi
 echo "killed processes owned by usrfd"
 sudo deluser usrfd --force --remove-home
 echo "deleted user usrfd"
