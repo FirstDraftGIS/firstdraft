@@ -86,13 +86,6 @@ echo "CREATING MAPS FOLDER"
 sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
 sudo chown "www-data":"www-data" -R /home/usrfd/maps
 
-echo "LOADING GEONAMES"
-sudo rm -fr /tmp/allCountries.*
-cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip --no-verbose
-cd /tmp && unzip allCountries.zip
-sudo python /home/usrfd/firstdraft/loadGeoNames.py
-sudo --set-home -u usrfd bash -c 'source ~/venv/bin/activate && cd ~/firstdraft/projfd && python ~/firstdraft/projfd/manage.py runscript loadCountryInfo'
-
 echo "SETTING UP APACHE" 
 sudo a2enmod wsgi
 sudo cp /home/usrfd/firstdraft/fd.conf /etc/apache2/sites-available/fd.conf
