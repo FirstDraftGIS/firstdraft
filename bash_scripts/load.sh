@@ -12,5 +12,10 @@ sudo python /home/usrfd/firstdraft/loadGeoNames.py
 echo "LOADING COUNTRY INFO"
 sudo --set-home -u usrfd bash -c 'source ~/venv/bin/activate && cd ~/firstdraft/projfd && python ~/firstdraft/projfd/manage.py runscript loadCountryInfo'
 
+echo "LOADING COUNTRY POLYGONS"
+sudo --set-home -u usrfd bash -c 'source ~/venv/bin/activate && cd ~/firstdraft/projfd && python ~/firstdraft/projfd/manage.py runscript loadLSIBWVS'
+
+echo "LOADING OTHER DATASETS"
+sudo --set-home -u usrfd bash -c 'source ~/venv/bin/activate && cd ~/firstdraft/projfd && python ~/firstdraft/projfd/manage.py runscript loadDatasets'
 
 echo "FINISHING load.sh"
