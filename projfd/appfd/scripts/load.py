@@ -12,6 +12,8 @@ import os, urllib, zipfile
 import shutil
 from os import listdir, mkdir
 from os.path import isdir, isfile
+from pyproj import Proj, transform
+from re import search as re_search
 from random import shuffle
 from requests import get, head
 from subprocess import call
@@ -68,6 +70,7 @@ def describe_layer_fields(layer):
  
     return d
 
+@superfy
 def get_area_field(layer, fields, field_types):
     print fields
     print field_types
@@ -77,7 +80,7 @@ def get_area_field(layer, fields, field_types):
         field_lower = field.lower()
         field_type = field_types[i]
         values_list = [value.lower() if isinstance(value, str) or isinstance(value, unicode) else value for value in layer.get_fields(field)]
-        if field_type == "OFTReal" and "area" in field_lower:
+        if field_type == "OFTReal" and any(word in field_lower for word in ["area","sqkm","sqkm","km2","km_2"]):
             values_median = median(values_list)
 
             # we certainly don't want this if the median
@@ -87,9 +90,16 @@ def get_area_field(layer, fields, field_types):
     # sort candidates by median
     candidates = sorted(candidates, key = lambda candidate: -1*candidate[1])
 
-    if len(candidates) > 0:
-        print "returning ", candidates[0][0]
+    if number_of_candidates == 0:
+        return None
+    elif number_of_candidates == 1:
         return candidates[0][0]
+    elif number_of_candidates > 0:
+        sqkms = [c for c in candidates if re_search("(km2|sqkm|sq_km)", c[0].lower())]
+        if number_of_sqkms == 0:
+            return candidates[0][0]
+        else:
+            return sqkms[0][0]
 
 def isPcodeValue(string):
      return match("[A-Za-z]{2}\d{2,}", string)
@@ -99,6 +109,8 @@ def isNameValue(string):
     if isGibberish(string):
         return False
     elif isPcodeValue(string):
+        return False
+    elif string.isdigit():
         return False
     return True
 
@@ -130,15 +142,18 @@ def get_name_and_alias_fields(layer, fields, field_types):
     # if that doesn't work, try again using a cutoff of 0.4
     name_fields = get_name_fields(layer, fields, field_types) or get_name_fields(layer, fields, field_types, min_completeness=0.4, min_uniqueness=0.4)
 
-    name_fields_in_english = [name_field for name_field in name_fields if name_field['language'] == "English"]
-    print "name_fields_in_english = ", name_fields_in_english
-    primary_name_field = name_fields_in_english[0] if name_fields_in_english else name_fields[0]
-    primary_name = primary_name_field['name']
-    alias_fields = [name_field for name_field in name_fields if name_field != primary_name_field]
+    if name_fields:
+        name_fields_in_english = [name_field for name_field in name_fields if name_field['language'] == "English"]
+        print "name_fields_in_english = ", name_fields_in_english
+        primary_name_field = name_fields_in_english[0] if name_fields_in_english else name_fields[0]
+        primary_name = primary_name_field['name']
+        alias_fields = [name_field for name_field in name_fields if name_field != primary_name_field]
 
-    return primary_name, alias_fields
+        return primary_name, alias_fields
+    else:
+        return None, []
 
-
+@superfy
 def get_name_fields(layer, fields, field_types, min_completeness=0.8, min_uniqueness=0.8):
     print "starting get_name_field with:"
     print fields
@@ -148,46 +163,21 @@ def get_name_fields(layer, fields, field_types, min_completeness=0.8, min_unique
         field = fields[i]
         field_lower = field.lower()
         field_type = field_types[i]
-        values_list = [value.lower() if isinstance(value, str) or isinstance(value, unicode) else value for value in layer.get_fields(field)]
-        number_of_values = len(values_list)
-        values_set = set(values_list)
+        values = [value.lower() if isinstance(value, str) or isinstance(value, unicode) else value for value in layer.get_fields(field)]
+        values_set = set(values)
         number_of_unique_values = len(values_set)
-        completeness = float(len([value for value in values_list if value])) / float(number_of_values)
+        completeness = float(len([value for value in values if value])) / float(number_of_values)
         uniqueness = float(number_of_unique_values) / float(number_of_values)
         if "pc" not in field_lower and field_type == "OFTString" and completeness > min_completeness and uniqueness > min_uniqueness and not isGibberish(values_set) and number_of_unique_values > 10 and isNameList(values_set):
-            language = detect_language(values_list)
+            language = detect_language(values)
             name_fields.append({"name": field, "uniqueness": uniqueness, "language": language})
 
     # sort namefields by uniqueness
     name_fields = sorted(name_fields, key = lambda namefield: -1*namefield["uniqueness"])
 
+    print "name_fields are", name_fields
     return name_fields
 
-
-
-    """
-    admin_level = IntegerField(null=True, blank=True, db_index=True)
-    admin1_code = CharField(max_length=100, null=True, blank=True, db_index=True)
-    admin2_code = CharField(max_length=100, null=True, blank=True, db_index=True)
-    aliases = ManyToManyField('Alias', through="AliasPlace", related_name="place_from_placealias+")
-    area_sqkm = IntegerField(null=True, blank=True)
-    country_code = CharField(max_length=2, null=True, blank=True, db_index=True)
-    district_num = IntegerField(null=True, blank=True)
-    fips = IntegerField(null=True, blank=True, db_index=True)
-    geonameid = IntegerField(null=True, blank=True, db_index=True)
-    mls = MultiLineStringField(null=True, blank=True)
-    mpoly = MultiPolygonField(null=True, blank=True)
-    name = CharField(max_length=200, null=True, blank=True, db_index=True)
-    note = CharField(max_length=200, null=True, blank=True)
-    objects = GeoManager()
-    point = PointField(null=True, blank=True)
-    population = BigIntegerField(null=True, blank=True)
-    pcode = CharField(max_length=200, null=True, blank=True)
-    skeleton = MultiLineStringField(null=True, blank=True)
-    timezone = CharField(max_length=200, null=True, blank=True)
-    """
-
-   
 
 def parse_layer(layer):
     print "starting parse_layer with ", layer
@@ -204,7 +194,15 @@ def parse_layer(layer):
     if area_sqkm:
         d['area_sqkm'] = area_sqkm
 
-    d["name"], d['aliases'] = get_name_and_alias_fields(layer, fields, field_types)
+    if layer.num_feat <= 10:
+        for potential_name in ["NOMBRE", "name"]:
+            if potential_name in fields:
+                d["name"] = potential_name
+                d["aliases"] = []
+                break
+    else:
+        d["name"], d['aliases'] = get_name_and_alias_fields(layer, fields, field_types)
+    
 
     for i, field in enumerate(fields):
         field = fields[i]
@@ -234,7 +232,7 @@ def parse_layer(layer):
             continue
 
     if "admin_level" not in d:
-        admin_level = get_admin_level_from_string(d['name'].lower())
+        admin_level = get_admin_level_from_string((d['name'] or "").lower())
         if admin_level:
             d['admin_level'] = admin_level
 
@@ -274,6 +272,7 @@ def download(url, path_to_directory):
         with zipfile.ZipFile(path_to_downloaded_file, "r") as z:
             z.extractall(path_to_directory_of_downloadable)
 
+@superfy
 def run(path):
     print "starting load.run with ", path
     admin_level = None
@@ -314,17 +313,23 @@ def run(path):
             dirname = path.replace(".","_").replace("/","_").replace("-","_").replace(":","_").replace("___","_").replace("__","_")
             print "dirname is", dirname
             path_to_directory = path_to_tmp + "/" + dirname
+            print "path_to_directory is", path_to_directory
             if not isdir(path_to_directory):
                 mkdir(path_to_directory)
                 print "made directory: ", path_to_directory
-            soup = BeautifulSoup(get(path).text, "lxml")
+            text = get(path).text
+            print "text is", type(text), len(text)
+            soup = BeautifulSoup(text, "lxml")
+            print "soup is", type(soup)
 
-            title = soup.title.text.lower()
+            if soup.title:
+                title = soup.title.text.lower()
+                admin_level = get_admin_level_from_string(title)
 
             # can be set to None if none found
-            admin_level = get_admin_level_from_string(title)
 
             downloadables = soup.select("a[href$=zip]")
+            print "number_of_downloadables = ", number_of_downloadables
             hrefs = [a['href'] for a in soup.select("a[href$=zip]")]
             for href in hrefs:
                 download(href, path_to_directory)
@@ -385,9 +390,15 @@ def run(path):
 
         for layer, d in layer_parsing:
             print "layer is", layer
-            raw_input()
+            #raw_input()
             print "dir(layer) is", dir(layer)
             print "layer.fields = ", layer.fields
+
+            if "name" not in d or not d['name']:
+                print "couldn't get name layer, so skip over this layer"
+                continue
+            else: print "successfully got name", d['name']
+            #raw_input()
 
             if 'admin_level' in d and d['admin_level']:
                 admin_level = d['admin_level']
@@ -397,11 +408,12 @@ def run(path):
             print "we shuffle the features because later on if we hit the same country_code 20 times, we don't try to get it by db lookup anymore"
             shuffle(features)
 
-            number_of_features = len(features)
-            print "\tnumber_of_features = ", number_of_features
+            #number_of_features = len(features)
+            print "\tnumber_of_features = ", number_of_features == len(features)
             #raw_input()
             country_code = None
             country_codes = set()
+            places_added = []
             for i, feature in enumerate(features):
                 try:
 
@@ -411,7 +423,9 @@ def run(path):
                     # then set country_code
                     # and don't make db call to find out cc again
                     if i == 10:
-                        if len(country_codes) == 1:
+                        print "\n\nnumber_of_country_codes = ", number_of_country_codes
+                        print "CHECK number_of_country_codes = ", number_of_country_codes == len(country_codes)
+                        if number_of_country_codes == 1:
                             cc = country_codes.pop()
                             if cc is not None:
                                 country_code = cc
@@ -445,17 +459,21 @@ def run(path):
                             print "\tvalue = ", value
                             fields[key] = value 
 
-                    geom = feature.geom.geos
-                    if isinstance(geom, Polygon):
-                        fields['mpoly'] = MultiPolygon([geom])
-                        fields['point'] = geom.centroid
-                    elif isinstance(geom, MultiPolygon):
-                        fields['mpoly'] = geom
-                        fields['point'] = geom.centroid
-                    elif isinstance(geom, Point):
-                        fields['point'] = geom
+                    geom = feature.geom
+                    geom.transform(u'+proj=longlat +datum=WGS84 +no_defs ')
+                    geos = geom.geos
+                    # transforms the geom to lat lon if necessary; if already longlat, nothing happens
+                    print "\tgeom_type = ", geom_type
+                    if isinstance(geos, Polygon):
+                        fields['mpoly'] = MultiPolygon([geos])
+                        fields['point'] = geos.centroid
+                        print "centroid is", geos.centroid
+                    elif isinstance(geos, MultiPolygon):
+                        fields['mpoly'] = geos
+                        fields['point'] = geos.centroid
+                    elif isinstance(geos, Point):
+                        fields['point'] = geos
                     
-                    print "\tgeom_type = ", geom_type               
 
                     #need to load lsibwvs for country polygons
                     print i, "country_code is", country_code
@@ -477,7 +495,6 @@ def run(path):
 #                    print "qs is", qs
 #                    for p in qs:
 #                        print "p is", p.__dict__
-
 
                     place = Place.objects.get_or_create(**fields)[0]
                     if "parent_pcode" in d:
@@ -501,8 +518,10 @@ def run(path):
                             alias.update({"language":language})
                         AliasPlace.objects.get_or_create(alias=alias, place=place)[0]
                         print "created AliasPlace", alias, place
+                    places_added.append(place)
 
 
                 except Exception as e:
                     print "CAUGHT EXCEPTION on feature", i, "|", feature
                     print e
+                    #raw_input()
