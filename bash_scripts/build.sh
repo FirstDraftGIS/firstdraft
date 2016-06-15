@@ -1,7 +1,7 @@
 # abort script if any problems 
 set -o errexit
 
-echo "STARTING build_agent.sh"
+echo "STARTING build.sh"
 
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" update
 
@@ -93,4 +93,4 @@ sudo rm /etc/apache2/sites-enabled/fd.conf
 sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.conf
 sudo service apache2 restart
 
-echo "FINISHING build_agent.sh"
+echo "FINISHING build.sh"
