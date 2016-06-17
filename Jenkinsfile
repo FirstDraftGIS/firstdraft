@@ -9,13 +9,13 @@ node('ec2') {
   sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/build.sh -O /tmp/build.sh'
   sh 'sudo bash /tmp/build.sh'
 
-  stage "Test"
-  sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/test.sh -O /tmp/test.sh'
-  sh 'sudo bash /tmp/test.sh'
-
   stage "Load"
   sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/load.sh -O /tmp/load.sh'
   sh 'sudo bash /tmp/load.sh'
+
+  stage "Test"
+  sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/test.sh -O /tmp/test.sh'
+  sh 'sudo bash /tmp/test.sh'
 }
 agent_instance_id = agent_name.find(/i\-[a-z\d]+/)
 
