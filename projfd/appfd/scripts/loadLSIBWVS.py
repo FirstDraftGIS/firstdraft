@@ -66,7 +66,7 @@ def run():
                 elif isinstance(geom, MultiPolygon):
                     place.mpoly = geom
                 place.save()
-                print "saved new polygon to ", place
+                #print "saved new polygon to ", place
  
     print "unfound = ", unfound
    
