@@ -18,7 +18,7 @@ def run():
         for line in f:
             if found_header:
               try: 
-                print "split is", line.split("\t")
+                #print "split is", line.split("\t")
                 iso, iso3, iso_numeric, fips, country, capital, area_sqkm, population, continent, tld, currency_code, currency_name, phone, postal_code_format, postal_code_regex, languages, geonameid, neighbours, equivalent_fips_code = line.split("\t")
                 Place.objects.filter(geonameid=geonameid).update(admin_level=0, name=country)
               except Exception as e:
