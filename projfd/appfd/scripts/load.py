@@ -10,7 +10,7 @@ from language_detector import detect_language
 from numpy import median
 import os, urllib, zipfile
 import shutil
-from os import listdir, mkdir
+from os import listdir, mkdir, remove
 from os.path import isdir, isfile
 from pyproj import Proj, transform
 from re import search as re_search
@@ -21,6 +21,7 @@ from urllib import urlretrieve, unquote
 from bnlp import trim_location
 from super_python import *
 from sys import exit
+from zipfile import is_zipfile
 
 from django.utils.crypto import get_random_string
 
@@ -269,8 +270,13 @@ def download(url, path_to_directory):
         urlretrieve(url, path_to_downloaded_file)
         print "saved file to ", path_to_downloaded_file
     if path_to_downloaded_file.endswith("zip"):         
-        with zipfile.ZipFile(path_to_downloaded_file, "r") as z:
-            z.extractall(path_to_directory_of_downloadable)
+        if is_zipfile(path_to_downloaded_file):    
+            with zipfile.ZipFile(path_to_downloaded_file, "r") as z:
+                z.extractall(path_to_directory_of_downloadable)
+                print "unzipped", path_to_downloaded_file
+        else:
+            remove(path_to_downloaded_file)
+            print "removed file because it wasn't a zip file eventhough had zip extension"
 
 @superfy
 def run(path):
