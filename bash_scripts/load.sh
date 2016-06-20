@@ -9,11 +9,17 @@ cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip --no-v
 cd /tmp && unzip allCountries.zip
 sudo python /home/usrfd/firstdraft/loadGeoNames.py
 
+echo "Updating Primary Key Value Just In Case"
+sudo -u usrfd psql -c "SELECT setval('appfd_place_id_seq', (SELECT MAX(id) FROM appfd_place)+1)" dbfd;
+
 echo "LOADING COUNTRY INFO"
 sudo --set-home -u usrfd bash -c 'source ~/venv/bin/activate && cd ~/firstdraft/projfd && python ~/firstdraft/projfd/manage.py runscript loadCountryInfo -v3'
 
 echo "LOADING COUNTRY POLYGONS"
 sudo --set-home -u usrfd bash -c 'source ~/venv/bin/activate && cd ~/firstdraft/projfd && python ~/firstdraft/projfd/manage.py runscript loadLSIBWVS -v3'
+
+echo "Updating Primary Key Value Just In Case"
+sudo -u usrfd psql -c "SELECT setval('appfd_place_id_seq', (SELECT MAX(id) FROM appfd_place)+1)" dbfd;
 
 echo "LOADING OTHER DATASETS"
 sudo --set-home -u usrfd bash -c 'source ~/venv/bin/activate && cd ~/firstdraft/projfd && python ~/firstdraft/projfd/manage.py runscript loadDatasets -v3'
