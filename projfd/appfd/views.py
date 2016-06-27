@@ -5,7 +5,6 @@ from appfd.scripts import excel, resolve, tables
 from appfd.scripts.excel import *
 from bnlp import clean as bnlp_clean
 from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
-from bscrp import getRandomUserAgentString
 from collections import Counter
 import csv
 from datetime import datetime
@@ -25,6 +24,7 @@ from django.shortcuts import render, get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.template.defaultfilters import slugify
 from django.utils.crypto import get_random_string
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_protect
 from itertools import groupby, islice
 from location_extractor import *
@@ -42,6 +42,7 @@ from re import findall
 from requests import get
 from appfd.scripts.resolve import *
 from sendfile import sendfile
+from scrp import getTextContentViaMarionette, getRandomUserAgentString
 from subprocess import call, check_output
 from super_python import superfy
 from urllib import quote, quote_plus, urlretrieve
@@ -207,6 +208,29 @@ def disclaimers(request):
 def help(request):
     return render(request, "appfd/help.html", {})
 
+@xframe_options_exempt
+def iframe(request):
+  try:
+    if request.method == "GET":
+        print "request:", request
+        meta = request.META 
+        if "HTTP_REFERER" in meta:
+            url = meta["HTTP_REFERER"]
+        if url:
+            order = Order.objects.filter(url=url).first()
+            if order:
+                print "got order:", order
+            else:
+                key = get_random_string(25)
+                order = Order.objects.create(token=key, url=url)
+                print "created order:", order
+                job = { "link": url, "key": key }
+                create_map_from_link(job)
+    
+    return render(request, "appfd/embed.html", {'job': order.token})
+  except Exception as e:
+    print e
+
 def index(request):
     print "starting index with request"
 
@@ -359,6 +383,7 @@ def create(job):
     finish_order(key)
 
 def create_map_from_link(job):
+
     print "starting create_map_from_link with", job['key']
 
     key = job['key']
@@ -370,7 +395,6 @@ def create_map_from_link(job):
     # get url
     link = job['link'].strip()
 
-    # get web page text
     filename = link.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
 
     if not link.startswith("http"):
@@ -386,6 +410,10 @@ def create_map_from_link(job):
         f.write(text.encode('utf-8'))
 
     features = resolve_locations(extract_locations_with_context(text))
+    if not features:
+        print "no features, so try with selenium"
+        features = resolve_locations(extract_locations_with_context(getTextContentViaMarionette(link)))
+        print "features via Marionette:", features[:5]
 
     featureCollection = FeatureCollection(features)
     serialized = geojson.dumps(featureCollection, sort_keys=True)

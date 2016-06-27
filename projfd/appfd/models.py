@@ -77,6 +77,7 @@ class Order(Model):
     end = DateTimeField(null=True)
     start = DateTimeField(auto_now_add=True, null=True) # it will never be null, but have to do this because migration asks for default otherwise
     token = CharField(max_length=200, null=True, unique=True) # the random string that's used to find the order in the maps
+    url = URLField(null=True, max_length=1000, unique=True) # URL if started from url or iframe embeded on a webpage
 
     def __str__(self):
         return self.token

@@ -24,6 +24,7 @@ urlpatterns += [
     url(r'^disclaimers$', views.disclaimers, name='disclaimers'),
     #url(r'login/$', views.login, name='login'),
     #url(r'logout/', views.user_logout, name='logout'),
+    url(r"^iframe$", views.iframe, name="iframe"),
     url(r'^get_map/(?P<job>[^/]+)/(?P<extension>[^/]+)$', views.get_map, name='get_map'),
     url(r'^mission$', views.mission, name='mission'),
     #url(r'password_recovery$', views.password_recovery, name='password_recovery'),
