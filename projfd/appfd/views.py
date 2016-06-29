@@ -214,6 +214,7 @@ def iframe(request):
     if request.method == "GET":
         print "request:", request
         meta = request.META 
+        print "meta:", meta
         if "HTTP_REFERER" in meta:
             url = meta["HTTP_REFERER"]
         if url:
