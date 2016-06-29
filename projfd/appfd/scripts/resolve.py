@@ -114,7 +114,10 @@ def resolve_locations(locations):
         if country_code:
             missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in d] 
             p("missing = ", len(missing), missing[:5])
-            for missing_place in missing:
+
+            # just do levenstein distance for first 25
+            # if we do it for more, that's probably gonna take too long
+            for missing_place in missing[:25]:
                 matched = list(Place.objects.raw("""
                     WITH place_ldist as (
                         SELECT *, levenshtein_less_equal('""" + missing_place + """', name, 2) as ldistance
