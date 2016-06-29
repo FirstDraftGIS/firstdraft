@@ -3,7 +3,7 @@ Feature: News Articles
 
     Scenario Outline: Check BBC News Article on Libya
         When we start with a link to <url>
-         And after we wait for a minute
+         And after we wait for 120 seconds
         Then we should see a map
 
         Examples: urls

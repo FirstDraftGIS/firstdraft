@@ -20,11 +20,19 @@ def start_with_a_link(context, url):
     print("url:", url)
     context.driver.find_element_by_css_selector("input[value=url_to_webpage]").click()
     context.driver.find_element_by_id("url_to_webpage").send_keys(url)
+    context.driver.find_element_by_id("next").click()
 
-@when("after we wait for a minute")
-@then("after we wait for a minute")
-def after_we_wait_for_a_minute(context):
-    sleep(60)
+@when("user enters a link to a file at {url}")
+def start_with_a_link_to_a_file(context, url):
+    print("url:", url)
+    context.driver.find_element_by_css_selector("input[value=url_to_file]").click()
+    context.driver.find_element_by_id("url_to_file").send_keys(url)
+    context.driver.find_element_by_id("next").click()
+
+@when("after we wait for {x} seconds")
+@then("after we wait for {x} seconds")
+def after_we_wait_for_x_number_of_seconds(context, x):
+    sleep(float(x))
     
 @when("close our browser")
 @then("close our browser")
@@ -33,7 +41,12 @@ def close_our_browser(context):
 
 @then("we should see a map")
 def we_should_see_a_map(context):
+    # for some reason we're getting an error when we try to get b64/png image
     #assert context.driver.find_element_by_id("map").screenshot_as_base64() == "00"
     #assert context.driver.get_screenshot_as_base64() == "00"
-    b64 = context.driver.get_screenshot_as_base64()
-    print("b64:", b64[:100])
+    #b64 = context.driver.get_screenshot_as_base64()
+    context.driver.save_screenshot("/tmp/screenshot.png")
+    size = context.driver.find_element_by_id("map").size
+    assert(size['width'] > 100)
+    assert(size['height'] > 100)
+    
