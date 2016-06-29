@@ -19,6 +19,7 @@ numpy
 openpyxl
 Pillow
 psycopg2
+PyPDF2
 pyproj
 python-dateutil
 python-docx
