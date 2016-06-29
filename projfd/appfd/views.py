@@ -27,7 +27,7 @@ from django.utils.crypto import get_random_string
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_protect
 from itertools import groupby, islice
-from location_extractor import *
+import location_extractor
 from magic import from_file
 from multiprocessing import Process
 from openpyxl import load_workbook
@@ -363,9 +363,17 @@ def create(job):
     text = job['data']
     # basically this is a hack, so that if you paste in text
     # it assumes everything that is capitalized could be a place
-    names = list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text)))
+    names = [name for name in list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text))) if len(name) > 3]
     print "names are", names
-    features = resolve_locations(extract_locations_with_context(text, names))
+    number_of_names = len(names)
+    print "number_of_names:", number_of_names
+    if number_of_names < 100:
+        location_extractor.load_non_locations()
+        names = [name for name in names if name not in location_extractor.nonlocations]
+        features = resolve_locations(location_extractor.extract_locations_with_context(text, names))
+    else:
+        print "if we have an insane amount of capitalized words, lets just use our parsing"
+        features = resolve_locations(location_extractor.extract_locations_with_context(text))
     featureCollection = FeatureCollection(features)
     serialized = geojson.dumps(featureCollection, sort_keys=True)
 
@@ -394,6 +402,7 @@ def create_map_from_link(job):
 
     # get url
     link = job['link'].strip()
+    print "link:", link
 
     filename = link.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
 
@@ -409,10 +418,10 @@ def create_map_from_link(job):
     with open(directory + filename, "wb") as f:
         f.write(text.encode('utf-8'))
 
-    features = resolve_locations(extract_locations_with_context(text))
+    features = resolve_locations(location_extractor.extract_locations_with_context(text))
     if not features:
         print "no features, so try with selenium"
-        features = resolve_locations(extract_locations_with_context(getTextContentViaMarionette(link)))
+        features = resolve_locations(location_extractor.extract_locations_with_context(getTextContentViaMarionette(link)))
         print "features via Marionette:", features[:5]
 
     featureCollection = FeatureCollection(features)
@@ -473,7 +482,7 @@ def create_shapefile_from_geojson(path_to_geojson):
    
 
 def create_map_from_link_to_file(job):
-    print "starting create_from_file with", job
+    print "starting create_from_link_to_file with", job
 
     # make directory to store saved webpage and maps
     directory = "/home/usrfd/maps/" + job['key'] + "/"
@@ -494,6 +503,7 @@ def create_map_from_link_to_file(job):
     mimeType = from_file(path_to_file, mime=True)
     print "mimeType is", mimeType
 
+    job['file'] = open(path_to_file)
     job['filename'] = filename
     job['filepath'] = path_to_file
     
@@ -501,8 +511,10 @@ def create_map_from_link_to_file(job):
         create_from_xl(job)
     elif filename.endswith('.csv'):
         create_map_from_csv(job)
+    elif filename.endswith(".pdf"):
+        create_map_from_pdf(job)
 
-    finish_order(key)
+    finish_order(job['key'])
 
 def finish_order(key):
 
@@ -561,7 +573,7 @@ def create_map_from_pdf(job):
                 destination.write(chunk)
         print "wrote file"
 
-    locations = extract_locations_with_context(file_obj)
+    locations = location_extractor.extract_locations_with_context(file_obj)
     print "in views,  locations are", len(locations)
     features = resolve_locations(locations)
     print "in views, features are", len(features)
@@ -698,7 +710,7 @@ def create_map_from_docx(job):
             columns.append(values)
 
         print "columns are ", columns
-    locations = extract_locations_with_context(text)
+    locations = location_extractor.extract_locations_with_context(text)
     print "in views,  locations are", len(locations)
     features = resolve_locations(locations)
     print "in views, features are", len(features)
