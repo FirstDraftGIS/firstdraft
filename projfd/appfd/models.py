@@ -71,6 +71,19 @@ class Email(Model):
     address = EmailField(null=True, blank=True)
     entered = DateTimeField(auto_now_add=True)
 
+### this is what consitutes the FeatureCollection of the map
+class Feature(Model):
+    order = ForeignKey("Order")
+    place = ForeignKey("Place")
+    confidence = CharField(max_length=6, choices=[('high', "High"),("medium", "Medium"),("low","Low")])
+    end = DateTimeField(null=True)
+    start = DateTimeField(null=True)
+    text = TextField(max_length=1000, null=True)
+    # should probably include some styling information at some point
+    # maybe should add in info about whether use point or polygon info
+    def __str__(self):
+        return str([self.order.token + "|" + self.place.name])
+
 class Order(Model):
     complete = BooleanField(default=False)
     duration = IntegerField(null=True) # how long it took to process the order

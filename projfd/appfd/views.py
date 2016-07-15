@@ -2,9 +2,11 @@ from appfd import forms, models
 from appfd.forms import *
 from appfd.models import *
 from appfd.scripts import excel, resolve, tables
+from appfd.scripts import create_geojson
 from appfd.scripts.excel import *
 from bnlp import clean as bnlp_clean
 from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
+from bs4 import BeautifulSoup
 from collections import Counter
 import csv
 from datetime import datetime
@@ -67,6 +69,9 @@ from openpyxl import load_workbook
 #    #f = open("/tmp/stdout","w")
 #    sys.stdout = sys.stderr
 
+
+def _map(request, job):
+    return render(request, "appfd/map.html", {'job': job})
 
 # Create your views here.
 def must_be_active(user):
@@ -412,8 +417,10 @@ def create_map_from_link(job):
         link = "http://" + link
 
     headers = {"User-Agent": getRandomUserAgentString()}
-    text = bnlp_clean(get(link, headers=headers).text)
- 
+    text = get(link, headers=headers).text
+    if match("https?://(www.)?bbc.com", link):
+        text = BeautifulSoup(text).select(".story-body")[0].text
+    text = bnlp_clean(text)
 
     # save text to file
     with open(directory + filename, "wb") as f:
@@ -425,14 +432,18 @@ def create_map_from_link(job):
         features = resolve_locations(location_extractor.extract_locations_with_context(getTextContentViaMarionette(link)))
         print "features via Marionette:", features[:5]
 
-    featureCollection = FeatureCollection(features)
-    serialized = geojson.dumps(featureCollection, sort_keys=True)
- 
-    # make directory to store files
-    path_to_geojson = directory + key + ".geojson"
-    with open(path_to_geojson, "wb") as f:
-        f.write(serialized)
+    print "features:", len(features)
 
+    # add order to all the features
+    order = Order.objects.get(token=key)
+    for feature in features:
+        feature.order = order
+
+    Feature.objects.bulk_create(features)
+    print "saved features"
+
+    create_geojson.run(order.token)
+ 
     finish_order(key)
 
 def create_csv_from_geojson(path_to_geojson):
