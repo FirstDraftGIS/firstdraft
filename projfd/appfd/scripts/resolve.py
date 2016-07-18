@@ -39,7 +39,7 @@ def filter_by_attribute_value(iterable, name, value):
 def filter_dictionary_by_attribute_value(d, attribute, value):
     for name in d:
         options = d[name]
-        print "options:", options
+        #print "options:", options
         filtered_options = [option for option in options if option['place'].__getattribute__(attribute) == value]
         d[name] = filtered_options if len(filtered_options) > 0 else options
     return d
@@ -48,7 +48,7 @@ def filter_dictionary_by_attribute_value(d, attribute, value):
 def filter_dictionary_by_attribute(d, attribute):
     for name in d:
         options = d[name]
-        print "options:", options
+        #print "options:", options
         filtered_options = [option for option in options if option['place'].__getattribute__(attribute)]
         d[name] = filtered_options if len(filtered_options) > 0 else options
     return d
@@ -97,11 +97,11 @@ def resolve_locations(locations, order=None):
 
     list_of_names_of_locations = uniquify(list_of_names_of_locations)
 
-    places = Place.objects.filter(name__in=list_of_names_of_locations[:20])
+    places = Place.objects.filter(name__in=list_of_names_of_locations[:200])
     dict_of_places_by_name = queryset_to_dict(places, "name")
-    if number_of_keys(dict_of_places_by_name) == 0:
-        places = Place.objects.filter(name__in=list_of_names_of_locations[:100])
-        dict_of_places_by_name = queryset_to_dict(places, "name")
+    #if number_of_keys(dict_of_places_by_name) < 10:
+    #    places = Place.objects.filter(name__in=list_of_names_of_locations[:100])
+    #    dict_of_places_by_name = queryset_to_dict(places, "name")
 
     # should do some filtering, so if have pcode or higher admin_level do that one or maybe if have both pops and 1 has higher population?
     filter_dictionary_by_attribute(dict_of_places_by_name, "pcode")
@@ -123,6 +123,8 @@ def resolve_locations(locations, order=None):
 
             # don't set the country_code if have more than one country mentioned in text
             # it'll still use the most and second most common country codes to bias the following passes
+            # errrr or maybe should set it but make exception for country names
+            # like an article that is about events in a country and how other countries are responding to it
             countries = set([most_common_country_code] + uniquify([place.country_code for place in places if place.admin_level == 0]))
             print "countries:", countries
             if len(countries) <= 1:
@@ -210,19 +212,21 @@ def resolve_locations(locations, order=None):
             d_name = d[name]
             feature.place = d_name['place']
             feature.confidence = d_name['confidence']
+            feature.count = location['count']
 
             if not feature.place.point:
-                place.point = point = place.mpoly.centroid
-                place.save()
+                feature.place.update({"point": place.mpoly.centroid})
 
             if not feature.place.country_code:
-                country_code = Place.objects.get(admin_level=0, mpoly__contains=point).country_code
-                place.update({"country_code": country_code})
+                country_code = Place.objects.get(admin_level=0, mpoly__contains=feature.place.point).country_code
+                feature.place.update({"country_code": country_code})
                 p("set country_code to ", country_code)
 
-            feature.end = location['date']
-            feature.start = location['date']
-            feature.text = location['context'][:1000]
+            if "date" in location:
+                feature.end = location['date']
+                feature.start = location['date']
+            if "context" in location:
+                feature.text = location['context'][:1000]
             features.append(feature)
 
     p("features final are", len(features))
