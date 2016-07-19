@@ -28,6 +28,7 @@ python-social-auth
 pyvirtualdisplay
 pytz
 requests
+scrp
 selenium
 stop-words
 super_python
