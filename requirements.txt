@@ -10,6 +10,7 @@ django-extensions
 django-filter
 django-guardian
 django-sendfile
+editdistance
 geojson
 language-detector
 location-extractor
