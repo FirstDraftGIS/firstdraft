@@ -2,9 +2,14 @@ from appfd.models import *
 from bnlp import *
 from bs4 import BeautifulSoup
 from collections import Counter
+import django
 from django.contrib.gis.gdal import DataSource
+from django.contrib.gis.gdal.prototypes import ds as capi
 #from django.contrib.gis.gdal.geometries import Polygon
-from django.contrib.gis.geos import MultiPolygon, Polygon, Point
+from django.contrib.gis.geos import MultiPoint, MultiPolygon, Polygon, Point
+from django.contrib.gis.measure import D
+from django.utils.encoding import DjangoUnicodeDecodeError
+from django.utils.encoding import force_text
 #from location_extractor import extract_locations
 from language_detector import detect_language
 from numpy import median
@@ -18,6 +23,7 @@ from random import shuffle
 from requests import get, head
 from subprocess import call
 from urllib import urlretrieve, unquote
+from urlparse import urlparse
 from bnlp import trim_location
 from super_python import *
 from sys import exit
@@ -25,18 +31,112 @@ from zipfile import is_zipfile
 
 from django.utils.crypto import get_random_string
 
+def get_matching_place(fields):
+    print "\nstarting get_matching_place with", fields
+    # look up place and see if one is nearby or whatever
+    matches_via_name_and_cc = Place.objects.filter(name=fields['name'], country_code=fields['country_code'])
+    if matches_via_name_and_cc:
+        print "\tmatches via name and country code:", matches_via_name_and_cc
+
+        # match via same exact point
+        matches_via_point = matches_via_name_and_cc.filter(point=fields['point'])
+        if matches_via_point:
+            print "\tmatches_via_point:", matches_via_point
+            if fields['admin_level']:
+                matches_via_admin_level = matches_via_point.filter(admin_level=fields['admin_level'])
+                if matches_via_admin_level:
+                    print "\tmatches_via_admin_level:", matches_via_admin_level
+                    return matches_via_admin_level[0]
+            else:
+                matchs_with_admin_level_3 = matches_via_point.filter(admin_level=3)
+                if matches_with_admin_level_3:
+                    return matches_with_admin_level_3[0]
+                else:
+                    return matches_via_point[0]
+
+        if fields['mpoly']:
+            matches_inside_mpoly = matches_via_name_and_cc.filter(point__within=fields['mpoly'])
+            if matches_inside_mpoly:
+                print "\tmatches inside mpoly:", matches_inside_mpoly
+                if fields['admin_level']:
+                    matches_via_admin_level = matches_inside_mpoly.filter(admin_level=fields['admin_level'])
+                    if matches_via_admin_level:
+                        print "\tmatches_via_admin_level:", matches_via_admin_level
+                        return matches_via_admin_level[0]
+                print "should return whichever one is closest to the point"
+                return matches_inside_mpoly.distance(fields['point']).order_by('distance')[0]
+
+        matches_via_distance = matches_via_name_and_cc.filter(point__distance_lt=(fields['point'], D(m=5)))
+        if matches_via_distance:
+            print "matches_via_distance:", matches_via_distance
+            if fields['admin_level']:
+                matches_via_admin_level = matches_inside_mpoly.filter(admin_level=fields['admin_level'])
+                if matches_via_admin_level:
+                    print "\tmatches_via_admin_level:", matches_via_admin_level
+                    return matches_via_admin_level.distance(fields['point']).order_by('distance')[0]
+            else:
+                matches_with_admin_level_3 = matches_via_point.filter(admin_level=3)
+                if matches_with_admin_level_3:
+                    return matches_with_admin_level_3.distance(fields['point']).order_by("distance")
+                else:
+                    return matches_via_distance.distance(fields['point']).order_by('distance')
+
+        # should probably do something with levenstein distance filter and edit distance filter
+
+        
+    print "no matches"
+
+def get_values_list(layer, field, max_errors=0.05):
+    number_of_features = len(layer)
+    values = []
+    errors = 0
+    for feature in layer:
+        #value = feature[field]
+        try:
+            value = feature.get(field)
+        except DjangoUnicodeDecodeError as e:
+            errors += 1
+            continue
+            """
+            for encoding in ["utf-8", "ISO8859", "CP1251"]:
+                #feature._encoding = encoding
+                value = feature[field]
+                setattr(value._feat, "encoding", encoding)
+                value["_feat.encoding"] = value["_feat.encoding"]._replace(v=encoding)
+                value = value.as_string()
+                print "value:", value
+                raw_input()
+        #        try:
+        #            value = force_text(string, encoding=self._feat.encoding, strings_only=True)
+        #        except Exception as e:
+        #            print e
+        print "value:", value
+           """
+        if isinstance(value, str):
+            value.append(value.decode("utf-8").lower())
+        elif isinstance(value, unicode):
+            values.append(value.lower())
+        else:
+            values.append(value)
+    if 0 < max_errors < 1 and float(errors)/number_of_features > max_errors:
+        raise Exception("Hit Max Errors on get_values_list")
+
+    return values
+ 
+
+
 def get_admin_level_from_string(string):
     print "starting get_ad...", string
     string_lower = string.lower()
-    if "admin 1" in string_lower or "adm1" in string_lower:
+    if any([text in string_lower for text in ["admin 1", "admin1", "adm1", "shabiya"] ]):
         return 1
-    elif "admin 2" in string_lower or "adm2" in string_lower:
+    elif any([text in string_lower for text in ["admin 2", "admin2", "adm2"] ]):
         return 2
-    elif "admin 3" in string_lower or "adm3" in string_lower:
+    elif any([text in string_lower for text in ["admin 3", "admin3", "adm3"] ]):
         return 3
-    elif "admin 4" in string_lower or "adm4" in string_lower:
+    elif any([text in string_lower for text in ["admin 4", "admin4", "adm4"] ]):
         return 4
-    elif "admin 5" in string_lower or "adm5" in string_lower or "vill" in string_lower:
+    elif any([text in string_lower for text in ["admin 5", "admin5", "adm5", "vill", "village", "hay"] ]):
         return 5
 
 def find_gis_files_in_directory(path_to_directory):
@@ -62,7 +162,7 @@ def describe_layer_fields(layer):
         d = {}
         d['field_lower'] = field.lower()
         d['field_type'] = field_types[i]
-        d['values_list'] = [value.lower() if isinstance(value, str) or isinstance(value, unicode) else value for value in layer.get_fields(field)]
+        d['values_list'] = get_values_list(layer, field)
         d['number_of_values'] = len(values_list)
         d['values_set'] = set(d['values_list'])
         d['completeness'] = float(len([value for value in d['values_list'] if value])) / float(len(d['values_list']))
@@ -80,8 +180,8 @@ def get_area_field(layer, fields, field_types):
         field = fields[i]
         field_lower = field.lower()
         field_type = field_types[i]
-        values_list = [value.lower() if isinstance(value, str) or isinstance(value, unicode) else value for value in layer.get_fields(field)]
         if field_type == "OFTReal" and any(word in field_lower for word in ["area","sqkm","sqkm","km2","km_2"]):
+            values_list = get_values_list(layer, field)
             values_median = median(values_list)
 
             # we certainly don't want this if the median
@@ -164,7 +264,7 @@ def get_name_fields(layer, fields, field_types, min_completeness=0.8, min_unique
         field = fields[i]
         field_lower = field.lower()
         field_type = field_types[i]
-        values = [value.lower() if isinstance(value, str) or isinstance(value, unicode) else value for value in layer.get_fields(field)]
+        values = get_values_list(layer, field)
         values_set = set(values)
         number_of_unique_values = len(values_set)
         completeness = float(len([value for value in values if value])) / float(number_of_values)
@@ -210,7 +310,7 @@ def parse_layer(layer):
         print "field is", field
         field_lower = field.lower()
         field_type = field_types[i]
-        values_list = [value.lower() if isinstance(value, str) or isinstance(value, unicode) else value for value in layer.get_fields(field)]
+        values_list = get_values_list(layer, field)
         number_of_values = len(values_list)
         values_set = set(values_list)
         number_of_unique_values = len(values_set)
@@ -267,6 +367,8 @@ def download(url, path_to_directory):
         mkdir(path_to_directory_of_downloadable)
     path_to_downloaded_file = path_to_directory_of_downloadable + "/" + filename_with_extension
     if not isfile(path_to_downloaded_file):
+        print "url:", url
+        print "path_to_downloaded_file:", path_to_downloaded_file
         urlretrieve(url, path_to_downloaded_file)
         print "saved file to ", path_to_downloaded_file
     if path_to_downloaded_file.endswith("zip"):         
@@ -334,10 +436,14 @@ def run(path):
 
             # can be set to None if none found
 
-            downloadables = soup.select("a[href$=zip]")
-            print "number_of_downloadables = ", number_of_downloadables
+            domain = None
             hrefs = [a['href'] for a in soup.select("a[href$=zip]")]
             for href in hrefs:
+                if not href.startswith("http"):
+                    if not domain:
+                        parsed = urlparse(path)
+                        domain = parsed.scheme + "://" + parsed.netloc
+                    href = domain + href
                 download(href, path_to_directory)
 
     paths_to_gis_files = find_gis_files_in_directory(path_to_directory) 
@@ -378,6 +484,7 @@ def run(path):
     """
     for path_to_gis_file in paths_to_gis_files:
         print "for path_to_gis_file", path_to_gis_file
+        #raw_input("press any key to continue")
 
         # can be None if none found
         admin_level = get_admin_level_from_string(path_to_gis_file)
@@ -386,7 +493,7 @@ def run(path):
         print "ds is", ds
         print "dir(ds) = ", dir(ds)
         layers = list(ds)
-        print "layers are", layers
+        print "layers are", [str(layer) for layer in layers]
         layer_parsing = [(layer, parse_layer(layer)) for layer in layers]
 
         # we want to sort the layers by admin level
@@ -477,6 +584,13 @@ def run(path):
                     elif isinstance(geos, MultiPolygon):
                         fields['mpoly'] = geos
                         fields['point'] = geos.centroid
+                    elif isinstance(geos, MultiPoint):
+                        print "MultiPoint geos:", geos
+                        print "points", list(geos)
+                        if len(geos) == 1:
+                            fields['point'] = geos[0]
+                        else:
+                            fields['point'] = geos[0]
                     elif isinstance(geos, Point):
                         fields['point'] = geos
                     
@@ -495,20 +609,15 @@ def run(path):
                                 print e
                     #raw_input()
 
-                    print "fields are", fields
-                    # look up place and see if one is nearby or whatever
-#                    qs = Place.objects.filter(name=name)
-#                    print "qs is", qs
-#                    for p in qs:
-#                        print "p is", p.__dict__
-
-                    place = Place.objects.get_or_create(**fields)[0]
+                            
+                            
+                    place = get_matching_place(fields)
+                    print "get_matching_place returned:", place
                     if "parent_pcode" in d:
                         parent_pcode = feature.get(d['parent_pcode'])
                         print "parent_pcode is", parent_pcode
-                        qs = Place.objects.filter(pcode=parent_pcode)
-                        if qs.count() > 0:
-                            parent = qs[0]
+                        parent = Place.objects.filter(pcode=parent_pcode).first()
+                        if parent:
                             print "parent is", parent
                             ParentChild.objects.get_or_create(parent=parent, child=place)
 
