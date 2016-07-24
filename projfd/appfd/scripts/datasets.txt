@@ -1,8 +1,15 @@
 # myanmar
-https://data.hdx.rwlabs.org/dataset/myanmar-adiministrative-boundaries
-https://data.hdx.rwlabs.org/dataset/myanmar-village-boundaries
-https://data.hdx.rwlabs.org/dataset/myanmar-village-locations
-https://data.hdx.rwlabs.org/dataset/myanmar-town-locations
+https://data.humdata.org/dataset/myanmar-adiministrative-boundaries
+https://data.humdata.org/dataset/myanmar-village-boundaries
+https://data.humdata.org/dataset/myanmar-village-locations
+https://data.humdata.org/dataset/myanmar-town-locations
 
 # honduras
-https://data.hdx.rwlabs.org/dataset/honduras-admin-level-1-boundaries
+https://data.humdata.org/dataset/honduras-admin-level-1-boundaries
+
+# libya
+https://data.humdata.org/dataset/libya-admin-level-1-boundaries
+https://data.humdata.org/dataset/libya-settlements
+
+# syria
+https://data.humdata.org/dataset/syrian-arab-republic-administrative-boundaries-populated-places
