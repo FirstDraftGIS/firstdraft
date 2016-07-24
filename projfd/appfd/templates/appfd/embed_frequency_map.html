@@ -1,0 +1,101 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html ng-app="app">
+
+
+<head>
+<link href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+<link href="{% static 'node_modules/leaflet/dist/leaflet.css' %}" rel="stylesheet">
+<link href="{% static 'css/jquery-ui.css' %}" rel="stylesheet">
+<link href="{% static 'css/external/leaflet.label.css' %}" rel="stylesheet">
+<script src="{% static 'node_modules/jquery/dist/jquery.min.js' %}"></script>
+<script src="{% static 'js/jquery-ui.js' %}"></script>
+<script src="{% static 'node_modules/angular/angular.min.js' %}"></script>
+<script src="{% static 'node_modules/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'node_modules/angular-ui-bootstrap/ui-bootstrap.min.js' %}"></script>
+<script src="{% static 'node_modules/leaflet/dist/leaflet.js' %}"></script>
+<script src="{% static 'js/external/leaflet.label.js' %}"></script>
+<script src="{% static 'js/leaflet.SliderControl.min.js' %}"></script>
+<script src="{% static 'js/app.js' %}"></script>
+<link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
+{% if csrf_token and csrf_token != '' %}<script>csrf_token = /value='([^']*)/.exec("{% csrf_token %}")[1];</script>{% endif %}
+</head>
+
+<body>
+{% csrf_token %}
+<noscript>
+    <input type="radio" id="base-noscript-warning">
+    <div>You <b>must</b> enable JavaScript.</div>
+</noscript>
+
+
+<div id="map_full" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
+<script>
+
+    job = '{{job}}';
+
+    map = L.map('map_full');
+    map.setView([0,0],2);
+    var osmLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors.',
+        maxZoom: 18
+    });
+
+    var CartoDB_PositronNoLabels = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+    }).addTo(map);
+
+    function getLayerStyle(feature) {
+        var gb = Math.round(255 - (feature.properties.frequency * 255));
+        console.log("gb:", gb);
+        return {
+            "color": "rgb(255,"+gb+","+gb+")",
+            "weight": .5,
+            "opacity": .5,
+            "fillOpacity": 1
+        };
+    }
+
+
+    function onEachFeature(feature, layer)
+    {
+        try
+        {
+            properties = feature.properties;
+            var popup_html = "<div style='max-height: 250px; overflow-y: auto;'>";
+            popup_html += "<h3>" + properties.name + "</h3>" ;
+            if(properties['frequency']) popup_html += "<b>frequency: </b>" + Math.round(properties.frequency*100) + "%</br>";
+            if(properties['count']) popup_html += "<b>count: </b>" + properties.count + "</br>";
+            if(properties['geonameid']) popup_html += "<b>geonameid: </b>" + properties.geonameid + "</br>";
+            popup_html += "</div>";
+            console.log("layer is", layer);
+            layer.bindPopup(popup_html);
+
+            if (properties.frequency > 0.05) {
+                label = new L.Label();
+                label.setContent(properties.name);
+                label.setLatLng(layer.getBounds().getCenter())
+                map.showLabel(label);
+            }
+        }
+        catch(err) { console.error("err is", err); }
+    }
+
+
+    var mainLayer = L.geoJson(undefined,{onEachFeature:onEachFeature, style:getLayerStyle});
+    var featureGroup = L.featureGroup([mainLayer]);
+    featureGroup.addTo(map);
+    map.setView([0,0],2);
+
+    $.getJSON('/api/frequency/'+job, function( data ) {
+        console.log("data:", data);
+        mainLayer.addData(data);
+        map.fitBounds(featureGroup.getBounds());
+    });
+
+
+</script>
+</body>
+</html>

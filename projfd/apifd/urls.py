@@ -7,6 +7,6 @@ import appfd, inspect
 from . import views
 
 urlpatterns = [
-    url(r'^frequency/(?P<token>[^/]+)$', views.frequency, name='frequency'),
+    url(r'^frequency/(?P<token>[^/]+)/(?P<admin_level>[^/]+)$', views.frequency, name='frequency'),
     url(r'^data$', views.data, name='data')
 ]

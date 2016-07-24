@@ -46,16 +46,14 @@ def data(request):
 # it currently only supports countries
 # but will expand to lower layers
 @xframe_options_exempt
-def frequency(request, token):
+def frequency(request, token, admin_level):
     print "\nstarting frequency"
     print 'request.method', request.method
 
-    path_to_geojson = "/home/usrfd/maps/" + token + "/" + token + "_frequency.geojson"
-    if isfile(path_to_geojson):
-        print "found", path_to_geojson
-        with open(path_to_geojson) as f:
-            text = f.read()
-        return HttpResponse(text)
-    else:
-        return HttpResponse(create_frequency_geojson(token))
+    path_to_geojson = "/home/usrfd/maps/" + token + "/" + token + "_frequency_" + str(admin_level) + ".geojson"
+    if not isfile(path_to_geojson):
+        create_frequency_geojson(token)
+    with open(path_to_geojson) as f:
+        text = f.read()
+    return HttpResponse(text)
 

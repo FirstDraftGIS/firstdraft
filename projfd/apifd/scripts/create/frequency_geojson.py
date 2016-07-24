@@ -19,49 +19,52 @@ def run(token):
     if order:
         features = Feature.objects.filter(order=order)
 
-        countries = set()
+        #counters, one for each admin level 0 through 5
+        counters = [Counter(),Counter(),Counter(),Counter(),Counter()]
+        #country_codes = Counter() 
 
-        country_codes = Counter() 
+        places_by_id = {}
 
         print "features:", features
         for feature in features:
             place = feature.place
             print "place:", place
-            if place.admin_level == 0:
-                countries.add(place)
-            if place.country_code:
-                country_codes[place.country_code] += feature.count or 1
-            else:
-                try:
-                    country_code = Place.objects.get(admin_level=0, mpoly__contains=point).country_code
-                    country_codes[country_code] += feature.count or 1
-                except Exception as e: print e
 
-        features = []
-        print "country_codes:", country_codes
+            # not sure what to do once get to high admin levels like 4 and 5
+            for admin_level in range(2):
+                if place.admin_level == admin_level:
+                    counters[admin_level][place.id] += feature.count or 1
+                    places_by_id[place.id] = place
+                elif not place.admin_level or place.admin_level > admin_level:
+                    queryset = Place.objects
+                    if place.country_code:
+                        queryset = queryset.filter(country_code=place.country_code)
+                    admin_polygon = queryset.filter(admin_level=admin_level, mpoly__contains=place.point).first()
+                    print "admin_polygon:", admin_polygon
+                    if admin_polygon:
+                        counters[admin_level][admin_polygon.id] += feature.count or 1
+                        places_by_id[admin_polygon.id] = admin_polygon
 
-        total_count_of_countries = float(sum(country_codes.values()))
-        for country_code in country_codes:
-            print "\tfor country_code:", country_code
-            properties = {}
 
-            place = Place.objects.get(admin_level=0, country_code=country_code)
-            properties['geonameid'] = place.geonameid
-            properties['name'] = place.name
-            properties['country_code'] = country_code
-            properties['count'] = count = country_codes[country_code]
-            properties['frequency'] = float(count) / total_count_of_countries
+        for admin_level, counter in enumerate(counters):
+            features = []
+            total_count = float(sum(counter.values()))
+            for place_id in counter:
+                properties = {}
+                place = places_by_id[place_id]
+  
+                properties['admin_level'] = admin_level
+                properties['geonameid'] = place.geonameid
+                properties['name'] = place.name
+                properties['country_code'] = place.country_code
+                properties['count'] = count = counter[place_id]
+                properties['frequency'] = float(count) / total_count
 
-            # can probably make this more efficient by not just getting string representing of geometry and then converting back to Python obj
-            features.append(geojson.Feature(geometry=json.loads(place.mpoly.geojson), properties=properties))
-        featureCollection = geojson.FeatureCollection(features)
+                # can probably make this more efficient by not just getting string representing of geometry and then converting back to Python obj
+                features.append(geojson.Feature(geometry=json.loads(place.mpoly.geojson), properties=properties))
+
+            featureCollection = geojson.FeatureCollection(features)
             
-        serialized = geojson.dumps(featureCollection, sort_keys=True)
-        with open("/home/usrfd/maps/" + token + "/" + token + "_frequency.geojson", "wb") as f:
-            f.write(serialized)
-
-        return serialized
-
-    else:
-        return "We couldn't find an order with that token"
-
+            serialized = geojson.dumps(featureCollection, sort_keys=True)
+            with open("/home/usrfd/maps/" + token + "/" + token + "_frequency_" + str(admin_level) + ".geojson", "wb") as f:
+                f.write(serialized)

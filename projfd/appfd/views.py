@@ -1,3 +1,4 @@
+from apifd.scripts.create.frequency_geojson import run as create_frequency_geojson
 from appfd import forms, models
 from appfd.forms import *
 from appfd.models import *
@@ -373,6 +374,7 @@ def create(job):
 
     key = job['key']
     text = job['data']
+    capture_context = job['capture_context']
     # basically this is a hack, so that if you paste in text
     # it assumes everything that is capitalized could be a place
     names = [name for name in list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text))) if len(name) > 3]
@@ -382,24 +384,29 @@ def create(job):
     if number_of_names < 100:
         location_extractor.load_non_locations()
         names = [name for name in names if name not in location_extractor.nonlocations]
-        features = resolve_locations(location_extractor.extract_locations_with_context(text, names))
+        if capture_context:
+            features = resolve_locations(location_extractor.extract_locations_with_context(text, names))
+        else:
+            features = resolve_locations([{"name": loc} for loc in location_extractor.extract_locations(text)])
     else:
         print "if we have an insane amount of capitalized words, lets just use our parsing"
-        features = resolve_locations(location_extractor.extract_locations_with_context(text))
-    featureCollection = FeatureCollection(features)
-    serialized = geojson.dumps(featureCollection, sort_keys=True)
+        if capture_context:
+            features = resolve_locations(location_extractor.extract_locations_with_context(text))
+        else:
+            features = resolve_locations([{"name": loc, "count": text.count(loc)} for loc in location_extractor.extract_locations(text)])
+ 
 
-    # make directory to store files
-    directory = "/home/usrfd/maps/" + key + "/"
-    mkdir(directory)
+    # add order to all the features
+    order = Order.objects.get(token=key)
+    for feature in features:
+        feature.order = order
 
-    path_to_geojson = directory + key + ".geojson"
-    with open(path_to_geojson, "wb") as f:
-        print "writing"
-        f.write(serialized)
-        print "wrote"
+    Feature.objects.bulk_create(features)
+    print "saved features"
 
-    print "listdir is", isfile(path_to_geojson)
+    create_geojson.run(order.token)
+    create_frequency_geojson(order.token)
+ 
     finish_order(key)
 
 def create_map_from_link(job):
@@ -449,6 +456,7 @@ def create_map_from_link(job):
     print "saved features"
 
     create_geojson.run(order.token)
+    create_frequency_geojson(order.token)
  
     finish_order(key)
 
@@ -849,7 +857,7 @@ def get_map(request, job, extension):
         data = ""
         for filename in listdir(path_to_directory):
             print "for filename"
-            if filename.endswith("."+extension):
+            if filename == job + "." + extension:
                 with open(path_to_directory + filename) as f:
                     data = f.read()
                 break
@@ -867,10 +875,17 @@ def upload(request):
         Order.objects.create(token=key)
         from django.db import connection 
         connection.close()
+        print "dir(request)", dir(request)
+        print "request.body:", request.body
+        data = loads(request.body)
         job = {
-              'data': loads(request.body)['story'],
+              'data': data['story'],
               'key': key
         }
+        if "capture_context" in data:
+            job['capture_context'] = data['capture_context']
+        else:
+            job['capture_context'] = True
         Process(target=create, args=(job,)).start()
         return HttpResponse(job['key'])
     else:
