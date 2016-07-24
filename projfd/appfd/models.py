@@ -76,6 +76,7 @@ class Feature(Model):
     order = ForeignKey("Order")
     place = ForeignKey("Place")
     confidence = CharField(max_length=6, choices=[('high', "High"),("medium", "Medium"),("low","Low")])
+    count = IntegerField(null=True) # number of times the thing was mentioned in the text
     end = DateTimeField(null=True)
     start = DateTimeField(null=True)
     text = TextField(max_length=1000, null=True)
@@ -145,7 +146,8 @@ class Place(Model):
         ordering = ['name']
     def update(self, d):
         for k,v in d.iteritems():
-            setattr(self,k,v)
+            if getattr(self, k) != v:
+                setattr(self,k,v)
         self.save()
 
 class ParentChild(Model):
