@@ -10,9 +10,11 @@ django-extensions
 django-filter
 django-guardian
 django-sendfile
+editdistance
 geojson
 language-detector
 location-extractor
+marionette_client
 mod_wsgi
 nltk
 numpy
@@ -28,6 +30,7 @@ python-social-auth
 pyvirtualdisplay
 pytz
 requests
+scrp
 selenium
 stop-words
 super_python

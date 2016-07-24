@@ -35,7 +35,7 @@ with open("/tmp/allCountries.txt", "r") as f:
         elif feature_code == "ADM3": admin_level = "3"
         elif feature_code == "ADM4": admin_level = "4"
         elif feature_code == "ADM5": admin_level = "5"
-        else admin_level = ""
+        else: admin_level = ""
         point = wkb_w.write_hex(Point(float(longitude), float(latitude), srid=4326))
         writer.writerow([ counter, admin_level, admin1_code, admin2_code, "", country_code, "", "", geonameid, "", "", name, "", point, population, "", "", timezone ])
         if counter % 1000000 == 0:
