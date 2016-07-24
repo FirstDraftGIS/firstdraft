@@ -72,10 +72,7 @@
             console.log("popup_html is", popup_html);
             layer.bindPopup(popup_html);
         }
-        catch(err)
-        {
-            console.error("err is", err);
-        }
+        catch(err) { console.error("err is", err); }
     }
 
     var mainLayer = L.geoJson(undefined,{onEachFeature:onEachFeature, style:mainLayerStyle});

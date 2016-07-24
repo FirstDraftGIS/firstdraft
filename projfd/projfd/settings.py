@@ -54,7 +54,8 @@ INSTALLED_APPS = (
     'mod_wsgi.server',
     'rest_framework',
     'appfd',
-    'behave_django'
+    'behave_django',
+    'api'
 )
 
 MIDDLEWARE_CLASSES = (

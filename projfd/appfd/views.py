@@ -210,6 +210,12 @@ def crunch(request):
 def disclaimers(request):
     return render(request, "appfd/disclaimers.html", {})
 
+# this is the embed frequency map if you have the job token in the url
+@xframe_options_exempt
+def embed_frequency_map_with_job(request, job):
+    if request.method == "GET":
+        return render(request, "appfd/embed_frequency_map.html", {'job': job})
+
 def help(request):
     return render(request, "appfd/help.html", {})
 
@@ -944,6 +950,9 @@ def upload_file(request):
         return HttpResponse("You have to post!")
   except Exception as e:
     print "e is", e
+
+def view_frequency_map(request, job):
+    return render(request, "appfd/view_frequency_map.html", {'job': job})
 
 def view_map(request, job):
     return render(request, "appfd/view_map.html", {'job': job})

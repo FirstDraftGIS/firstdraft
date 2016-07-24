@@ -60,7 +60,7 @@ def run():
                 found.append((name,country_code))
 
             if place:
-                geom = feature.geom.geos
+                geom = feature.geom.geos.simplify(0.02, preserve_topology=True)
                 if isinstance(geom, Polygon):
                     place.mpoly = MultiPolygon([geom])
                 elif isinstance(geom, MultiPolygon):

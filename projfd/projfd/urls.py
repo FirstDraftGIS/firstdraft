@@ -12,7 +12,7 @@ urlpatterns = []
 # add most urls
 urlpatterns += [
     #url(r'^appfd/', include('appfd.urls')),
-    #url(r'^api/', include('apifd.urls')),
+    url(r'^api/', include('api.urls')),
     url(r'^$', views.index, name="index"),
     #url(r'about$', views.about, name='about'),
     #url(r'activate/(?P<key>[^\./]+)$', views.activate, name='activate'),
@@ -24,8 +24,10 @@ urlpatterns += [
     url(r'^disclaimers$', views.disclaimers, name='disclaimers'),
     #url(r'login/$', views.login, name='login'),
     #url(r'logout/', views.user_logout, name='logout'),
+    url(r"^embed_frequency_map/(?P<job>[^/]+)$", views.embed_frequency_map_with_job, name="embed_frequency_map_with_job"),
     url(r"^iframe$", views.iframe, name="iframe"),
     url(r'^get_map/(?P<job>[^/]+)/(?P<extension>[^/]+)$', views.get_map, name='get_map'),
+    url(r'^maps/(?P<job>[^/]+)', views._map, name='_map'),
     url(r'^mission$', views.mission, name='mission'),
     #url(r'password_recovery$', views.password_recovery, name='password_recovery'),
     url(r'^register', views.register, name='register'),
@@ -40,6 +42,7 @@ urlpatterns += [
     url(r'^upload$', views.upload, name='upload'),
     url(r'^upload_file$', views.upload_file, name='upload_file'),
     url(r'view_map/(?P<job>[^/]+)', views.view_map, name='view_map'),
+    url(r'view_frequency_map/(?P<job>[^/]+)', views.view_frequency_map, name='view_frequency_map'),
     url('', include('social.apps.django_app.urls', namespace='social')),
     url('', include('django.contrib.auth.urls', namespace='auth'))
 ]
