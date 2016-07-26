@@ -48,7 +48,7 @@ def get_matching_place(fields):
                     print "\tmatches_via_admin_level:", matches_via_admin_level
                     return matches_via_admin_level[0]
             else:
-                matchs_with_admin_level_3 = matches_via_point.filter(admin_level=3)
+                matches_with_admin_level_3 = matches_via_point.filter(admin_level=3)
                 if matches_with_admin_level_3:
                     return matches_with_admin_level_3[0]
                 else:
