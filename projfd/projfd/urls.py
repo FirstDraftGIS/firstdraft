@@ -12,7 +12,7 @@ urlpatterns = []
 # add most urls
 urlpatterns += [
     #url(r'^appfd/', include('appfd.urls')),
-    url(r'^api/', include('api.urls')),
+    url(r'^api/', include('apifd.urls')),
     url(r'^$', views.index, name="index"),
     #url(r'about$', views.about, name='about'),
     #url(r'activate/(?P<key>[^\./]+)$', views.activate, name='activate'),
