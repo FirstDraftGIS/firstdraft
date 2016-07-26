@@ -55,7 +55,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'appfd',
     'behave_django',
-    'api'
+    'apifd'
 )
 
 MIDDLEWARE_CLASSES = (
