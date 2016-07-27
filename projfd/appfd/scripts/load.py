@@ -608,11 +608,13 @@ def run(path):
                             except Exception as e:
                                 print e
                     #raw_input()
-
-                            
                             
                     place = get_matching_place(fields)
                     print "get_matching_place returned:", place
+                    if not place:
+                        place = Place.objects.create(**fields)
+                        print "created place", place
+
                     if "parent_pcode" in d:
                         parent_pcode = feature.get(d['parent_pcode'])
                         print "parent_pcode is", parent_pcode
