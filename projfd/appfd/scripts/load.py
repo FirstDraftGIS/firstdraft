@@ -54,11 +54,11 @@ def get_matching_place(fields):
                 else:
                     return matches_via_point[0]
 
-        if fields['mpoly']:
+        if 'mpoly' in fields and fields['mpoly']:
             matches_inside_mpoly = matches_via_name_and_cc.filter(point__within=fields['mpoly'])
             if matches_inside_mpoly:
                 print "\tmatches inside mpoly:", matches_inside_mpoly
-                if fields['admin_level']:
+                if 'admin_level' in fields and fields['admin_level']:
                     matches_via_admin_level = matches_inside_mpoly.filter(admin_level=fields['admin_level'])
                     if matches_via_admin_level:
                         print "\tmatches_via_admin_level:", matches_via_admin_level
@@ -69,7 +69,7 @@ def get_matching_place(fields):
         matches_via_distance = matches_via_name_and_cc.filter(point__distance_lt=(fields['point'], D(m=5)))
         if matches_via_distance:
             print "matches_via_distance:", matches_via_distance
-            if fields['admin_level']:
+            if admin_level in fields and fields['admin_level']:
                 matches_via_admin_level = matches_inside_mpoly.filter(admin_level=fields['admin_level'])
                 if matches_via_admin_level:
                     print "\tmatches_via_admin_level:", matches_via_admin_level
@@ -345,9 +345,24 @@ def parse_layer(layer):
     print "d is", d
     return d
 
-#def getCountryCode():
-#write method maybe put into views or scripts or something so people can send in a shapefile can get a country code if it applies to more than 95% of a random sample of features
+def get_country_code_from_shuffled_features(features):
+    country_codes = set()
+    for feature in features[:20]:
+        geom = feature.geom
+        geom.transform(u'+proj=longlat +datum=WGS84 +no_defs ')
+        geos = geom.geos
+        if isinstance(geos, Point):
+            point = geos
+        elif isinstance(geos, Polygon) or isinstance(geos, MultiPolygon):
+            point = geos.centroid
+        elif isinstance(geos, MultiPoint):
+            point = geos[0]
+        place = Place.objects.filter(admin_level=0, mpoly__contains=point).first()
+        if place:
+            country_codes.add(place.country_code)
 
+    if len(country_codes) == 1:
+        return country_codes.pop()
 
 def download(url, path_to_directory):
     print "starting download with", url, path_to_directory
@@ -518,32 +533,14 @@ def run(path):
 
             geom_type = str(layer.geom_type)
             features = list(layer)
-            print "we shuffle the features because later on if we hit the same country_code 20 times, we don't try to get it by db lookup anymore"
             shuffle(features)
 
-            #number_of_features = len(features)
-            print "\tnumber_of_features = ", number_of_features == len(features)
-            #raw_input()
-            country_code = None
-            country_codes = set()
+
+            country_code = get_country_code_from_shuffled_features(features)
             places_added = []
             for i, feature in enumerate(features):
                 try:
 
-                    # after we have gone through 10 features
-                    # which were randomly shufffled
-                    # if same country_code for all of them
-                    # then set country_code
-                    # and don't make db call to find out cc again
-                    if i == 10:
-                        print "\n\nnumber_of_country_codes = ", number_of_country_codes
-                        print "CHECK number_of_country_codes = ", number_of_country_codes == len(country_codes)
-                        if number_of_country_codes == 1:
-                            cc = country_codes.pop()
-                            if cc is not None:
-                                country_code = cc
-
-#                    if i % 500 != 0: continue
                     print "\nfor feature", i, "of", number_of_features
                     fields = {'admin_level': admin_level}
 
@@ -596,7 +593,6 @@ def run(path):
                     
 
                     #need to load lsibwvs for country polygons
-                    print i, "country_code is", country_code
                     if country_code:
                         if "country_code" not in fields:
                             fields['country_code'] = country_code
