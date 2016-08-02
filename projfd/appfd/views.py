@@ -377,6 +377,7 @@ def create(job):
     capture_context = job['capture_context']
     # basically this is a hack, so that if you paste in text
     # it assumes everything that is capitalized could be a place
+    # is there something we can do here for Arabic?
     names = [name for name in list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text))) if len(name) > 3]
     print "names are", names
     number_of_names = len(names)

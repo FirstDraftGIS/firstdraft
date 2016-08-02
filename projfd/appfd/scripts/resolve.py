@@ -66,10 +66,24 @@ def filter_dict_by_distance(dict_of_places_by_name):
         places_for_name = dict_of_places_by_name[name]
         print "places_for_name:", places_for_name
         if len(places_for_name) > 1:
-            places_for_name = [
-            {"place": dic['place'], "distance":  median([dic['place'].point.distance(other_place.point) for other_place in places if dic['place'] != other_place])}
-            for dic in places_for_name
-            ]
+            places_for_name_with_distance = []
+            for dic in places_for_name:
+                current_place = dic['place']
+                reference_point = current_place.point
+                #print "reference_point:", reference_point
+                if reference_point:
+                    other_places = [place for place in places if place != current_place]
+                    distances = []
+                    for other_place in other_places:
+                        if other_place.point:
+                            distances.append(reference_point.distance(other_place.point))
+                    median_distance = median(distances)
+                    places_for_name_with_distance.append({"place": current_place, "distance": median_distance})
+            places_for_name = places_for_name_with_distance
+            #places_for_name = [
+            #{"place": dic['place'], "distance":  median([dic['place'].point.distance(other_place.point) for other_place in places if dic['place'] != other_place])}
+            #for dic in places_for_name
+            #]
             dict_of_places_by_name[name] = sorted(places_for_name, key=lambda p: p['distance'])[0]['place']
         else:
             dict_of_places_by_name[name] = places_for_name[0]['place']
@@ -79,8 +93,8 @@ def filter_dict_by_distance(dict_of_places_by_name):
 
 # takes in a list of locations and resovles them to features in the database
 def resolve_locations(locations, order=None):
-    print("starting resolve_locations with", type(locations))
-    print("locations = ", len(locations), locations[:5])
+    print "starting resolve_locations with", type(locations)
+    print "locations = ", len(locations), locations[:5]
 
     #defaults
     most_common_country_code = None
@@ -90,28 +104,30 @@ def resolve_locations(locations, order=None):
     list_of_found_places = []
 
     list_of_names_of_locations = [location['name'] for location in locations]
-    print("list_of_names_of_locations", len(list_of_names_of_locations), list_of_names_of_locations[:5])
+    print "list_of_names_of_locations", len(list_of_names_of_locations), list_of_names_of_locations[:5]
 
     # randomize order in order to minimize statistic bias
     shuffle(list_of_names_of_locations)
 
     list_of_names_of_locations = uniquify(list_of_names_of_locations)
 
-    places = Place.objects.filter(name__in=list_of_names_of_locations[:200])
-    dict_of_places_by_name = queryset_to_dict(places, "name")
-    #if number_of_keys(dict_of_places_by_name) < 10:
-    #    places = Place.objects.filter(name__in=list_of_names_of_locations[:100])
-    #    dict_of_places_by_name = queryset_to_dict(places, "name")
+    places = Place.objects.filter(name__in=list_of_names_of_locations[:500])
+    print "places:", len(places)
+    if places:
+        dict_of_places_by_name = queryset_to_dict(places, "name")
+        #if number_of_keys(dict_of_places_by_name) < 10:
+        #    places = Place.objects.filter(name__in=list_of_names_of_locations[:100])
+        #    dict_of_places_by_name = queryset_to_dict(places, "name")
 
-    # should do some filtering, so if have pcode or higher admin_level do that one or maybe if have both pops and 1 has higher population?
-    filter_dictionary_by_attribute(dict_of_places_by_name, "pcode")
+        # should do some filtering, so if have pcode or higher admin_level do that one or maybe if have both pops and 1 has higher population?
+        filter_dictionary_by_attribute(dict_of_places_by_name, "pcode")
 
-    places = filter_dict_by_distance(dict_of_places_by_name)
+        places = filter_dict_by_distance(dict_of_places_by_name)
+
     number_of_places = len(places)
 
     if number_of_places > 0:
-        print("places are", places)
-        print("country codes are", [place.country_code for place in places])
+        print "country codes are", [place.country_code for place in places]
         list_of_most_common_country_codes = Counter([place.country_code for place in places]).most_common(2)
         most_common_country_code, most_common_count = list_of_most_common_country_codes[0]
         second_most_common_country_code, second_most_common_count = list_of_most_common_country_codes[0]
@@ -119,7 +135,7 @@ def resolve_locations(locations, order=None):
         print("most_common_country_code:", most_common_country_code)
         print("most_common_count:", most_common_count)
         # see if more than one country name in list of places, beause if yes, then don't set country_code
-        if most_common_country_code and most_common_frequency >= 0.5:
+        if most_common_country_code and most_common_frequency >= 0.75:
 
             # don't set the country_code if have more than one country mentioned in text
             # it'll still use the most and second most common country codes to bias the following passes
@@ -130,7 +146,7 @@ def resolve_locations(locations, order=None):
             if len(countries) <= 1:
                 country_code = most_common_country_code
 
-    print("country_code:", country_code)
+    print "country_code:", country_code
     d = {}
     # if already know country code
     if country_code:
@@ -160,12 +176,15 @@ def resolve_locations(locations, order=None):
     print "\n\n\nd:", d
     list_of_names_of_found_places = [place.name for place in list_of_found_places]
     missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in list_of_names_of_found_places]
-    print "missing ", len(missing), missing[:100]
+    print "missing ", len(missing), missing[:5]
     if missing:
 
         # VIA ALIAS
         print "NOW, RESOLVING PLACES VIA ALIAS"
-        dict_of_places = queryset_to_dict(Place.objects.filter(aliases__alias__in=missing), "name")
+        # this code adds the alias attribute to the place which stores alias used to find it
+        places_found_via_alias = Place.objects.raw("SELECT *, appfd_alias.alias as alias FROM appfd_place INNER JOIN appfd_aliasplace on (appfd_place.id = appfd_aliasplace.place_id) INNER JOIN appfd_alias ON (appfd_aliasplace.alias_id = appfd_alias.id) WHERE appfd_alias.alias IN (" + ",".join(["'"+p+"'" for p in missing]) + ");")
+        print "len(list_of_places_found_via_alias):", len([p for p in places_found_via_alias])
+        dict_of_places = queryset_to_dict(places_found_via_alias, "name")
         print "dict_of_places", dict_of_places
         if country_code:
             dict_of_places = filter_dictionary_by_attribute_value(dict_of_places, "country_code", country_code)
@@ -182,7 +201,7 @@ def resolve_locations(locations, order=None):
 
         list_of_names_of_found_places = [place.name for place in list_of_found_places]
         missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in list_of_names_of_found_places]
-        p("missing after looking at aliases:", len(missing), missing[:100])
+        print "missing after looking at aliases:", len(missing), missing[:10]
 
         if country_code or most_common_country_code:
             # just do levenstein distance for first 25
@@ -204,30 +223,37 @@ def resolve_locations(locations, order=None):
                         d[place.name] = {'confidence': 'low', 'place': place}
     
     print "list_of_found_places:", list_of_found_places
+
+    locations_by_name = dict([(location['name'], location) for location in locations])
     features = []
-    for location in locations:
-        name = location['name']
-        if name in d:
-            feature = Feature()
-            d_name = d[name]
-            feature.place = d_name['place']
-            feature.confidence = d_name['confidence']
-            feature.count = location['count']
+    for name in d:
+        feature = Feature()
+        _dict = d[name] 
+        feature.place = place = _dict['place']
 
-            if not feature.place.point:
-                feature.place.update({"point": place.mpoly.centroid})
+        if name in locations_by_name:
+            location = locations_by_name[name]
+        elif place.alias in locations_by_name:
+            location = locations_by_name[place.alias]
 
-            if not feature.place.country_code:
-                country_code = Place.objects.get(admin_level=0, mpoly__contains=feature.place.point).country_code
-                feature.place.update({"country_code": country_code})
-                p("set country_code to ", country_code)
+        feature.confidence = _dict['confidence']
 
-            if "date" in location:
-                feature.end = location['date']
-                feature.start = location['date']
-            if "context" in location:
-                feature.text = location['context'][:1000]
-            features.append(feature)
+        feature.count = location['count']
+
+        if not place.point:
+            place.update({"point": place.mpoly.centroid})
+
+        if not place.country_code:
+            country_code = Place.objects.get(admin_level=0, mpoly__contains=place.point).country_code
+            place.update({"country_code": country_code})
+            p("set country_code to ", country_code)
+
+        if "date" in location:
+            feature.end = location['date']
+            feature.start = location['date']
+        if "context" in location:
+            feature.text = location['context'][:1000]
+        features.append(feature)
 
     p("features final are", len(features))
 
