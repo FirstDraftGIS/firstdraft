@@ -12,8 +12,12 @@ sudo python /home/usrfd/firstdraft/loadGeoNames.py
 echo "Updating Primary Key Value Just In Case"
 sudo -u usrfd psql -c "SELECT setval('appfd_place_id_seq', (SELECT MAX(id) FROM appfd_place)+1)" dbfd;
 
-echo "LOADING AlTERNATE NAMES"
-sudo --set-home -u usrfd bash -c 'source ~/venv/bin/activate && cd ~/firstdraft/projfd && python ~/firstdraft/projfd/manage.py runscript loadAlternateNames -v3'
+echo "STARTING TO LOAD AlTERNATE NAMES AT $(date)"
+sudo rm -fr /tmp/alternateNames.*
+cd /tmp && wget http://download.geonames.org/export/dump/alternateNames.zip --no-verbose
+cd /tmp && unzip allCountries.txt
+sudo -u postgres psql -f /home/usrfd/firstdraft/sql_scripts/loadAlternateNames.sql dbfd
+echo "FINISHED LOADING AlTERNATE NAMES AT $(date)"
 
 echo "LOADING COUNTRY INFO"
 sudo --set-home -u usrfd bash -c 'source ~/venv/bin/activate && cd ~/firstdraft/projfd && python ~/firstdraft/projfd/manage.py runscript loadCountryInfo -v3'
