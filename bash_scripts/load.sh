@@ -15,7 +15,7 @@ sudo -u usrfd psql -c "SELECT setval('appfd_place_id_seq', (SELECT MAX(id) FROM 
 echo "STARTING TO LOAD AlTERNATE NAMES AT $(date)"
 sudo rm -fr /tmp/alternateNames.*
 cd /tmp && wget http://download.geonames.org/export/dump/alternateNames.zip --no-verbose
-cd /tmp && unzip allCountries.txt
+cd /tmp && unzip alternateNames.zip
 sudo -u postgres psql -f /home/usrfd/firstdraft/sql_scripts/loadAlternateNames.sql dbfd
 echo "FINISHED LOADING AlTERNATE NAMES AT $(date)"
 
