@@ -13,7 +13,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confn
 
 echo "INSTALLING DJANGO"
 sudo pip install django
-sudo pip list
+sudo pip list | grep Django
 
 sudo npm install npm -g;
 # if node command not found link it to existing nodejs command
