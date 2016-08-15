@@ -5,6 +5,7 @@ bscrp
 beautifulsoup4
 boto
 date-extractor
+Django==1.9.9
 djangorestframework
 django-extensions
 django-filter
@@ -30,6 +31,7 @@ python-social-auth
 pyvirtualdisplay
 pytz
 requests
+scipy
 scrp
 selenium
 stop-words
