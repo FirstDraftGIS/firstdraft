@@ -7,7 +7,7 @@ Feature: Download
         Then we should see a map
          And we should be able to download a CSV
          And we should be able to download a GeoJSON
-         And we should be able to download a Shapefile
+         #And we should be able to download a Shapefile
 
         Examples: urls
             | url |
