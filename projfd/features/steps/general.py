@@ -1,4 +1,5 @@
 from appfd.models import Place
+from django.core.mail import send_mail
 from selenium import webdriver
 from time import sleep
 import socket
@@ -46,7 +47,18 @@ def we_should_see_a_map(context):
     #assert context.driver.get_screenshot_as_base64() == "00"
     #b64 = context.driver.get_screenshot_as_base64()
     context.driver.save_screenshot("/tmp/screenshot.png")
+    base64 = context.driver.get_screenshot_as_base64()
     size = context.driver.find_element_by_id("map").size
-    assert(size['width'] > 100)
-    assert(size['height'] > 100)
-    
+    try:
+        assert(size['width'] > 100)
+        assert(size['height'] > 100)
+    except Exception as e:
+        try:
+            print("page_source is")
+            print(context.driver.page_source)
+            print("html is")
+            print(context.driver.execute_script("return document.documentElement.innerHTML;"))
+        except Exception as e1:
+            print(e1)
+        raise e
+        
