@@ -55,9 +55,9 @@ def we_should_see_a_map(context):
     except Exception as e:
         try:
             print("page_source is")
-            print(context.driver.page_source)
+            print([context.driver.page_source.decode("utf-8")])
             print("html is")
-            print(context.driver.execute_script("return document.documentElement.innerHTML;"))
+            print([context.driver.execute_script("return document.documentElement.innerHTML;").decode("utf-8")])
         except Exception as e1:
             print(e1)
         raise e
