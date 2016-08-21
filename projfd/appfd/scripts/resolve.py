@@ -83,7 +83,7 @@ def filter_dict_by_distance(dict_of_places_by_name):
  
 
 # takes in a list of locations and resovles them to features in the database
-def resolve_locations(locations, max_levenshtein_queries=25, max_seconds=None):
+def resolve_locations(locations, max_seconds=86400):
   try:
     print "starting resolve_locations with", type(locations)
     print "locations = ", len(locations), locations[:5]

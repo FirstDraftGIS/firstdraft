@@ -376,8 +376,6 @@ def create(job):
     text = job['data']
     capture_context = job['capture_context']
     print "capture_context:", capture_context
-    max_levenshtein_queries = job['max_levenshtein_queries']
-    print "max_levenshtein_queries:", max_levenshtein_queries
     # basically this is a hack, so that if you paste in text
     # it assumes everything that is capitalized could be a place
     # is there something we can do here for Arabic?
@@ -389,16 +387,16 @@ def create(job):
         location_extractor.load_non_locations()
         names = [name for name in names if name not in location_extractor.nonlocations]
         if capture_context:
-            features = resolve_locations(location_extractor.extract_locations_with_context(text, names), max_levenshtein_queries=max_levenshtein_queries)
+            features = resolve_locations(location_extractor.extract_locations_with_context(text, names), max_seconds=10)
         else:
             print "AHHHHHHH!!!!!!" * 100
-            features = resolve_locations([{"name": name, "count": text.count(name)} for name in location_extractor.extract_locations(text)], max_levenshtein_queries=max_levenshtein_queries)
+            features = resolve_locations([{"name": name, "count": text.count(name)} for name in location_extractor.extract_locations(text)], max_seconds=10)
     else:
         print "if we have an insane amount of capitalized words, lets just use our parsing"
         if capture_context:
-            features = resolve_locations(location_extractor.extract_locations_with_context(text), max_levenshtein_queries=max_levenshtein_queries)
+            features = resolve_locations(location_extractor.extract_locations_with_context(text), max_seconds=10)
         else:
-            features = resolve_locations([{"name": loc, "count": text.count(loc)} for loc in location_extractor.extract_locations(text)], max_levenshtein_queries=max_levenshtein_queries)
+            features = resolve_locations([{"name": loc, "count": text.count(loc)} for loc in location_extractor.extract_locations(text)], max_seconds=10)
  
 
     # add order to all the features
@@ -445,7 +443,7 @@ def create_map_from_link(job):
     with open(directory + filename, "wb") as f:
         f.write(text.encode('utf-8'))
 
-    features = resolve_locations(location_extractor.extract_locations_with_context(text))
+    features = resolve_locations(location_extractor.extract_locations_with_context(text), max_seconds=10)
     if not features:
         print "no features, so try with selenium"
         features = resolve_locations(location_extractor.extract_locations_with_context(getTextContentViaMarionette(link)))
@@ -605,7 +603,7 @@ def create_map_from_pdf(job):
                 destination.write(chunk)
         print "wrote file"
 
-    features = resolve_locations(location_extractor.extract_locations_with_context(file_obj))
+    features = resolve_locations(location_extractor.extract_locations_with_context(file_obj), max_seconds=10)
     print "features:", len(features)
 
     # add order to all the features
@@ -746,7 +744,7 @@ def create_map_from_docx(job):
         print "columns are ", columns
     locations = location_extractor.extract_locations_with_context(text)
     print "in views,  locations are", len(locations)
-    features = resolve_locations(locations)
+    features = resolve_locations(locations, max_seconds=10)
     print "in views, features are", len(features)
    
     featureCollection = FeatureCollection(features)
@@ -895,11 +893,6 @@ def upload(request):
             job['capture_context'] = data['capture_context']
         else:
             job['capture_context'] = True
-
-        if "max_levenshtein_queries" in data:
-            job['max_levenshtein_queries'] = data['max_levenshtein_queries']
-        else:
-            job['max_levenshtein_queries'] = 25
 
         Process(target=create, args=(job,)).start()
         return HttpResponse(job['key'])
