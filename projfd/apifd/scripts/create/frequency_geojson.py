@@ -21,7 +21,6 @@ def run(token):
 
         #counters, one for each admin level 0 through 5
         counters = [Counter(),Counter(),Counter(),Counter(),Counter()]
-        #country_codes = Counter() 
 
         places_by_id = {}
 
@@ -52,9 +51,14 @@ def run(token):
             for place_id in counter:
                 properties = {}
                 place = places_by_id[place_id]
+
+                if not place.point and place.mpoly:
+                    place.point = place.mpoly.centroid
   
                 properties['admin_level'] = admin_level
                 properties['geonameid'] = place.geonameid
+                properties['latitude'] = place.point.y
+                properties['longitude'] = place.point.x
                 properties['name'] = place.name
                 properties['country_code'] = place.country_code
                 properties['count'] = count = counter[place_id]
