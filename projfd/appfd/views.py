@@ -375,6 +375,9 @@ def create(job):
     key = job['key']
     text = job['data']
     capture_context = job['capture_context']
+    print "capture_context:", capture_context
+    max_levenshtein_queries = job['max_levenshtein_queries']
+    print "max_levenshtein_queries:", max_levenshtein_queries
     # basically this is a hack, so that if you paste in text
     # it assumes everything that is capitalized could be a place
     # is there something we can do here for Arabic?
@@ -386,15 +389,16 @@ def create(job):
         location_extractor.load_non_locations()
         names = [name for name in names if name not in location_extractor.nonlocations]
         if capture_context:
-            features = resolve_locations(location_extractor.extract_locations_with_context(text, names))
+            features = resolve_locations(location_extractor.extract_locations_with_context(text, names), max_levenshtein_queries=max_levenshtein_queries)
         else:
-            features = resolve_locations([{"name": loc} for loc in location_extractor.extract_locations(text)])
+            print "AHHHHHHH!!!!!!" * 100
+            features = resolve_locations([{"name": name, "count": text.count(name)} for name in location_extractor.extract_locations(text)], max_levenshtein_queries=max_levenshtein_queries)
     else:
         print "if we have an insane amount of capitalized words, lets just use our parsing"
         if capture_context:
-            features = resolve_locations(location_extractor.extract_locations_with_context(text))
+            features = resolve_locations(location_extractor.extract_locations_with_context(text), max_levenshtein_queries=max_levenshtein_queries)
         else:
-            features = resolve_locations([{"name": loc, "count": text.count(loc)} for loc in location_extractor.extract_locations(text)])
+            features = resolve_locations([{"name": loc, "count": text.count(loc)} for loc in location_extractor.extract_locations(text)], max_levenshtein_queries=max_levenshtein_queries)
  
 
     # add order to all the features
@@ -434,6 +438,7 @@ def create_map_from_link(job):
     text = get(link, headers=headers).text
     if match("https?://(www.)?bbc.com", link):
         text = BeautifulSoup(text).select(".story-body")[0].text
+        print "got text using bbc parser:", len(text)
     text = bnlp_clean(text)
 
     # save text to file
@@ -530,7 +535,7 @@ def create_map_from_link_to_file(job):
     mimeType = from_file(path_to_file, mime=True)
     print "mimeType is", mimeType
 
-    job['file'] = open(path_to_file)
+    job['file'] = open(path_to_file, "rb")
     job['filename'] = filename
     job['filepath'] = path_to_file
     
@@ -600,19 +605,21 @@ def create_map_from_pdf(job):
                 destination.write(chunk)
         print "wrote file"
 
-    locations = location_extractor.extract_locations_with_context(file_obj)
-    print "in views,  locations are", len(locations)
-    features = resolve_locations(locations)
-    print "in views, features are", len(features)
-   
-    featureCollection = FeatureCollection(features)
-    serialized = geojson.dumps(featureCollection, sort_keys=True)
- 
-    # make directory to store files
-    path_to_geojson = directory + key + ".geojson"
-    with open(path_to_geojson, "wb") as f:
-        f.write(serialized)
+    features = resolve_locations(location_extractor.extract_locations_with_context(file_obj))
+    print "features:", len(features)
 
+    # add order to all the features
+    order = Order.objects.get(token=key)
+    for feature in features:
+        feature.order = order
+
+    Feature.objects.bulk_create(features)
+    print "saved features"
+
+    create_geojson.run(order.token)
+    create_frequency_geojson(order.token)
+ 
+    finish_order(key)
 
 def create_map_from_csv(job):
     print "starting create_map_from_csv with", job
@@ -879,6 +886,7 @@ def upload(request):
         print "dir(request)", dir(request)
         print "request.body:", request.body
         data = loads(request.body)
+        print "data.keys():", data.keys()
         job = {
               'data': data['story'],
               'key': key
@@ -887,6 +895,12 @@ def upload(request):
             job['capture_context'] = data['capture_context']
         else:
             job['capture_context'] = True
+
+        if "max_levenshtein_queries" in data:
+            job['max_levenshtein_queries'] = data['max_levenshtein_queries']
+        else:
+            job['max_levenshtein_queries'] = 25
+
         Process(target=create, args=(job,)).start()
         return HttpResponse(job['key'])
     else:

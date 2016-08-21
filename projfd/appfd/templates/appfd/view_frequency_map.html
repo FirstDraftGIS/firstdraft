@@ -166,11 +166,16 @@
     function update_tooltips() {
         console.log("starting update_tooltips");
         _.values(map._layers).forEach(function(layer) {
+            console.log("layer is", layer);
+            if(!layer.centroid) {
+                layer.centroid = turf.centroid(layer.feature).geometry.coordinates.reverse();
+            }
             if(layer._tooltip) {
-                layer.openTooltip(layer._tooltip);
+                layer.openTooltip(layer._tooltip, layer.centroid);
             } else if (layer.feature) {
-                layer.bindTooltip(layer.feature.properties.name, {direction:"center", permanent: "true"});
-                console.log("bound tooltip to ");
+                layer.bindTooltip(layer.feature.properties.name});
+                layer.openTooltip(layer._tooltip, layer.centroid);
+                console.log("bound tooltip to ", layer);
             }
         });
     }

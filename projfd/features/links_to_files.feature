@@ -3,8 +3,7 @@ Feature: Links to Files
 
     Scenario Outline: Check PDF Report
         When user enters a link to a file at <url>
-         And after we wait for 120 seconds
-        Then we should see a map
+        Then we should see a map after a while
 
         Examples: urls
             | url |

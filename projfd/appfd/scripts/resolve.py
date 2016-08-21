@@ -2,11 +2,13 @@
 from appfd.models import *
 from collections import Counter, defaultdict
 #from geojson import Feature, FeatureCollection, MultiPolygon, Point
+from datetime import datetime
 from django.db.models import Q
 import editdistance
 from multiprocessing import *
-from numpy import mean, median
+from numpy import amin, argmin, mean, median
 from random import shuffle
+from scipy.spatial.distance import cdist
 from super_python import *
 from sys import exit
 from timeit import default_timer
@@ -53,46 +55,36 @@ def filter_dictionary_by_attribute(d, attribute):
         d[name] = filtered_options if len(filtered_options) > 0 else options
     return d
 
+
 # choose place by distance from all other places 
 def filter_dict_by_distance(dict_of_places_by_name):
     print("starting filter_dict_by_distance", dict_of_places_by_name)
+    start = datetime.now()
 
+    all_coords = []
     places = []
     for options in dict_of_places_by_name.values():
         places.extend([option['place'] for option in options])
+        all_coords.extend([option['place'].point.coords for option in options])
 
     for name in dict_of_places_by_name:
-        print "name_of_place:", name
+        try: print "name_of_place:", name
+        except Exception as e: print e
         places_for_name = dict_of_places_by_name[name]
         print "places_for_name:", places_for_name
         if len(places_for_name) > 1:
-            places_for_name_with_distance = []
-            for dic in places_for_name:
-                current_place = dic['place']
-                reference_point = current_place.point
-                #print "reference_point:", reference_point
-                if reference_point:
-                    other_places = [place for place in places if place != current_place]
-                    distances = []
-                    for other_place in other_places:
-                        if other_place.point:
-                            distances.append(reference_point.distance(other_place.point))
-                    median_distance = median(distances)
-                    places_for_name_with_distance.append({"place": current_place, "distance": median_distance})
-            places_for_name = places_for_name_with_distance
-            #places_for_name = [
-            #{"place": dic['place'], "distance":  median([dic['place'].point.distance(other_place.point) for other_place in places if dic['place'] != other_place])}
-            #for dic in places_for_name
-            #]
-            dict_of_places_by_name[name] = sorted(places_for_name, key=lambda p: p['distance'])[0]['place']
+            option_coords = [dic['place'].point.coords for dic in places_for_name]
+            dict_of_places_by_name[name] = places_for_name[argmin(median(cdist(option_coords, all_coords), axis=1))]['place']
         else:
             dict_of_places_by_name[name] = places_for_name[0]['place']
-    
+   
+    #print "\n\n\nfilter_dict_by_distance took:", (datetime.now()-start).total_seconds(), "seconds\n\n\n"  
     return dict_of_places_by_name.values()
  
 
 # takes in a list of locations and resovles them to features in the database
-def resolve_locations(locations, order=None):
+def resolve_locations(locations, max_levenshtein_queries=25, max_seconds=None):
+  try:
     print "starting resolve_locations with", type(locations)
     print "locations = ", len(locations), locations[:5]
 
@@ -203,10 +195,20 @@ def resolve_locations(locations, order=None):
         missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in list_of_names_of_found_places]
         print "missing after looking at aliases:", len(missing), missing[:10]
 
+        # really should be getting how much time has passed so far and then running timeout catching on how much time can allocate to this
         if country_code or most_common_country_code:
-            # just do levenstein distance for first 25
-            # if we do it for more, that's probably gonna take too long
-            for missing_place in missing[:25]:
+            number_missing = len(missing)
+            print "will look for " + str(number_missing) + " places via levenshtein distance"
+            count = 0
+            for missing_place in missing:
+                count += 1
+                if count % 10 == 0:
+                    print str(float(count) * 100 / number_missing), "% done"
+
+                if max_seconds and (datetime.now() - start).total_seconds() < max_seconds - 5:
+                    print "about to run out of time, so stop searching via Levenshtein distance"
+                    break
+
                 matched = list(Place.objects.raw("""
                     WITH place_ldist as (
                         SELECT *, levenshtein_less_equal('""" + missing_place + """', name, 2) as ldistance
@@ -219,6 +221,7 @@ def resolve_locations(locations, order=None):
                     place = matched[0]
                     if float(editdistance.eval(place.name, missing_place)) / mean([len(place.name), len(missing_place)]) < 0.5:
                         print place, "found via levenstein distance for", missing_place
+                        place.alias = missing_place # adds alias to the place object, use this later
                         list_of_found_places.append(place)
                         d[place.name] = {'confidence': 'low', 'place': place}
     
@@ -241,12 +244,22 @@ def resolve_locations(locations, order=None):
         feature.count = location['count']
 
         if not place.point:
-            place.update({"point": place.mpoly.centroid})
+            try:
+                place.update({"point": place.mpoly.centroid})
+            except AttributeError as e:
+                if e.message == "'NoneType' object has no attribute 'centroid'":
+                    continue
+                else:
+                    raise e
 
         if not place.country_code:
-            country_code = Place.objects.get(admin_level=0, mpoly__contains=place.point).country_code
-            place.update({"country_code": country_code})
-            p("set country_code to ", country_code)
+            try:
+                country_code = Place.objects.get(admin_level=0, mpoly__contains=place.point).country_code
+                place.update({"country_code": country_code})
+                p("set country_code to ", country_code)
+            except Exception as e:
+                print e
+                # should probably put some logic in here, so if don't get country code try to find closest country or get country within 50 miles???
 
         if "date" in location:
             feature.end = location['date']
@@ -255,6 +268,9 @@ def resolve_locations(locations, order=None):
             feature.text = location['context'][:1000]
         features.append(feature)
 
-    p("features final are", len(features))
+    print "features final are", len(features)
 
     return features
+
+  except Exception as e:
+    print e

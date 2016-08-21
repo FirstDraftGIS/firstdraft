@@ -1,10 +1,13 @@
 #environment.py
+from datetime import datetime
 from pyvirtualdisplay import Display
 from selenium import webdriver
 from subprocess import call, check_output
 from time import sleep
 
 def before_all(context):
+
+    context.start = datetime.now()
 
     call( [ "killall", "-9", "firefox" ] ) 
 
@@ -28,4 +31,4 @@ def before_all(context):
 def after_all(context):
     context.driver.quit()
     context.display.stop()
-
+    print("took", (datetime.now()-context.start).total_seconds(), "seconds")

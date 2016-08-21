@@ -1,68 +1,46 @@
+{% extends "appfd/base_for_iframe.html" %}
 {% load staticfiles %}
-<!DOCTYPE html>
-<html ng-app="app">
-
-
-<head>
-<link href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
-<link href="{% static 'node_modules/leaflet/dist/leaflet.css' %}" rel="stylesheet">
-<link href="{% static 'css/jquery-ui.css' %}" rel="stylesheet">
-<link href="{% static 'css/external/leaflet.label.css' %}" rel="stylesheet">
-<script src="{% static 'node_modules/jquery/dist/jquery.min.js' %}"></script>
-<script src="{% static 'js/jquery-ui.js' %}"></script>
-<script src="{% static 'node_modules/angular/angular.min.js' %}"></script>
-<script src="{% static 'node_modules/bootstrap/dist/js/bootstrap.min.js' %}"></script>
-<script src="{% static 'node_modules/angular-ui-bootstrap/ui-bootstrap.min.js' %}"></script>
-<script src="{% static 'node_modules/leaflet/dist/leaflet.js' %}"></script>
-<script src="{% static 'js/external/leaflet.label.js' %}"></script>
-<script src="{% static 'js/leaflet.SliderControl.min.js' %}"></script>
-<script src="{% static 'js/app.js' %}"></script>
-<link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
-{% if csrf_token and csrf_token != '' %}<script>csrf_token = /value='([^']*)/.exec("{% csrf_token %}")[1];</script>{% endif %}
-</head>
-
-<body>
-{% csrf_token %}
-<noscript>
-    <input type="radio" id="base-noscript-warning">
-    <div>You <b>must</b> enable JavaScript.</div>
-</noscript>
-
-
+{% block content %}
 <div id="map_full" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
 <script>
 
     job = '{{job}}';
 
+    $('#map_full').bind('contextmenu', function(e) {
+        return false;
+    }); 
+
+
+
     map = L.map('map_full');
     map.setView([0,0],2);
+    /*
     var osmLayer = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors.',
         maxZoom: 18
-    });
-
+    }).addTo(map);
+    */
     var CartoDB_PositronNoLabels = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
+	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+	subdomains: 'abcd',
+	maxZoom: 19
     }).addTo(map);
 
     function getLayerStyle(feature) {
         var gb = Math.round(255 - (feature.properties.frequency * 255));
-        console.log("gb:", gb);
         return {
-            "color": "rgb(255,"+gb+","+gb+")",
-            "weight": .5,
+            "color": "rgb(0,0,0)",
+            "fillColor": "rgb(255,"+gb+","+gb+")",
+            "fillOpacity": 1,
             "opacity": .5,
-            "fillOpacity": 1
+            "stroke": true,
+            "weight": 1
         };
     }
 
-
     function onEachFeature(feature, layer)
     {
-        try
-        {
+        try {
             properties = feature.properties;
             var popup_html = "<div style='max-height: 250px; overflow-y: auto;'>";
             popup_html += "<h3>" + properties.name + "</h3>" ;
@@ -70,32 +48,152 @@
             if(properties['count']) popup_html += "<b>count: </b>" + properties.count + "</br>";
             if(properties['geonameid']) popup_html += "<b>geonameid: </b>" + properties.geonameid + "</br>";
             popup_html += "</div>";
-            console.log("layer is", layer);
-            layer.bindPopup(popup_html);
-
-            if (properties.frequency > 0.05) {
-                label = new L.Label();
-                label.setContent(properties.name);
-                label.setLatLng(layer.getBounds().getCenter())
-                map.showLabel(label);
-            }
         }
         catch(err) { console.error("err is", err); }
     }
 
 
-    var mainLayer = L.geoJson(undefined,{onEachFeature:onEachFeature, style:getLayerStyle});
-    var featureGroup = L.featureGroup([mainLayer]);
-    featureGroup.addTo(map);
     map.setView([0,0],2);
 
-    $.getJSON('/api/frequency/'+job, function( data ) {
-        console.log("data:", data);
-        mainLayer.addData(data);
-        map.fitBounds(featureGroup.getBounds());
+    geojsons = {};
+    layers = {};
+    current_admin_level = 0;
+    var admin_levels = [0,1, 2];
+    var admin_levels_available = [];
+    admin_levels.forEach(function(admin_level) {
+        try {
+            console.log("forEach ", admin_level);
+            var layer = L.geoJson(undefined,{onEachFeature:onEachFeature, style:getLayerStyle});
+            console.log(admin_level === 0);
+            if (admin_level === 0) {
+                layer.addTo(map);
+            }
+            layers[admin_level] = layer;
+ 
+            var url = '/api/frequency/'+job+'/'+admin_level;
+            $.getJSON(url, function( geojson ) {
+                console.log(url, "returned", geojson);
+                if (geojson.features.length >= 1) {
+                    admin_levels_available.push(admin_level);
+                    admin_levels_available.sort();
+                    geojsons[admin_level] = geojson;
+                    layer.addData(geojson);
+                    console.log("added geojson to ", layer);
+                    // should set bounds to lowest admin level bounds
+                    update_tooltips();
+                }
+            });
+        } catch (err) {
+            console.error(err);
+        }
     });
 
+    var new_admin_level;
+    function calculate_admin_level() {
+        var center = map.getCenter();
+        console.log("center:", center);
+        var point = turf.point([center.lng, center.lat]);
+        console.log("point:", point);
+        //var map_bounds = map.getBounds();
+        //var northEast = map.getBounds()._northEast;
+        //var map_height = map_bounds._northEast.lat - map_bounds._southWest.lat;
+        var map_height = map.getContainer().clientHeight;
+        var map_width = map.getContainer().clientWidth;
+        //console.log("map_height", map_height);
+        //var map_width = map_bounds._northEast.lng - map_bounds._southWest.lng;
+        //console.log("map_width", map_width);
+        new_admin_level = 0; //defaults to zero and then works way down
+        admin_levels_available.forEach(function(admin_level) {
+            geojsons[admin_level].features.forEach(function(feature) {
+                if (turf.inside(point, feature)) {
+                    console.log("point inside", feature.properties.name);
+                    if (!feature.properties.height || !feature.properties.width) {
+                        var bbox = turf.bbox(feature);// w, s, e, n
+                        console.log("bbox", bbox);
+                        var bottomleft = map.latLngToLayerPoint([bbox[1], bbox[0]]);
+                        console.log("bottomleft:", bottomleft);
+                        var topleft = map.latLngToLayerPoint([bbox[3], bbox[0]]);
+                        console.log("topleft:", topleft);
+                        var topright = map.latLngToLayerPoint([bbox[3], bbox[2]]);
+                        console.log("topright:", topright);
+                        var width = topright.x - topleft.x;
+                        console.log("width", width);
+                        var height = bottomleft.y - topleft.y;
+                        console.log("height:", height);
+                        var width_percentage = width / map_width;
+                        console.log("width_percentage:", width_percentage);
+                        var height_percentage = height / map_height;
+                        console.log("height_percentage:", height_percentage);
+                        if (width_percentage > 0.60 || height_percentage > 0.60) {
+                            new_admin_level = admin_level + 1;
+                            if (admin_levels_available.indexOf(new_admin_level) === -1) {
+                                console.log("new_admin_level", new_admin_level, "isn't available so find another admin_level that is first one greater than it");
+                                new_admin_level_found = _.find(admin_levels_available, function(al) { return al > new_admin_level; } );
+                                console.log("found:", new_admin_level);
+                                if (new_admin_level_found) {
+                                   new_admin_level = new_admin_level_found;
+                                } else {
+                                   new_admin_level = _.find(admin_levels_available.slice().reverse(), function(a) { return a < new_admin_level; }); 
+                                }
+                            }
+                            console.log("NEW ADMIN LEVEL", new_admin_level);
+                        }
+                    }
+                }    
+            });
+        });
+
+        console.log("new_admin_level:", new_admin_level);
+        console.log("current_admin_level:", current_admin_level);
+        console.log(new_admin_level && new_admin_level != current_admin_level);
+        if (new_admin_level != null && new_admin_level != undefined) {
+            console.log("new_admin_level exists");
+            if (new_admin_level != current_admin_level) {
+                console.log("admin_level update");
+                map.removeLayer(layers[current_admin_level]);
+                console.log("adding ", new_admin_level, layers[new_admin_level]);
+                map.addLayer(layers[new_admin_level]);
+                current_admin_level = new_admin_level;
+                return true;
+            }
+        }
+        new_admin_level = null;
+        
+    };
+
+    map.on("dragend", function(e) {
+        console.log("starting dragend with", e);
+        if(calculate_admin_level()) update_tooltips();
+    });
+
+    map.on('zoomend', function(e) {
+        console.log("starting zoomend with", e);
+        if(calculate_admin_level()) update_tooltips();
+    });
+
+    markers = {};
+    function update_tooltips() {
+        console.log("starting update_tooltips");
+
+        // clear old markers and their tooltips
+        _.values(markers).forEach(function(marker) {
+            map.removeLayer(marker);
+        });
+        markers = {};
+        
+
+        _.values(map._layers).forEach(function(layer) {
+            if (layer.feature) {
+                if (!markers[layer._leaflet_id]) {
+                    var marker = new L.circleMarker([layer.feature.properties.latitude, layer.feature.properties.longitude], { fill: false, opacity: 1, stroke: false });
+                    marker.addTo(map);
+                    marker.bindTooltip(layer.feature.properties.name, {direction:"center", opacity: 0.9, permanent: true});
+                    markers[layer._leaflet_id] = marker;
+                }
+            }
+        });
+        console.log("finishing update_tooltips");
+    }
 
 </script>
-</body>
-</html>
+{% endblock %}
