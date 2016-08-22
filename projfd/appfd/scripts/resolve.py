@@ -88,6 +88,8 @@ def resolve_locations(locations, max_seconds=86400):
     print "starting resolve_locations with", type(locations)
     print "locations = ", len(locations), locations[:5]
 
+    start = datetime.now()
+
     #defaults
     most_common_country_code = None
     second_most_common_country_code = None
