@@ -24,6 +24,7 @@ Pillow
 psycopg2
 PyPDF2
 pyproj
+git+git://github.com/GeospatialPython/pyshp
 python-dateutil
 python-docx
 python-magic

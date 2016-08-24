@@ -3,7 +3,7 @@ from appfd import forms, models
 from appfd.forms import *
 from appfd.models import *
 from appfd.scripts import excel, resolve, tables
-from appfd.scripts import create_geojson
+from appfd.scripts import create_csv, create_geojson, create_shapefiles
 from appfd.scripts.excel import *
 from bnlp import clean as bnlp_clean
 from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
@@ -192,21 +192,8 @@ def change_password(request):
 def contact(request):
     return render(request, "appfd/contact.html", {})
 
-
 def contributing(request):
     return render(request, "appfd/contributing.html", {})
-
-
-# this method takes in data as text and returns a geojson of the map
-def crunch(request):
-    try:
-        print "starting crunch"
-        if request.method == 'POST':
-            log("request.method is post")
-        print "finish crunch"
-    except Exception as e:
-        log(str(e))
-
 
 def disclaimers(request):
     return render(request, "appfd/disclaimers.html", {})
@@ -407,9 +394,6 @@ def create(job):
     Feature.objects.bulk_create(features)
     print "saved features"
 
-    create_geojson.run(order.token)
-    create_frequency_geojson(order.token)
- 
     finish_order(key)
 
 def create_map_from_link(job):
@@ -459,58 +443,8 @@ def create_map_from_link(job):
     Feature.objects.bulk_create(features)
     print "saved features"
 
-    create_geojson.run(order.token)
-    create_frequency_geojson(order.token)
- 
     finish_order(key)
-
-def create_csv_from_geojson(path_to_geojson):
-
-    try:
-
-        print "starting create_csv_from_geojson with ", path_to_geojson
-        cwd = '/'.join(path_to_geojson.split('/')[0:-1]) + '/'
-        filename_base = path_to_geojson.split("/")[-1].split(".")[0]
-        filename_csv = filename_base + '.csv'
-        path_to_csv = cwd + filename_csv
-        call(['ogr2ogr','-f','CSV', path_to_csv, path_to_geojson, '-lco', 'GEOMETRY=AS_XY'])
-
-    except Exception as e:
-        print '\nERROR in create_shapefile_from_geojson', e,'\n'
-   
-
-def create_shapefile_from_geojson(path_to_geojson):
-    try:
-        print "starting create_shapefile_from_geojson"
-
-        cwd = '/'.join(path_to_geojson.split('/')[0:-1]) + '/'
-
-        filename_base = path_to_geojson.split("/")[-1].split(".")[0]
-        filename_zip = filename_base + '.zip'
-        filename_dbf = filename_base + '.dbf'
-        filename_prj = filename_base + '.prj'
-        filename_shx = filename_base + '.shx'
-        filename_shp = filename_base + '.shp'
-        path_to_shp = cwd + filename_shp
-
-        print "path_to_geojson is", path_to_geojson
-
-        call(['ogr2ogr','-f','ESRI Shapefile', path_to_shp, path_to_geojson])
-        try:
-            call(['zip', filename_zip, filename_dbf, filename_prj, filename_shx, filename_shp], cwd=cwd)
-        except Exception as e:
-            print "ERROR X", e
-
-        # remove leftover shapefile parts
-        remove(cwd+filename_dbf)
-        remove(cwd+filename_prj)
-        remove(cwd+filename_shx)
-        remove(cwd+filename_shp)
-
-    except Exception as e:
-        print '\nERROR in create_shapefile_from_geojson', e,'\n'
-   
-
+  
 def create_map_from_link_to_file(job):
     print "starting create_from_link_to_file with", job
 
@@ -548,9 +482,12 @@ def create_map_from_link_to_file(job):
 
 def finish_order(key):
 
-    path_to_geojson = "/home/usrfd/maps/" + key + "/" + key + ".geojson"
-    create_shapefile_from_geojson(path_to_geojson)
-    create_csv_from_geojson(path_to_geojson)
+    print "starting finish order with", key
+
+    create_geojson.run(key)
+    create_frequency_geojson(key)
+    create_shapefiles.run(key)
+    create_csv.run(key)
 
     from django.db import connection 
     connection.close()
@@ -613,11 +550,6 @@ def create_map_from_pdf(job):
 
     Feature.objects.bulk_create(features)
     print "saved features"
-
-    create_geojson.run(order.token)
-    create_frequency_geojson(order.token)
- 
-    finish_order(key)
 
 def create_map_from_csv(job):
     print "starting create_map_from_csv with", job
@@ -872,7 +804,6 @@ def get_map(request, job, extension):
     print e
 
 
-# this method takes in data as text and returns a geojson of the map
 def upload(request):
     print "starting upload"
     if request.method == 'POST':
