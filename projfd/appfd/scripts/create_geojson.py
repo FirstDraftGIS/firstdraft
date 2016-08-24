@@ -1,7 +1,7 @@
 from appfd.models import Feature as mFeature
 from appfd.models import Order
 from geojson import Feature as gFeature
-from geojson import dumps, FeatureCollection, Point, GeometryCollection
+from geojson import dumps, FeatureCollection, MultiPolygon, Point, Polygon, GeometryCollection
 from os import mkdir
 from os.path import isdir
 
@@ -26,7 +26,15 @@ def run(key):
         properties['geonameid'] = place.geonameid
         properties['pcode'] = place.pcode
         point = Point((place.point.x, place.point.y))
-        gc = GeometryCollection([point])
+        geometries = [point]
+        if place.mpoly:
+            coords = place.mpoly.coords
+            length_of_coords = len(coords)
+            if length_of_coords == 1:
+                geometries.append(Polygon(coords[0]))
+            elif length_of_coords > 1:
+                geometries.append(MultiPolygon(coords))
+        gc = GeometryCollection(geometries)
         features.append(gFeature(geometry=gc, properties=properties))
     featureCollection = FeatureCollection(features)
 
