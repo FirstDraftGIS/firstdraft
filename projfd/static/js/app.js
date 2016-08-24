@@ -1,4 +1,4 @@
-app = angular.module('app', ['ui.bootstrap']);
+app = angular.module('app', ['ui.bootstrap','ui.grid','ui.grid.pagination','ui.grid.selection']);
 
 console.log("app is", app);
 app.directive('ngEnter', function () {

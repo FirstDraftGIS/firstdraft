@@ -57,3 +57,37 @@ def frequency(request, token, admin_level):
         text = f.read()
     return HttpResponse(text)
 
+def features(request, token):
+    print "starting apifd.features with", token
+
+    list_of_features = []
+    for feature in Feature.objects.filter(order__token=token):
+        d = {}
+        if feature.place.admin_level:
+            d['admin_level'] = feature.place.admin_level
+        d['id'] = feature.id
+        d['confidence'] = feature.confidence
+        if feature.end:
+            d['end_time'] = feature.end.strftime('%y-%m-%d')
+        if feature.start:
+            d['start_time'] = feature.start.strftime('%y-%m-%d') 
+        d['country_code'] = feature.place.country_code
+        d['name'] = feature.place.name
+        if feature.place.geonameid:
+            d['geonameid'] = feature.place.geonameid
+        if feature.place.pcode:
+            d['pcode'] = feature.place.pcode
+        d['latitude'] = feature.place.point.y
+        d['longitude'] = feature.place.point.x
+        if feature.text:
+            d['text'] = feature.text
+        if feature.place.mpoly:
+            coords = feature.place.mpoly.coords
+            length_of_coords = len(coords)
+            if length_of_coords == 1:
+                d['polygon'] = coords[0]
+            elif length_of_coords > 1:
+                d['multipolygon'] = coords
+        list_of_features.append(d)
+
+    return HttpResponse(json.dumps({"features": list_of_features}), content_type='application/json')

@@ -287,3 +287,43 @@ footer{text-align: center;}
 .middle.disclaimers{margin: 0 auto; max-width: 700px;}
 /*#map, #map *, #map::before, #map::after {box-sizing: content-box; color: black;}*/
 #map { height: 400px; max-width: 900px; width: 100%;}
+
+[ng-controller='MegaController'] {
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 50px;
+}
+
+[ng-controller='MegaController'] #map {
+    bottom: 0;
+    height: auto;
+    top: 0;
+}
+
+[ng-controller='MegaController'] #grid {
+    bottom: 0;
+    height: auto;
+    position: absolute;
+    right: 0;
+    width: 50%;
+    top: 0;
+}
+
+
+
+.container {
+    align-items: stretch;
+    -webkit-align-items: stretch;
+    bottom: 0;
+    display: flex;
+    padding: 0px;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+.sub-container {
+    width: 50%;
+}

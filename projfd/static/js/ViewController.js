@@ -68,6 +68,22 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
        //map.addControl(sliderControl);
 
 
+        var editBox = L.Control.extend({
+        "options": {
+            "position": "topright",
+        },
+        "onAdd": function(map) {
+            console.log("starting onAdd with", map);
+            var editButtonControl = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+            editButtonControl.style.boxShadow = 'none';
+            editButtonControl.innerHTML = "<div style='padding: 5px'><a id='edit-link' target='_blank' style='width: 100px;'><button type='button' class='btn btn-warning btn-lg' style='width: 100%'>Edit</button></a></div>";
+            return editButtonControl
+        }
+        });
+
+        map.addControl(new editBox());
+
+
         map.setView([0,0],1);
  
 
@@ -93,6 +109,7 @@ app.controller('ViewController', ['$scope', '$http', '$window', '$compile', '$el
                         //console.log('featureGroup is', featureGroup.getBounds());
                         $scope.$parent.show_downloads = true;
                         map.setView([0,0],1);
+                        document.getElementById("edit-link").href = window.location.origin + "/maps/" + $scope.$parent.job;
                         $scope.show_map = true;
                         $scope.loading_map = false;
                         setTimeout(function(){

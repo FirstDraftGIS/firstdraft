@@ -8,5 +8,6 @@ from . import views
 
 urlpatterns = [
     url(r'^frequency/(?P<token>[^/]+)/(?P<admin_level>[^/]+)$', views.frequency, name='frequency'),
-    url(r'^data$', views.data, name='data')
+    url(r'^data$', views.data, name='data'),
+    url(r'^features/(?P<token>[^/]+)$', views.features, name='features'),
 ]
