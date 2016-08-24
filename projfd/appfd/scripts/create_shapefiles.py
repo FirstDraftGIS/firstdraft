@@ -2,7 +2,7 @@ from appfd.models import Feature
 from appfd.models import Order
 import shapefile
 from os import listdir, mkdir, remove
-from os.path import isdir
+from os.path import basename, isdir
 from zipfile import ZipFile
 
 def run(key):
@@ -70,7 +70,7 @@ def run(key):
         for filename in listdir(directory):
             if filename.split(".")[-1] in ("cpg","dbf","shp","shx","prj"):
                 path_to_file = directory + filename
-                zipped_shapefile.write(path_to_file)
+                zipped_shapefile.write(path_to_file, filename)
                 remove(path_to_file)
 
     print "finished creating shapefiles"
