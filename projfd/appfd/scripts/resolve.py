@@ -105,7 +105,7 @@ def resolve_locations(locations, max_seconds=86400):
 
     list_of_names_of_locations = uniquify(list_of_names_of_locations)
 
-    places = Place.objects.filter(name__in=list_of_names_of_locations[:500])
+    places = Place.objects.filter(name__in=list_of_names_of_locations[:500]).exclude(point=None)
     print "places:", len(places)
     if places:
         dict_of_places_by_name = queryset_to_dict(places, "name")
@@ -144,7 +144,7 @@ def resolve_locations(locations, max_seconds=86400):
     d = {}
     # if already know country code
     if country_code:
-        dict_of_places = queryset_to_dict(Place.objects.filter(country_code=country_code).filter(name__in=list_of_names_of_locations), "name")
+        dict_of_places = queryset_to_dict(Place.objects.filter(country_code=country_code).filter(name__in=list_of_names_of_locations).exclude(point=None), "name")
         #"admin_level", population)
         # within country, not sure if filtering by admin_level makes sense
         dict_of_places = filter_dictionary_by_attribute(dict_of_places, "pcode")
@@ -155,7 +155,7 @@ def resolve_locations(locations, max_seconds=86400):
         # even if we don't get the same country code for everything
         # we still bias are location resolution by the most commonly mentioned country
         # this helps avoid matching locations in far away countries that happen to share the same name
-        dict_of_places = queryset_to_dict(Place.objects.filter(name__in=list_of_names_of_locations), "name")
+        dict_of_places = queryset_to_dict(Place.objects.filter(name__in=list_of_names_of_locations).exclude(point=None), "name")
         dict_of_places = filter_dictionary_by_attribute_value(dict_of_places, "admin_level", 0)
         if most_common_country_code:
             dict_of_places = filter_dictionary_by_attribute_value(dict_of_places, "country_code", most_common_country_code)
@@ -176,7 +176,7 @@ def resolve_locations(locations, max_seconds=86400):
         # VIA ALIAS
         print "NOW, RESOLVING PLACES VIA ALIAS"
         # this code adds the alias attribute to the place which stores alias used to find it
-        places_found_via_alias = Place.objects.raw("SELECT *, appfd_alias.alias as alias FROM appfd_place INNER JOIN appfd_aliasplace on (appfd_place.id = appfd_aliasplace.place_id) INNER JOIN appfd_alias ON (appfd_aliasplace.alias_id = appfd_alias.id) WHERE appfd_alias.alias IN (" + ",".join(["'"+p+"'" for p in missing]) + ");")
+        places_found_via_alias = Place.objects.raw("SELECT *, appfd_alias.alias as alias FROM appfd_place INNER JOIN appfd_aliasplace on (appfd_place.id = appfd_aliasplace.place_id) INNER JOIN appfd_alias ON (appfd_aliasplace.alias_id = appfd_alias.id) WHERE NOT (appfd_place.point IS NULL) AND appfd_alias.alias IN (" + ",".join(["'"+p+"'" for p in missing]) + ");")
         print "len(list_of_places_found_via_alias):", len([p for p in places_found_via_alias])
         dict_of_places = queryset_to_dict(places_found_via_alias, "name")
         print "dict_of_places", dict_of_places
@@ -215,7 +215,7 @@ def resolve_locations(locations, max_seconds=86400):
                     WITH place_ldist as (
                         SELECT *, levenshtein_less_equal('""" + missing_place + """', name, 2) as ldistance
                         FROM appfd_place
-                        WHERE country_code = '""" + (country_code or most_common_country_code) + """'
+                        WHERE NOT (appfd_place.point IS NULL) AND country_code = '""" + (country_code or most_common_country_code) + """'
                     )
                     SELECT * FROM place_ldist WHERE ldistance <= 2 ORDER BY ldistance, admin_level, pcode, -1 * population;
                 """))
