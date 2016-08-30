@@ -1,10 +1,12 @@
+import appfd, json, geojson
 from .scripts.create.frequency_geojson import run as create_frequency_geojson
+from appfd.scripts import create_geojson, create_csv, create_shapefiles
 from appfd.models import Feature, Order, Place
 from collections import Counter
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.clickjacking import xframe_options_exempt
-import appfd, json, geojson
+from multiprocessing import Process
 from os import mkdir
 from os.path import isdir, isfile
 
@@ -28,6 +30,7 @@ def data(request):
                 "admin2_code": feature.place.admin2_code,
                 "area_sqkm": feature.place.area_sqkm,
                 "confidence": feature.confidence,
+                "correct": feature.correct,
                 "country_code": feature.place.country_code,
                 "district_num": feature.place.district_num,
                 "end": feature.end,
@@ -60,8 +63,10 @@ def frequency(request, token, admin_level):
 def features(request, token):
     print "starting apifd.features with", token
 
+    order = Order.objects.get(token=token)
+
     list_of_features = []
-    for feature in Feature.objects.filter(order__token=token):
+    for feature in Feature.objects.filter(order_id=order.id):
         d = {}
         if feature.place.admin_level:
             d['admin_level'] = feature.place.admin_level
@@ -71,7 +76,9 @@ def features(request, token):
             d['end_time'] = feature.end.strftime('%y-%m-%d')
         if feature.start:
             d['start_time'] = feature.start.strftime('%y-%m-%d') 
+        d['correct'] = feature.correct
         d['country_code'] = feature.place.country_code
+        d['geometry_used'] = feature.geometry_used
         d['name'] = feature.place.name
         if feature.place.geonameid:
             d['geonameid'] = feature.place.geonameid
@@ -90,4 +97,34 @@ def features(request, token):
                 d['multipolygon'] = coords
         list_of_features.append(d)
 
-    return HttpResponse(json.dumps({"features": list_of_features}), content_type='application/json')
+    return HttpResponse(json.dumps({"edited": order.edited, "features": list_of_features}), content_type='application/json')
+
+def mark_feature_incorrect(self, feature_id):
+    try:
+        print "starting mark_feature_incorrect with feature_id", feature_id
+        feature = Feature.objects.get(id=feature_id)
+        feature.correct = False
+        feature.save()
+
+        token = feature.order.token
+
+        from django.db import connection 
+        connection.close()
+
+        Process(target=create_csv.run, args=(token,)).start()
+        Process(target=create_geojson.run, args=(token,)).start()
+        Process(target=create_shapefiles.run, args=(token,)).start()
+
+        return HttpResponse("done")
+    except Exception as e:
+        print e
+
+def ready(self, token): 
+    try:
+        complete = Order.objects.get(token=token).complete
+        if complete:
+            return HttpResponse("ready")
+        else:
+            return HttpResponse("nope")
+    except Exception as e:
+        print e

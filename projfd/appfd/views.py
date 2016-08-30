@@ -72,6 +72,20 @@ from openpyxl import load_workbook
 
 
 def _map(request, job):
+
+    print "starting _map with ", job
+
+    order = Order.objects.get(token=job)
+    if not order.edited:
+
+        order.edited = True
+        order.save()
+
+        # verify all the features basically saying a user has checked this over
+        # really should have a more sophisticated way of seeing if a user has actually gone through the process
+        # of verifying and not just popped open the edit page out of curiosity
+        Feature.objects.filter(order_id=order.id).update(verified=True)
+
     return render(request, "appfd/map.html", {'job': job})
 
 # Create your views here.
@@ -396,9 +410,9 @@ def create(job):
 
     finish_order(key)
 
-def create_map_from_link(job):
+def generate_map_from_urls_to_webpages(job):
 
-    print "starting create_map_from_link with", job['key']
+    print "starting generate_map_from_links_to_urls with", job['key']
 
     key = job['key']
 
@@ -406,31 +420,45 @@ def create_map_from_link(job):
     directory = "/home/usrfd/maps/" + key + "/"
     mkdir(directory)
 
-    # get url
-    link = job['link'].strip()
-    print "link:", link
+    print "urls:", job['urls']
 
-    filename = link.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
+    all_text = ""
+    filenames_and_urls = []
+    for url in job['urls']:
+        url = url.strip()
+        if url:
+            if not url.startswith("http"):
+                print "we assume that the user didn't include the protocol"
+                url = "http://" + url
+            filename = url.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
+            filenames_and_urls.append({"url": url, "filename": filename})
 
-    if not link.startswith("http"):
-        print "we assume that the user didn't include the protocol"
-        link = "http://" + link
+    for filename_and_url in filenames_and_urls:
+        filename = filename_and_url['filename']
+        url = filename_and_url['url']
+        headers = {"User-Agent": getRandomUserAgentString()}
+        text = get(url, headers=headers).text
+        if match("https?://(www.)?bbc.com", url):
+            text = BeautifulSoup(text).select(".story-body")[0].text
+            print "got text using bbc parser:", len(text)
+        text = bnlp_clean(text)
 
-    headers = {"User-Agent": getRandomUserAgentString()}
-    text = get(link, headers=headers).text
-    if match("https?://(www.)?bbc.com", link):
-        text = BeautifulSoup(text).select(".story-body")[0].text
-        print "got text using bbc parser:", len(text)
-    text = bnlp_clean(text)
+        with open(directory + filename, "wb") as f:
+            f.write(text.encode('utf-8'))
 
-    # save text to file
-    with open(directory + filename, "wb") as f:
-        f.write(text.encode('utf-8'))
+        all_text += text
+
 
     features = resolve_locations(location_extractor.extract_locations_with_context(text), max_seconds=10)
     if not features:
         print "no features, so try with selenium"
-        features = resolve_locations(location_extractor.extract_locations_with_context(getTextContentViaMarionette(link)))
+        all_text = ""
+        for filename_and_url in filenames_and_urls:
+            text = getTextContentViaMarionette(filename_and_url['url'])
+            with open(directory + filename_and_url['filename'], "wb") as f:
+                f.write(text.encode("utf-8"))
+            all_text += text
+        features = resolve_locations(location_extractor.extract_locations_with_context(all_text), max_seconds=10)
         print "features via Marionette:", features[:5]
 
     print "features:", len(features)
@@ -804,7 +832,7 @@ def get_map(request, job, extension):
     print e
 
 
-def upload(request):
+def request_map_from_text(request):
     print "starting upload"
     if request.method == 'POST':
         print "request.method is post"
@@ -817,7 +845,7 @@ def upload(request):
         data = loads(request.body)
         print "data.keys():", data.keys()
         job = {
-              'data': data['story'],
+              'data': data['text'],
               'key': key
         }
         if "capture_context" in data:
@@ -829,6 +857,27 @@ def upload(request):
         return HttpResponse(job['key'])
     else:
         return HttpResponse("You have to post!")
+
+def request_map_from_urls_to_webpages(request):
+    try:
+        print "generate_map_from_links_to_urls"
+        print "request.method:", request.method
+        if request.method == "POST":
+            key = get_random_string(25)
+            Order.objects.create(token=key)
+            from django.db import connection
+            connection.close()
+            print "request.body:", loads(request.body)['urls']
+            job = {
+                'urls': loads(request.body)['urls'],
+                'key': key
+            }
+            Process(target=generate_map_from_urls_to_webpages, args=(job,)).start()
+            return HttpResponse(job['key'])
+        else:
+            return HttpResponse("You have to POST!")
+    except Exception as e:
+        print e
 
 def start_link(request):
   try:
@@ -850,7 +899,7 @@ def start_link(request):
   except Exception as e:
     print e
 
-def start_link_to_file(request):
+def request_map_from_urls_to_files(request):
   try:
     print "starting start_link"
     if request.method == 'POST':
@@ -886,6 +935,7 @@ def upload_file(request):
         print "form is", form
         if form.is_valid():
             print "form is valid"
+            print "request.FILES is", request.FILES
             key = get_random_string(25)
             Order.objects.create(token=key)
             from django.db import connection 

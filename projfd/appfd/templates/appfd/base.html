@@ -10,26 +10,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>First Draft</title>
 {% include "appfd/css.html" %}
-<script src="{% static 'node_modules/underscore/underscore-min.js' %}"></script>
-<script src="{% static 'node_modules/jquery/dist/jquery.min.js' %}"></script>
-<script src="{% static 'js/jquery-ui.js' %}"></script>
-<script src="{% static 'node_modules/angular/angular.min.js' %}"></script>
-<script src="{% static 'node_modules/bootstrap/dist/js/bootstrap.min.js' %}"></script>
-<script src="{% static 'node_modules/angular-ui-bootstrap/ui-bootstrap.min.js' %}"></script>
-<script src="https://npmcdn.com/leaflet@1.0.0-rc.2/dist/leaflet.js"></script>
+<script src="{% static 'js/external/underscore.min.js' %}"></script>
+<script src="{% static 'js/external/jquery.min.js' %}"></script>
+<script src="{% static 'js/external/jquery-ui.min.js' %}"></script>
+<script src="{% static 'js/external/angular.min.js' %}"></script>
+<script src="{% static 'js/external/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/external/ui-bootstrap.min.js' %}"></script>
+<script src="{% static 'js/external/leaflet.min.js' %}"></script>
 <script src="{% static 'js/leaflet.SliderControl.min.js' %}"></script>
-<script src="{% static 'js/Leaflet.fullscreen.min.js' %}"></script>
+<script src="{% static 'js/external/Leaflet.fullscreen.min.js' %}"></script>
+<script src="{% static 'js/external/angular-sanitize.min.js' %}"></script>
 <script src="{% static 'js/app.js' %}"></script>
-<script src="{% static 'js/MegaController.js' %}"></script>
-<script src="{% static 'js/MagicController.js' %}"></script>
-<script src="{% static 'js/UploadController.js' %}"></script>
-<script src="{% static 'js/ViewController.js' %}"></script>
-<script src="{% static 'js/DownloadController.js' %}"></script>
-<script src="{% static 'js/ShareController.js' %}"></script>
 <script src="{% static 'js/spinner.js' %}"></script>
 <script src="{% static 'gis/js/turf.min.js' %}"></script>
 <link rel = "icon" type = "image/ico" href="logo.ico"/>
 <link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/map.css' %}" />
 
 <link rel="apple-touch-icon" sizes="57x57" href="{% static 'img/logo.png' %}">
 <link rel="apple-touch-icon" sizes="60x60" href="{% static 'img/logo.png' %}">
@@ -54,7 +50,8 @@
 {% endblock %}
 </head>
 {% endblock %}
-<body>
+<body ng-controller="MegaController">
+{% include "appfd/modals/start.html" %}
 {% csrf_token %}
 {% include "appfd/header.html" %}
 <noscript>
@@ -65,8 +62,20 @@ Warning! JavaScript is not enabled.
 </noscript>
 {% block content %}
 {% endblock %}
-{% include "appfd/footer.html" %}
+{% include "appfd/modals/start.html" %}
+{% include "appfd/modals/paste.html" %}
+{% include "appfd/modals/upload_file.html" %}
+{% include "appfd/modals/link_webpage.html" %}
+{% include "appfd/modals/link_file.html" %}
+
+{% include "appfd/modals/contact.html" %}
+{% include "appfd/modals/disclaimers.html" %}
+{% include "appfd/modals/help.html" %}
+{% include "appfd/modals/mission.html" %}
+{% include "appfd/modals/share.html" %}
+{% include "appfd/modals/team.html" %}
 {% include "appfd/ga.html" %}
 </body>
-<script src="{% static 'node_modules/angular-ui-grid/ui-grid.min.js' %}"></script>
+<script src="{% static 'js/external/ui-grid.min.js' %}"></script>
+<script src="{% static 'js/MegaController.js' %}"></script>
 </html>

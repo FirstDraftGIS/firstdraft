@@ -1,0 +1,19 @@
+{% block content %}
+<div class="modal fade" id="disclaimersModal" tabindex="-1" role="dialog" aria-labelledby="disclaimersModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h2 class="modal-title" id="disclaimersModalLabel">Disclaimers</h2>
+      </div>
+      <div class="modal-body">
+          <h3>General</h3>
+          <div class="well">{% include 'appfd/disclaimers/general.html' %}</div>
+          </br>
+          <h3>Google Translate</h3>
+          <div class="well">{% include 'appfd/disclaimers/google-translate.html' %}</div>
+      </div>
+   </div>
+  </div>
+</div>
+{% endblock %} 

@@ -1,12 +1,12 @@
 {% load staticfiles %}
 {% block header %}
-<nav class="navbar {% if user.is_authenticated %} navbar-inverse {% else %} navbar-default {% endif %}" role="navigation" style="z-index:999; margin: 0px;">
+<nav class="navbar navbar-default" role="navigation" style="z-index:999; margin: 0px;">
     <div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
             <span class="sr-only">Toggle Navigation</span>
-           <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
         </button>
@@ -21,20 +21,23 @@
 
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
         <ul class="nav navbar-nav">
-            {% if user.is_authenticated %}<li><a href="">Account & Email</a></li>{% endif %}
+             <li><a data-toggle="modal" data-target="#startModal">Start</a></li>
+             <li><a data-toggle="modal" data-target="#downloadModal">Download</a></li>
+             <li><a data-toggle="modal" data-target="#shareModal">Share</a></li>
+             <li><a data-toggle="modal" data-target="#helpModal">Help</a></li>
              <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">About <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
-                  <li><a href="{% url 'contact' %}">Contact</a></li>
-                  <li><a href="{% url 'mission' %}">Mission</a></li>
-                  <li><a href="{% url 'team' %}">Team</a></li>
+                  <li><a data-toggle="modal" data-target="#contactModal">Contact</a></li>
+                  <li><a data-toggle="modal" data-target="#missionModal">Mission</a></li>
+                  <li><a data-toggle="modal" data-target="#teamModal">Team</a></li>
                </ul>
             </li>
  
             <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Legal <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
-                    <li><a href="{% url 'disclaimers' %}">Disclaimers</a></li>
+                    <li><a data-toggle="modal" data-target="#disclaimersModal">Disclaimers</a></li>
                </ul>
             </li>
             {% comment %}
@@ -50,6 +53,7 @@
             </li>
             {% endif %}
             {% endcomment %}
+            {% if user.is_authenticated %}<li><a href="">Account & Email</a></li>{% endif %}
         </ul>
     </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->

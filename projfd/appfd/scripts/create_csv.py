@@ -14,7 +14,7 @@ def run(key):
 
     f = open(path_to_csv_file, "wb")
 
-    features = Feature.objects.filter(order__token=key)
+    features = Feature.objects.filter(order__token=key).exclude(correct=False)
 
     field_names = ["name","confidence","latitude","longitude","country_code","geonameid"]
 
@@ -37,7 +37,12 @@ def run(key):
 
         place = feature.place
 
-        f.write("\n" + place.name.encode("utf-8") + "," + feature.confidence + "," + str(place.point.x) + "," + str(place.point.y) + "," + str(place.country_code) + "," + str(place.geonameid))
+        try:
+            f.write("\n".encode("utf-8") + place.name.encode("utf-8") + ",".encode("utf-8") + feature.confidence.encode("utf-8") + "," + str(place.point.x).encode("utf-8") + "," + str(place.point.y).encode("utf-8") + "," + str(place.country_code).encode("utf-8") + "," + str(place.geonameid).encode("utf-8"))
+        except Exception as e:
+            try: print "place.name:", [place.name]
+            except: pass
+            raise e
 
         if write_pcode:
             if place.pcode:

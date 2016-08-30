@@ -76,10 +76,13 @@ class Feature(Model):
     order = ForeignKey("Order")
     place = ForeignKey("Place")
     confidence = CharField(max_length=6, choices=[('high', "High"),("medium", "Medium"),("low","Low")])
+    correct = NullBooleanField(null=True)
     count = IntegerField(null=True) # number of times the thing was mentioned in the text
     end = DateTimeField(null=True)
+    geometry_used = CharField(max_length=100, default="Point") #"Point", "Polygon" or "Point & Polygon"
     start = DateTimeField(null=True)
     text = TextField(max_length=1000, null=True)
+    verified = BooleanField(default=False) # has a user verified this... we just go by whether a user has opened edit on that job
     # should probably include some styling information at some point
     # maybe should add in info about whether use point or polygon info
     def __str__(self):
@@ -88,6 +91,7 @@ class Feature(Model):
 class Order(Model):
     complete = BooleanField(default=False)
     duration = IntegerField(null=True) # how long it took to process the order
+    edited = BooleanField(default=False) # tells you whether they opened it for editing... not whether any actual edits were made
     end = DateTimeField(null=True)
     start = DateTimeField(auto_now_add=True, null=True) # it will never be null, but have to do this because migration asks for default otherwise
     token = CharField(max_length=200, null=True, unique=True) # the random string that's used to find the order in the maps

@@ -1,0 +1,37 @@
+{% block content %}
+<div class="modal fade" id="startModal" tabindex="-1" role="dialog" aria-labelledby="startModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h2 class="modal-title" id="startModalLabel">Welcome</h2>
+      </div>
+      <div class="modal-body">
+          <p><b>First Draft GIS</b> is a website that automatically generates the first draft of a map for you.</p>
+          <p><b>How would you like to start?</b></p>
+          <table><tbody>
+              <tr>
+                  <td ng-click="openModal('paste')">
+                      <p class="glyphicon glyphicon-paste"></p>
+                      <p>Paste Something You Copied</p>
+                  </td>
+                  <td ng-click="openModal('uploadFile')">
+                      <p class="glyphicon glyphicon-upload"></p>
+                      <p>Upload A File</p>
+                  </td>
+              </tr>
+                  <td ng-click="openModal('linkWebpage')">
+                      <p class="glyphicon glyphicon-link"></p>
+                      <p>Link to a Web Page</p>
+                  </td>
+                  <td ng-click="openModal('linkFile')">
+                      <p class="glyphicon glyphicon-file"></p>
+                      <p>Link to a File</p>
+                  </td>
+              </tr>
+          </table></tbody>
+      </div>
+   </div>
+  </div>
+</div>
+{% endblock %}

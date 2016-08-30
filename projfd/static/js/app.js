@@ -1,4 +1,4 @@
-app = angular.module('app', ['ui.bootstrap','ui.grid','ui.grid.pagination','ui.grid.selection']);
+app = angular.module('app', ['ngSanitize','ui.bootstrap','ui.grid','ui.grid.edit','ui.grid.pagination','ui.grid.selection']);
 
 console.log("app is", app);
 app.directive('ngEnter', function () {
@@ -86,3 +86,69 @@ function removeA(arr) {
     }
     return arr;
 }
+
+app.directive('ngRightClick', function($parse) {
+    return function(scope, element, attrs) {
+        var fn = $parse(attrs.ngRightClick);
+        console.log("fn:", fn);
+        element.bind('contextmenu', function(event) {
+            console.log("RGITH CLICK");
+            scope.$apply(function() {
+                event.preventDefault();
+                fn(scope, {$event:event});
+            });
+        });
+    };
+});
+
+/*
+app.directive('ngRightClick', function($parse) {
+    return function(scope, element, attrs) {
+        var fn = $parse(attrs.ngRightClick);
+        element.bind('contextmenu', function(event) {
+            scope.$apply(function() {
+              var selected_row = scope.$parent.$parent.row;
+              selected_row.setSelected(true);
+                event.preventDefault();
+                fn(scope, {$event:event});
+            });
+        });
+    };
+});
+*/
+
+
+// https://docs.angularjs.org/api/ng/type/ngModel.NgModelController#custom-control-example
+// used so can use ng-bind on contenteditable divs
+app.directive('contenteditable', ['$sce', function($sce) {
+  return {
+    restrict: 'A', // only activate on element attribute
+    require: '?ngModel', // get a hold of NgModelController
+    link: function(scope, element, attrs, ngModel) {
+      if (!ngModel) return; // do nothing if no ng-model
+
+      // Specify how UI should be updated
+      ngModel.$render = function() {
+        element.html($sce.getTrustedHtml(ngModel.$viewValue || ''));
+      };
+
+      // Listen for change events to enable binding
+      element.on('blur keyup change', function() {
+        scope.$evalAsync(read);
+      });
+      read(); // initialize
+
+      // Write data to the model
+      function read() {
+        var html = element.html();
+        // When we clear the content editable the browser leaves a <br> behind
+        // If strip-br attribute is provided then we strip this out
+        if (attrs.stripBr && html === '<br>') {
+          html = '';
+        }
+        ngModel.$setViewValue(html);
+      }
+    }
+  };
+}]);
+

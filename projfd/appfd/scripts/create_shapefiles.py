@@ -38,19 +38,19 @@ def run(key):
         writer.field("end_time")
 
     features = []
-    for feature in Feature.objects.filter(order__token=key):
+    for feature in Feature.objects.filter(order__token=key).exclude(correct=False):
 
         end = feature.end.strftime('%y-%m-%d') if feature.end else None
         start = feature.start.strftime('%y-%m-%d') if feature.start else None
 
         place = feature.place
 
-        writer_points.record(place.name, feature.confidence, place.country_code, place.geonameid, place.pcode, start, end)
+        writer_points.record(place.name.encode("utf-8"), feature.confidence, place.country_code, place.geonameid, place.pcode, start, end)
         writer_points.point(float(place.point.x), float(place.point.y))
 
         if place.mpoly:
             wrote_mpoly = True 
-            writer_polygons.record(place.name, feature.confidence, place.country_code, place.geonameid, place.pcode, start, end)
+            writer_polygons.record(place.name.encode("utf-8"), feature.confidence, place.country_code, place.geonameid, place.pcode, start, end)
             coords = place.mpoly.coords
             if len(coords) == 1:
                 coords = coords[0]

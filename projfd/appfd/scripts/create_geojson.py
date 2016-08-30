@@ -9,7 +9,7 @@ def run(key):
     print "starting create_geojson with key " + key
 
     features = []
-    for feature in mFeature.objects.filter(order__token=key):
+    for feature in mFeature.objects.filter(order__token=key).exclude(correct=False):
 
         properties = {}
 
