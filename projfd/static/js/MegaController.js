@@ -45,6 +45,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         console.log("scope.share-Url:", $scope.share_url);
         share_url_element.href = $scope.share_url;
         share_url_element.textContent = $scope.share_url;
+        $scope.check_downloadability_of_extension("csv");
+        $scope.check_downloadability_of_extension("geojson");
+        $scope.check_downloadability_of_extension("shp");
     };
 
     $scope.start_text = "";
@@ -171,6 +174,24 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         }, 2000);
 
     };
+
+    $scope.check_downloadability_of_extension = function(extension) {
+        function stop() { $interval.cancel(request); };
+
+        var request = $interval( function(){
+            console.log("checking if", $scope.job, extension, "is ready");
+            document.getElementById("download_link_" + extension).href = window.location.origin + "/get_map/" + $scope.job + "/" + extension;
+            $http.get('/does_map_exist/' + $scope.job + "/" + extension).then(function(response) {
+                console.log("got response", response);
+                if (response.data === "yes") {
+                    stop();
+                    $scope["ready_to_download_" + extension] = true;
+                } else {
+                    $scope["ready_to_download_" + extension] = false;
+                }
+            });
+        }, 2000);
+    }; 
 
     $scope.getFeatures = function() {
       console.log("starting getFeatures");

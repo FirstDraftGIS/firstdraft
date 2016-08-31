@@ -1,0 +1,29 @@
+<div class="modal fade" id="downloadModal" tabindex="-1" role="dialog" aria-labelledby="downloadModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="downloadModalLabel">Download</h4>
+      </div>
+      <div class="modal-body">
+          <div ng-hide="ready_to_download_csv||ready_to_download_geojson||ready_to_download_shapefile">
+              <p>You've reached the right spot to download your map, but you haven't created or loaded a map yet!  Once you have, come back here and download it as a CSV, GeoJSON or Shapefile.</p>
+          </div>
+          <div ng-show="ready_to_download_csv||ready_to_download_geojson||ready_to_download_shapefile">
+              <div style="display: inline-block">
+                  <span ng-hide="ready_to_download_csv">Generating CSV...</span>
+                  <a class="btn btn-primary" ng-show="ready_to_download_csv" id='download_link_csv' target='_blank'>CSV</a>
+              </div>
+              <div style="display: inline-block">
+                  <span ng-hide="ready_to_download_geojson">Generating GeoJSON...</span>
+                  <a class="btn btn-primary" ng-show="ready_to_download_geojson" id='download_link_geojson' target='_blank'>GeoJSON</a>
+              </div>
+              <div style="display: inline-block">
+                  <span ng-hide="ready_to_download_shp">Generating Shapefile...</span>
+                  <a class="btn btn-primary" ng-show="ready_to_download_shp" id='download_link_shp' target='_blank'>Shapefile</a>
+              </div>
+          </div>
+      </div>
+   </div>
+  </div>
+</div>

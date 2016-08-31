@@ -794,11 +794,24 @@ def create_from_xl(job):
 def does_map_exist(request, job, extension):
     print "starting does_map_exist"
     try:
-        print "starting get_map with", job, extension
-        return HttpResponse(isfile("/home/usrfd/maps/" + job + "/" + job + "." + extension))
+        if extension == "csv":
+            if isfile("/home/usrfd/maps/" + job + "/" + job + ".csv"):
+                return HttpResponse("yes")
+            else:
+                return HttpResponse("no")
+        elif extension == "geojson":
+            if isfile("/home/usrfd/maps/" + job + "/" + job + ".geojson"):
+                return HttpResponse("yes")
+            else:
+                return HttpResponse("no")
+        elif extension == "shp":
+            if isfile("/home/usrfd/maps/" + job + "/" + job + ".zip"):
+                return HttpResponse("yes")
+            else:
+                return HttpResponse("no")
     except Exception as e:
         print e
-        return HttpResponse("")
+        return HttpResponse("no")
 
 #basically looks for the directory that corresponds to the job
 # and returns whatever file in their that ends with geojson
