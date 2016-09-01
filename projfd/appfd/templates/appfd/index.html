@@ -5,42 +5,13 @@
 <div class="container">
 
 <div id="map-container" class="sub-container">
-<div id="map" style="position: absolute; width: 50%;"></div>
+    <div id="map" style="position: absolute; width: 50%;"></div>
 </div>
 
 <div id="table-container" class="sub-container">
     <div id="grid" class="gridStyle" ui-grid="gridOptions" ui-grid-edit ui-grid-pagination ui-grid-selection></div>
 </div>
 
-</div>
-
-<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="editModalLabel" ng-model="selection.name" contenteditable>Name Here</h4>
-      </div>
-      <div class="modal-body">
-          <div><b>Confidence:</b> <span ng-bind="selection.confidence"></span></div>
-          <div><b>Country Code:</b> <span ng-model="selection.country_code" contenteditable></span></div>
-          <div><b>End Time:</b> <span ng-model="selection.end_time" contenteditable></span></div>
-          <div><b>Geoname Id:</b> <span ng-model="selection.geonameid" contenteditable></span></div>
-          <div><b>Latitude:</b> <span ng-model="selection.latitude" contenteditable></span></div>
-          <div><b>Longitude:</b> <span ng-model="selection.longitude" contenteditable></span></div>
-          <div><b>Start Time:</b> <span ng-model="selection.start_time" contenteditable></span></div>
-          <div><b>Quote:</b> <div class="well" ng-model="selection.text" contenteditable></div></div>
-          <div>
-              <button type='button' class='btn btn-warning btn-md' data-toggle='modal' ng-click="undo()" style="margin: 10px;">
-                  Undo
-              </button>
-              <button type='button' class='btn btn-danger btn-md pull-right' ng-click="deleteSelection()" style="margin: 10px;">
-                  Delete
-              </button>
-          </div>
-      </div>
-   </div>
-  </div>
 </div>
 
 {% endblock %}
