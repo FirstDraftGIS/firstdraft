@@ -1,8 +1,11 @@
 #from appfd.models import Feature, Place
 from appfd.models import *
+from appfd.scripts.ai import predict
 from collections import Counter, defaultdict
 #from geojson import Feature, FeatureCollection, MultiPolygon, Point
 from datetime import datetime
+from django.contrib.gis.geos import GEOSGeometry
+from django.db import connection
 from django.db.models import Q
 import editdistance
 from multiprocessing import *
@@ -13,47 +16,6 @@ from super_python import *
 from sys import exit
 from timeit import default_timer
 from time import sleep
-from threading import *
-
-def number_of_keys(d):
-    return len(d)
-
-def uniquify(iterable):
-    if isinstance(iterable, list):
-        return list(set(iterable))
-
-# converts a queryset into a dict keyed by an attribute
-def queryset_to_dict(queryset, attribute):
-    d = {}
-    name_of_item = queryset.model.__name__.lower()
-    for item in queryset:
-        value = item.__getattribute__(attribute)
-        if value in d:
-            d[value].append({name_of_item: item})
-        else:
-            d[value] = [{name_of_item: item}]
-    return d
-
-def filter_by_attribute_value(iterable, name, value):
-    result = [item for item in iterable if item.__getattribute__(name) == value]
-    return result if result else iterable
-
-def filter_dictionary_by_attribute_value(d, attribute, value):
-    for name in d:
-        options = d[name]
-        #print "options:", options
-        filtered_options = [option for option in options if option['place'].__getattribute__(attribute) == value]
-        d[name] = filtered_options if len(filtered_options) > 0 else options
-    return d
-
-# removes all other possibilities if it has this attribute
-def filter_dictionary_by_attribute(d, attribute):
-    for name in d:
-        options = d[name]
-        #print "options:", options
-        filtered_options = [option for option in options if option['place'].__getattribute__(attribute)]
-        d[name] = filtered_options if len(filtered_options) > 0 else options
-    return d
 
 
 # choose place by distance from all other places 
@@ -80,7 +42,20 @@ def filter_dict_by_distance(dict_of_places_by_name):
    
     #print "\n\n\nfilter_dict_by_distance took:", (datetime.now()-start).total_seconds(), "seconds\n\n\n"  
     return dict_of_places_by_name.values()
- 
+
+class GeoEntity(object):
+
+    def __init__(self, row):
+        self.place_id = row[0]
+        self.admin_level = str(row[1])
+        self.country_code = row[2]
+        self.country_rank = row[3]
+        self.target, self.edit_distance = row[4].split("--")
+        self.edit_distance = int(self.edit_distance)
+        self.place_name = row[5]
+        self.alias = row[6]
+        self.population = row[7]
+        self.point = GEOSGeometry(row[8])
 
 # takes in a list of locations and resovles them to features in the database
 def resolve_locations(locations, max_seconds=86400):
@@ -90,145 +65,46 @@ def resolve_locations(locations, max_seconds=86400):
 
     start = datetime.now()
 
-    #defaults
-    most_common_country_code = None
-    second_most_common_country_code = None
-    country_code = None
-
-    list_of_found_places = []
-
-    list_of_names_of_locations = [location['name'] for location in locations]
-    print "list_of_names_of_locations", len(list_of_names_of_locations), list_of_names_of_locations[:5]
+    names = [location['name'] for location in locations]
+    print "names", len(names), names[:5]
 
     # randomize order in order to minimize statistic bias
-    shuffle(list_of_names_of_locations)
+    shuffle(names)
 
-    list_of_names_of_locations = uniquify(list_of_names_of_locations)
+    names = set(names)
 
-    places = Place.objects.filter(name__in=list_of_names_of_locations[:500]).exclude(point=None)
-    print "places:", len(places)
-    if places:
-        dict_of_places_by_name = queryset_to_dict(places, "name")
-        #if number_of_keys(dict_of_places_by_name) < 10:
-        #    places = Place.objects.filter(name__in=list_of_names_of_locations[:100])
-        #    dict_of_places_by_name = queryset_to_dict(places, "name")
+    cursor = connection.cursor()
 
-        # should do some filtering, so if have pcode or higher admin_level do that one or maybe if have both pops and 1 has higher population?
-        filter_dictionary_by_attribute(dict_of_places_by_name, "pcode")
+    statement = "SELECT * FROM fdgis_resolve('{" + ", ".join(names) + "}'::TEXT[]);"
+    print statement
+    cursor.execute(statement)
 
-        places = filter_dict_by_distance(dict_of_places_by_name)
+    geoentities = [GeoEntity(row) for row in cursor.fetchall()]
 
-    number_of_places = len(places)
+    print "geoentities", type(geoentities)
 
-    if number_of_places > 0:
-        print "country codes are", [place.country_code for place in places]
-        list_of_most_common_country_codes = Counter([place.country_code for place in places]).most_common(2)
-        most_common_country_code, most_common_count = list_of_most_common_country_codes[0]
-        second_most_common_country_code, second_most_common_count = list_of_most_common_country_codes[0]
-        most_common_frequency = float(most_common_count) / number_of_places
-        print("most_common_country_code:", most_common_country_code)
-        print("most_common_count:", most_common_count)
-        # see if more than one country name in list of places, beause if yes, then don't set country_code
-        if most_common_country_code and most_common_frequency >= 0.75:
+    # calculate median distance from every other point
+    #all_cords = [geoentity.point.coords for geoentity in geoentities]
 
-            # don't set the country_code if have more than one country mentioned in text
-            # it'll still use the most and second most common country codes to bias the following passes
-            # errrr or maybe should set it but make exception for country names
-            # like an article that is about events in a country and how other countries are responding to it
-            countries = set([most_common_country_code] + uniquify([place.country_code for place in places if place.admin_level == 0]))
-            print "countries:", countries
-            if len(countries) <= 1:
-                country_code = most_common_country_code
+    target_geoentities = defaultdict(list)
+    target_coords = defaultdict(list)
+    all_coords = []
+    for geoentity in geoentities:
+        all_coords.append(geoentity.point.coords)
+        target_geoentities[geoentity.target].append(geoentity)
+        target_coords[geoentity.target].append(geoentity.point.coords)
 
-    print "country_code:", country_code
-    d = {}
-    # if already know country code
-    if country_code:
-        dict_of_places = queryset_to_dict(Place.objects.filter(country_code=country_code).filter(name__in=list_of_names_of_locations).exclude(point=None), "name")
-        #"admin_level", population)
-        # within country, not sure if filtering by admin_level makes sense
-        dict_of_places = filter_dictionary_by_attribute(dict_of_places, "pcode")
-        list_of_found_places = filter_dict_by_distance(dict_of_places)
+    print("target_geoentities:", target_geoentities)
+    for target, options in target_geoentities.items():
+        print "target:", target
+        for i, v in enumerate(median(cdist(target_coords[target], all_coords), axis=1)):
+            target_geoentities[target][i].median_distance_from_all_other_points = v
 
-    else:
-        #"name","admin_level","pcode","-population")
-        # even if we don't get the same country code for everything
-        # we still bias are location resolution by the most commonly mentioned country
-        # this helps avoid matching locations in far away countries that happen to share the same name
-        dict_of_places = queryset_to_dict(Place.objects.filter(name__in=list_of_names_of_locations).exclude(point=None), "name")
-        dict_of_places = filter_dictionary_by_attribute_value(dict_of_places, "admin_level", 0)
-        if most_common_country_code:
-            dict_of_places = filter_dictionary_by_attribute_value(dict_of_places, "country_code", most_common_country_code)
-        if second_most_common_country_code:
-            dict_of_places = filter_dictionary_by_attribute_value(dict_of_places, "country_code", second_most_common_country_code)
-        list_of_found_places = filter_dict_by_distance(dict_of_places)
+    predict.run(geoentities)
 
-    # add places found in first pass
-    for place in list_of_found_places:
-        d[place.name] = {"confidence": "high", "place": place}
+    print "took:", (datetime.now() - start).total_seconds()
 
-    print "\n\n\nd:", d
-    list_of_names_of_found_places = [place.name for place in list_of_found_places]
-    missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in list_of_names_of_found_places]
-    print "missing ", len(missing), missing[:5]
-    if missing:
-
-        # VIA ALIAS
-        print "NOW, RESOLVING PLACES VIA ALIAS"
-        # this code adds the alias attribute to the place which stores alias used to find it
-        places_found_via_alias = Place.objects.raw("SELECT *, appfd_alias.alias as alias FROM appfd_place INNER JOIN appfd_aliasplace on (appfd_place.id = appfd_aliasplace.place_id) INNER JOIN appfd_alias ON (appfd_aliasplace.alias_id = appfd_alias.id) WHERE NOT (appfd_place.point IS NULL) AND appfd_alias.alias IN (" + ",".join(["'"+p+"'" for p in missing]) + ");")
-        print "len(list_of_places_found_via_alias):", len([p for p in places_found_via_alias])
-        dict_of_places = queryset_to_dict(places_found_via_alias, "name")
-        print "dict_of_places", dict_of_places
-        if country_code:
-            dict_of_places = filter_dictionary_by_attribute_value(dict_of_places, "country_code", country_code)
-        if most_common_country_code:
-            dict_of_places = filter_dictionary_by_attribute_value(dict_of_places, "country_code", most_common_country_code)
-        if second_most_common_country_code:
-            dict_of_places = filter_dictionary_by_attribute_value(dict_of_places, "country_code", second_most_common_country_code)
-        list_of_places_found_via_alias = filter_dict_by_distance(dict_of_places)
-        list_of_found_places += list_of_places_found_via_alias
-
-        # add places found in pass via alias
-        for place in list_of_places_found_via_alias:
-            d[place.name] = {'confidence': 'medium', 'place': place}
-
-        list_of_names_of_found_places = [place.name for place in list_of_found_places]
-        missing = [name_of_location for name_of_location in list_of_names_of_locations if name_of_location not in list_of_names_of_found_places]
-        print "missing after looking at aliases:", len(missing), missing[:10]
-
-        # really should be getting how much time has passed so far and then running timeout catching on how much time can allocate to this
-        if country_code or most_common_country_code:
-            number_missing = len(missing)
-            print "will look for " + str(number_missing) + " places via levenshtein distance"
-            count = 0
-            for missing_place in missing:
-                count += 1
-                if count % 10 == 0:
-                    print str(float(count) * 100 / number_missing), "% done"
-
-                if max_seconds and (datetime.now() - start).total_seconds() < max_seconds - 5:
-                    print "about to run out of time, so stop searching via Levenshtein distance"
-                    break
-
-                matched = list(Place.objects.raw("""
-                    WITH place_ldist as (
-                        SELECT *, levenshtein_less_equal('""" + missing_place + """', name, 2) as ldistance
-                        FROM appfd_place
-                        WHERE NOT (appfd_place.point IS NULL) AND country_code = '""" + (country_code or most_common_country_code) + """'
-                    )
-                    SELECT * FROM place_ldist WHERE ldistance <= 2 ORDER BY ldistance, admin_level, pcode, -1 * population;
-                """))
-                if matched:
-                    place = matched[0]
-                    if float(editdistance.eval(place.name, missing_place)) / mean([len(place.name), len(missing_place)]) < 0.5:
-                        print place, "found via levenstein distance for", missing_place
-                        place.alias = missing_place # adds alias to the place object, use this later
-                        list_of_found_places.append(place)
-                        d[place.name] = {'confidence': 'low', 'place': place}
-    
-    print "list_of_found_places:", list_of_found_places
-
+    """
     locations_by_name = dict([(location['name'], location) for location in locations])
     features = []
     for name in d:
@@ -254,15 +130,6 @@ def resolve_locations(locations, max_seconds=86400):
                 else:
                     raise e
 
-        if not place.country_code:
-            try:
-                country_code = Place.objects.get(admin_level=0, mpoly__contains=place.point).country_code
-                place.update({"country_code": country_code})
-                p("set country_code to ", country_code)
-            except Exception as e:
-                print e
-                # should probably put some logic in here, so if don't get country code try to find closest country or get country within 50 miles???
-
         if "date" in location:
             feature.end = location['date']
             feature.start = location['date']
@@ -273,6 +140,7 @@ def resolve_locations(locations, max_seconds=86400):
     print "features final are", len(features)
 
     return features
+    """
 
   except Exception as e:
     print e
