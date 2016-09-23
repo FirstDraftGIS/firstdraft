@@ -141,9 +141,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
 
     function getStyle(feature) {
-        if (feature.confidence === "high") color = "green";
-        if (feature.confidence === "medium") color = "yellow";
-        if (feature.confidence === "low") color = "red";
+        if (feature.confidence === 1) color = "green";
+        if (feature.confidence > .9) color = "yellow";
+        color = "red";
         var options = {
             clickable: true,
             color: color,

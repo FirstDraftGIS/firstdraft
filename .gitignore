@@ -71,3 +71,7 @@ target/
 projfd/appfd/migrations/*
 *log*
 *output*
+*checkpoint*
+*ckpt*
+*tfevents*
+*.pbtxt"

@@ -448,9 +448,7 @@ def generate_map_from_urls_to_webpages(job):
 
         all_text += text
 
-
-    features = resolve_locations(location_extractor.extract_locations_with_context(text), max_seconds=10)
-    if not features:
+    if not resolve_locations(location_extractor.extract_locations_with_context(text), order_id=job['order_id'], max_seconds=10):
         print "no features, so try with selenium"
         all_text = ""
         for filename_and_url in filenames_and_urls:
@@ -458,18 +456,8 @@ def generate_map_from_urls_to_webpages(job):
             with open(directory + filename_and_url['filename'], "wb") as f:
                 f.write(text.encode("utf-8"))
             all_text += text
-        features = resolve_locations(location_extractor.extract_locations_with_context(all_text), max_seconds=10)
+        resolve_locations(location_extractor.extract_locations_with_context(all_text), order_id=job['order_id'], max_seconds=10)
         print "features via Marionette:", features[:5]
-
-    print "features:", len(features)
-
-    # add order to all the features
-    order = Order.objects.get(token=key)
-    for feature in features:
-        feature.order = order
-
-    Feature.objects.bulk_create(features)
-    print "saved features"
 
     finish_order(key)
   
@@ -877,13 +865,14 @@ def request_map_from_urls_to_webpages(request):
         print "request.method:", request.method
         if request.method == "POST":
             key = get_random_string(25)
-            Order.objects.create(token=key)
+            order_id = Order.objects.create(token=key).id
             from django.db import connection
             connection.close()
             print "request.body:", loads(request.body)['urls']
             job = {
                 'urls': loads(request.body)['urls'],
-                'key': key
+                'key': key,
+                'order_id': order_id
             }
             Process(target=generate_map_from_urls_to_webpages, args=(job,)).start()
             return HttpResponse(job['key'])

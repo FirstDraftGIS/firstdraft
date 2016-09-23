@@ -67,35 +67,41 @@ def features(request, token):
 
     list_of_features = []
     for feature in Feature.objects.filter(order_id=order.id):
-        d = {}
-        if feature.place.admin_level:
-            d['admin_level'] = feature.place.admin_level
-        d['id'] = feature.id
-        d['confidence'] = feature.confidence
-        if feature.end:
-            d['end_time'] = feature.end.strftime('%y-%m-%d')
-        if feature.start:
-            d['start_time'] = feature.start.strftime('%y-%m-%d') 
-        d['correct'] = feature.correct
-        d['country_code'] = feature.place.country_code
-        d['geometry_used'] = feature.geometry_used
-        d['name'] = feature.place.name
-        if feature.place.geonameid:
-            d['geonameid'] = feature.place.geonameid
-        if feature.place.pcode:
-            d['pcode'] = feature.place.pcode
-        d['latitude'] = feature.place.point.y
-        d['longitude'] = feature.place.point.x
-        if feature.text:
-            d['text'] = feature.text
-        if feature.place.mpoly:
-            coords = feature.place.mpoly.coords
-            length_of_coords = len(coords)
-            if length_of_coords == 1:
-                d['polygon'] = coords[0]
-            elif length_of_coords > 1:
-                d['multipolygon'] = coords
-        list_of_features.append(d)
+
+        for fp in feature.featureplace_set.all():
+
+            place = fp.place
+
+            d = {}
+            if place.admin_level:
+                d['admin_level'] = place.admin_level
+            d['id'] = fp.id
+            d['confidence'] = float(fp.confidence)
+            if feature.end:
+                d['end_time'] = feature.end.strftime('%y-%m-%d')
+            if feature.start:
+                d['start_time'] = feature.start.strftime('%y-%m-%d') 
+            d['correct'] = fp.correct
+            if place.country_code:
+                d['country_code'] = place.country_code
+            d['geometry_used'] = feature.geometry_used
+            d['name'] = place.name
+            if place.geonameid:
+                d['geonameid'] = place.geonameid
+            if place.pcode:
+                d['pcode'] = place.pcode
+            d['latitude'] = place.point.y
+            d['longitude'] = place.point.x
+            if feature.text:
+                d['text'] = feature.text
+            if place.mpoly:
+                coords = place.mpoly.coords
+                length_of_coords = len(coords)
+                if length_of_coords == 1:
+                    d['polygon'] = coords[0]
+                elif length_of_coords > 1:
+                    d['multipolygon'] = coords
+            list_of_features.append(d)
 
     return HttpResponse(json.dumps({"edited": order.edited, "features": list_of_features}), content_type='application/json')
 

@@ -26,23 +26,27 @@ def run(token):
 
         print "features:", features
         for feature in features:
-            place = feature.place
-            print "place:", place
 
-            # not sure what to do once get to high admin levels like 4 and 5
-            for admin_level in range(2):
-                if place.admin_level == admin_level:
-                    counters[admin_level][place.id] += feature.count or 1
-                    places_by_id[place.id] = place
-                elif not place.admin_level or place.admin_level > admin_level:
-                    queryset = Place.objects
-                    if place.country_code:
-                        queryset = queryset.filter(country_code=place.country_code)
-                    admin_polygon = queryset.filter(admin_level=admin_level, mpoly__contains=place.point).first()
-                    print "admin_polygon:", admin_polygon
-                    if admin_polygon:
-                        counters[admin_level][admin_polygon.id] += feature.count or 1
-                        places_by_id[admin_polygon.id] = admin_polygon
+            fp = feature.featureplace_set.filter(correct=True).first()
+            if fp: 
+
+                place = fp.place
+                print "place:", place
+
+                # not sure what to do once get to high admin levels like 4 and 5
+                for admin_level in range(2):
+                    if place.admin_level == admin_level:
+                        counters[admin_level][place.id] += feature.count or 1
+                        places_by_id[place.id] = place
+                    elif not place.admin_level or place.admin_level > admin_level:
+                        queryset = Place.objects
+                        if place.country_code:
+                            queryset = queryset.filter(country_code=place.country_code)
+                        admin_polygon = queryset.filter(admin_level=admin_level, mpoly__contains=place.point).first()
+                        print "admin_polygon:", admin_polygon
+                        if admin_polygon:
+                            counters[admin_level][admin_polygon.id] += feature.count or 1
+                            places_by_id[admin_polygon.id] = admin_polygon
 
 
         for admin_level, counter in enumerate(counters):

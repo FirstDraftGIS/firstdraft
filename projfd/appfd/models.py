@@ -74,19 +74,26 @@ class Email(Model):
 ### this is what consitutes the FeatureCollection of the map
 class Feature(Model):
     order = ForeignKey("Order")
-    place = ForeignKey("Place")
-    confidence = CharField(max_length=6, choices=[('high', "High"),("medium", "Medium"),("low","Low")])
-    correct = NullBooleanField(null=True)
     count = IntegerField(null=True) # number of times the thing was mentioned in the text
     end = DateTimeField(null=True)
+    name = CharField(max_length=255)
     geometry_used = CharField(max_length=100, default="Point") #"Point", "Polygon" or "Point & Polygon"
     start = DateTimeField(null=True)
     text = TextField(max_length=1000, null=True)
-    verified = BooleanField(default=False) # has a user verified this... we just go by whether a user has opened edit on that job
+    verified = BooleanField(default=False) # has a user verified this... we just go by whether a user has taken an action that implies they verified this such as downloading the map or clicking share
     # should probably include some styling information at some point
     # maybe should add in info about whether use point or polygon info
     def __str__(self):
-        return str([self.order.token + "|" + self.place.name])
+        return str([self.order.token + "|" + self.name])
+
+class FeaturePlace(Model):
+    feature = ForeignKey("Feature")
+    place = ForeignKey("Place")
+    confidence = DecimalField(max_digits=5, decimal_places=4)
+    correct = NullBooleanField(null=True)
+    median_distance = FloatField()
+    def __str__(self): 
+        return str(self.feature.id) + "~" + str(self.place.id)
 
 class Order(Model):
     complete = BooleanField(default=False)

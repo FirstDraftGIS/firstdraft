@@ -38,28 +38,32 @@ def run(key):
         writer.field("end_time")
 
     features = []
-    for feature in Feature.objects.filter(order__token=key).exclude(correct=False):
+    for feature in Feature.objects.filter(order__token=key):
 
-        end = feature.end.strftime('%y-%m-%d') if feature.end else None
-        start = feature.start.strftime('%y-%m-%d') if feature.start else None
+        fp = feature.featureplace_set.filter(correct=True).first()
+        if fp:
 
-        place = feature.place
+            end = feature.end.strftime('%y-%m-%d') if feature.end else None
+            start = feature.start.strftime('%y-%m-%d') if feature.start else None
 
-        writer_points.record(place.name.encode("utf-8"), feature.confidence, place.country_code, place.geonameid, place.pcode, start, end)
-        writer_points.point(float(place.point.x), float(place.point.y))
+            place = fp.place
 
-        if place.mpoly:
-            wrote_mpoly = True 
-            writer_polygons.record(place.name.encode("utf-8"), feature.confidence, place.country_code, place.geonameid, place.pcode, start, end)
-            coords = place.mpoly.coords
-            if len(coords) == 1:
-                coords = coords[0]
-                writer_polygons.poly(parts=coords, shapeType=shapefile.POLYGONM)
-            else:
-                print "Uh Uh we found an mpoly with more than one polygon, just take first one"
-                print "pyshp doesn't seem to be able to handle mpoly with original coords"
-                coords = coords[0]
-                writer_polygons.poly(parts=coords, shapeType=shapefile.POLYGONM)
+            # what happens to feature.confidence decimal??? need to convert to float?
+            writer_points.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonameid, place.pcode, start, end)
+            writer_points.point(float(place.point.x), float(place.point.y))
+
+            if place.mpoly:
+                wrote_mpoly = True 
+                writer_polygons.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonameid, place.pcode, start, end)
+                coords = place.mpoly.coords
+                if len(coords) == 1:
+                    coords = coords[0]
+                    writer_polygons.poly(parts=coords, shapeType=shapefile.POLYGONM)
+                else:
+                    print "Uh Uh we found an mpoly with more than one polygon, just take first one"
+                    print "pyshp doesn't seem to be able to handle mpoly with original coords"
+                    coords = coords[0]
+                    writer_polygons.poly(parts=coords, shapeType=shapefile.POLYGONM)
 
     directory = "/home/usrfd/maps/" + key + "/"
     writer_points.save(directory + key + "_points")

@@ -2,6 +2,7 @@
 from appfd.models import *
 from appfd.scripts.ai import predict
 from collections import Counter, defaultdict
+from decimal import Decimal
 #from geojson import Feature, FeatureCollection, MultiPolygon, Point
 from datetime import datetime
 from django.contrib.gis.geos import GEOSGeometry
@@ -16,32 +17,6 @@ from super_python import *
 from sys import exit
 from timeit import default_timer
 from time import sleep
-
-
-# choose place by distance from all other places 
-def filter_dict_by_distance(dict_of_places_by_name):
-    print("starting filter_dict_by_distance", dict_of_places_by_name)
-    start = datetime.now()
-
-    all_coords = []
-    places = []
-    for options in dict_of_places_by_name.values():
-        places.extend([option['place'] for option in options])
-        all_coords.extend([option['place'].point.coords for option in options])
-
-    for name in dict_of_places_by_name:
-        try: print "name_of_place:", name
-        except Exception as e: print e
-        places_for_name = dict_of_places_by_name[name]
-        print "places_for_name:", places_for_name
-        if len(places_for_name) > 1:
-            option_coords = [dic['place'].point.coords for dic in places_for_name]
-            dict_of_places_by_name[name] = places_for_name[argmin(median(cdist(option_coords, all_coords), axis=1))]['place']
-        else:
-            dict_of_places_by_name[name] = places_for_name[0]['place']
-   
-    #print "\n\n\nfilter_dict_by_distance took:", (datetime.now()-start).total_seconds(), "seconds\n\n\n"  
-    return dict_of_places_by_name.values()
 
 class GeoEntity(object):
 
@@ -58,7 +33,7 @@ class GeoEntity(object):
         self.point = GEOSGeometry(row[8])
 
 # takes in a list of locations and resovles them to features in the database
-def resolve_locations(locations, max_seconds=86400):
+def resolve_locations(locations, order_id, max_seconds=86400):
   try:
     print "starting resolve_locations with", type(locations)
     print "locations = ", len(locations), locations[:5]
@@ -94,53 +69,47 @@ def resolve_locations(locations, max_seconds=86400):
         target_geoentities[geoentity.target].append(geoentity)
         target_coords[geoentity.target].append(geoentity.point.coords)
 
-    print("target_geoentities:", target_geoentities)
+    print("target_geoentities:", len(target_geoentities))
     for target, options in target_geoentities.items():
         print "target:", target
         for i, v in enumerate(median(cdist(target_coords[target], all_coords), axis=1)):
-            target_geoentities[target][i].median_distance_from_all_other_points = v
+            if v is None:
+                print "v is NONE!!!!"
+                exit()
+            target_geoentities[target][i].median_distance_from_all_other_points = int(v)
 
+    # this method adds the probability to each geoentity
     predict.run(geoentities)
 
-    print "took:", (datetime.now() - start).total_seconds()
-
-    """
-    locations_by_name = dict([(location['name'], location) for location in locations])
-    features = []
-    for name in d:
-        feature = Feature()
-        _dict = d[name] 
-        feature.place = place = _dict['place']
-
-        if name in locations_by_name:
-            location = locations_by_name[name]
-        elif place.alias in locations_by_name:
-            location = locations_by_name[place.alias]
-
-        feature.confidence = _dict['confidence']
-
-        feature.count = location['count']
-
-        if not place.point:
-            try:
-                place.update({"point": place.mpoly.centroid})
-            except AttributeError as e:
-                if e.message == "'NoneType' object has no attribute 'centroid'":
-                    continue
-                else:
-                    raise e
-
+    # need to choose one for each target based on highest probability
+    for target, options in target_geoentities.items():
+        max_probability = max([o.probability for o in options])
+        found_correct = False
+        for option in options:
+            if not found_correct and option.probability == max_probability:
+                option.correct = True
+                found_correct = True
+            else:
+                option.correct = False
+ 
+    #Feature, FeaturePlace
+    featureplaces = [] 
+    for target, options in target_geoentities.items():
+        l = [l for l in locations if l['name'] == target][0]
+        feature = Feature.objects.create(count=l['count'], name=target, geometry_used="Point", order_id=order_id, text=l['context'], verified=False) 
         if "date" in location:
             feature.end = location['date']
             feature.start = location['date']
-        if "context" in location:
-            feature.text = location['context'][:1000]
-        features.append(feature)
+        for option in options:
+            featureplaces.append(FeaturePlace(confidence=float(option.probability), correct=option.correct, feature=feature, median_distance=option.median_distance_from_all_other_points, place_id=option.place_id))
 
-    print "features final are", len(features)
+    FeaturePlace.objects.bulk_create(featureplaces)
 
-    return features
-    """
+    print "resolved locations for order " + str(order_id)
+
+    print "took:", (datetime.now() - start).total_seconds()
+
+    return len(featureplaces) > 0
 
   except Exception as e:
     print e
