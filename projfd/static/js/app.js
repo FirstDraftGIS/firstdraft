@@ -1,6 +1,6 @@
 app = angular.module('app', ['ngSanitize','ui.bootstrap','ui.grid','ui.grid.edit','ui.grid.pagination','ui.grid.selection']);
 
-console.log("app is", app);
+//console.log("app is", app);
 app.directive('ngEnter', function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {
@@ -90,9 +90,9 @@ function removeA(arr) {
 app.directive('ngRightClick', function($parse) {
     return function(scope, element, attrs) {
         var fn = $parse(attrs.ngRightClick);
-        console.log("fn:", fn);
+        //console.log("fn:", fn);
         element.bind('contextmenu', function(event) {
-            console.log("RGITH CLICK");
+            //console.log("RGITH CLICK");
             scope.$apply(function() {
                 event.preventDefault();
                 fn(scope, {$event:event});

@@ -12,6 +12,7 @@ django-filter
 django-guardian
 django-sendfile
 editdistance
+gensim
 geojson
 language-detector
 location-extractor

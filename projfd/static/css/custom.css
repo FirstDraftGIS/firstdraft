@@ -289,8 +289,6 @@ footer{text-align: center;}
 
 .google-translate-attribution {text-align: right;}
 .middle.disclaimers{margin: 0 auto; max-width: 700px;}
-/*#map, #map *, #map::before, #map::after {box-sizing: content-box; color: black;}*/
-#map { height: 400px; max-width: 900px; width: 100%;}
 
 [ng-controller='MegaController'] {
     bottom: 0;
@@ -304,6 +302,7 @@ footer{text-align: center;}
     bottom: 0;
     height: auto;
     top: 0;
+    width: 50%;
 }
 
 [ng-controller='MegaController'] #grid {
@@ -330,6 +329,57 @@ footer{text-align: center;}
 
 .sub-container {
     width: 50%;
+}
+
+#table-container.hidden {
+    display: none;
+    transition-duration: 600ms;
+    transform: translate(100%);
+}
+
+#showTableControl {
+    display: none;
+}
+
+#map-container {
+    z-index: 2;
+}
+
+@media (max-width: 600px) {
+
+    [ng-controller='MegaController'] #map-container, [ng-controller='MegaController'] #map-container #map {
+        width: 100%;
+    }
+
+    [ng-controller='MegaController'] .container.split #map-container, [ng-controller='MegaController'] .container.split #map-container #map {
+        width: 50%;
+    }
+
+    #table-container {
+        display: none;
+        transition-duration: 600ms;
+        transform: translate(100%);
+    }
+
+   [ng-controller='MegaController'] .container.split #table-container {
+        display: block;
+        transition-duration: 600ms;
+        transform: translate(0);
+    }
+
+    [ng-controller='MegaController'] .container.split #map-container {
+        display: block;
+    }
+
+
+    [ng-controller='MegaController'] .container.split #grid {
+        width: 100%;
+    }
+
+    #showTableControl {
+        display: block;
+    }
+
 }
 
 .highlight-on-hover:hover, [contenteditable]:hover, [contenteditable]:focus {
@@ -404,4 +454,52 @@ footer{text-align: center;}
 
 #editModal .modal-title {
     display: inline-block;
+}
+
+.leaflet-center {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+#earth {
+    width: 100px;
+    height: 100px;
+    background: url(/static/img/earth.png);
+    border-radius: 50%;
+    background-size: 210px;
+    box-shadow: inset 16px 0 40px 6px rgb(0, 0, 0),
+		inset -3px 0 6px 2px rgba(255, 255, 255, 0.2);
+    animation-name: rotate;
+    animation-duration: 4s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    margin: 0 auto;
+    margin-top: 100px;
+}
+
+@keyframes rotate {
+  from { background-position-x: 0px; }
+  to { background-position-x: 210px; }
+}
+
+#loadModal {
+    /*background-color: rgba(119, 59, 138, 0.6);*/
+    color: whitesmoke;
+    font-size: 18pt;
+    font-weight: 700;
+    text-align: center;
+
+
+background:
+linear-gradient(27deg, #151515 5px, transparent 5px) 0 5px,
+linear-gradient(207deg, #151515 5px, transparent 5px) 10px 0px,
+linear-gradient(27deg, #222 5px, transparent 5px) 0px 10px,
+linear-gradient(207deg, #222 5px, transparent 5px) 10px 5px,
+linear-gradient(90deg, #1b1b1b 10px, transparent 10px),
+linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424);
+background-color: #131313;
+background-size: 20px 20px;
+
+
 }

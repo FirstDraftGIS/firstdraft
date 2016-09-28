@@ -1,7 +1,7 @@
 import appfd, json, geojson
 from .scripts.create.frequency_geojson import run as create_frequency_geojson
 from appfd.scripts import create_geojson, create_csv, create_shapefiles
-from appfd.models import Feature, Order, Place
+from appfd.models import Feature, FeaturePlace, Order, Place
 from collections import Counter
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -9,7 +9,37 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from multiprocessing import Process
 from os import mkdir
 from os.path import isdir, isfile
+import json
 
+
+def change_featureplace(request):
+    try:
+        if request.method == "POST":
+            d = json.loads(request.body)
+            print "d:", d
+            fp = FeaturePlace.objects.get(id=int(d['featureplace_id'])) # converting to int to prevent sql injection
+            if "correct" in d:
+                fp.correct = d["correct"] == True # checking to prevent sql injection
+            fp.save()
+
+            feature = fp.feature
+            feature.verified
+            feature.save()
+
+            token = feature.order.token
+
+            from django.db import connection 
+            connection.close()
+
+            Process(target=create_csv.run, args=(token,)).start()
+            Process(target=create_geojson.run, args=(token,)).start()
+            Process(target=create_shapefiles.run, args=(token,)).start()
+
+            return HttpResponse("done")
+        else:
+            return HttpResponse("You have to use post")
+    except Exception as e:
+        print e
 
 @xframe_options_exempt
 def data(request):
@@ -75,7 +105,8 @@ def features(request, token):
             d = {}
             if place.admin_level:
                 d['admin_level'] = place.admin_level
-            d['id'] = fp.id
+            d['feature_id'] = feature.id
+            d['featureplace_id'] = fp.id
             d['confidence'] = float(fp.confidence)
             if feature.end:
                 d['end_time'] = feature.end.strftime('%y-%m-%d')
@@ -85,7 +116,9 @@ def features(request, token):
             if place.country_code:
                 d['country_code'] = place.country_code
             d['geometry_used'] = feature.geometry_used
-            d['name'] = place.name
+            d['name'] = feature.name
+            if place.name != feature.name:
+                d['aliases'] = [place.name]
             if place.geonameid:
                 d['geonameid'] = place.geonameid
             if place.pcode:
@@ -104,26 +137,6 @@ def features(request, token):
             list_of_features.append(d)
 
     return HttpResponse(json.dumps({"edited": order.edited, "features": list_of_features}), content_type='application/json')
-
-def mark_feature_incorrect(self, feature_id):
-    try:
-        print "starting mark_feature_incorrect with feature_id", feature_id
-        feature = Feature.objects.get(id=feature_id)
-        feature.correct = False
-        feature.save()
-
-        token = feature.order.token
-
-        from django.db import connection 
-        connection.close()
-
-        Process(target=create_csv.run, args=(token,)).start()
-        Process(target=create_geojson.run, args=(token,)).start()
-        Process(target=create_shapefiles.run, args=(token,)).start()
-
-        return HttpResponse("done")
-    except Exception as e:
-        print e
 
 def ready(self, token): 
     try:

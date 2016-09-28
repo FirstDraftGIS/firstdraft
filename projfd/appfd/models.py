@@ -80,6 +80,7 @@ class Feature(Model):
     geometry_used = CharField(max_length=100, default="Point") #"Point", "Polygon" or "Point & Polygon"
     start = DateTimeField(null=True)
     text = TextField(max_length=1000, null=True)
+    topic = ForeignKey("Topic", null=True)
     verified = BooleanField(default=False) # has a user verified this... we just go by whether a user has taken an action that implies they verified this such as downloading the map or clicking share
     # should probably include some styling information at some point
     # maybe should add in info about whether use point or polygon info
@@ -90,6 +91,7 @@ class FeaturePlace(Model):
     feature = ForeignKey("Feature")
     place = ForeignKey("Place")
     confidence = DecimalField(max_digits=5, decimal_places=4)
+    country_rank = IntegerField(null=True)
     correct = NullBooleanField(null=True)
     median_distance = FloatField()
     def __str__(self): 
@@ -147,6 +149,7 @@ class Place(Model):
     pcode = CharField(max_length=200, null=True, blank=True, db_index=True)
     skeleton = MultiLineStringField(null=True, blank=True)
     timezone = CharField(max_length=200, null=True, blank=True)
+    topic = ForeignKey("Topic", null=True) # represents the most common topic associated with this place
 
     def __str__(self):
         try:
@@ -180,6 +183,9 @@ class TeamMember(Model):
     pic = ImageField(upload_to="images/topicareas", null=True, blank=True)
     position = CharField(max_length=200, null=True, blank=True)
     twitter = CharField(max_length=200, null=True, blank=True)
+
+class Topic(Model):
+    name = TextField(max_length=50, null=True, blank=True)
 
 class Translator(Model):
     name = CharField(max_length=200, null=True, blank=True)

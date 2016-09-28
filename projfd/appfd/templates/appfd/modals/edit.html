@@ -7,9 +7,14 @@
             </div>
             <div class="modal-body">
 
+                <div ng-if="selection.aliases">
+                    <b>Aliases:</b>&nbsp;<span ng-bind="selection.aliases"></span>
+                </div>
+
+                <!-- removing confidence until a time when it makes sense to users
                 <div>
                     <b>Confidence:</b>&nbsp;<span ng-bind="selection.confidence"></span>
-                </div>
+                </div>-->
 
                 <div>
                     <b>Country Code:</b>&nbsp;<span ng-model="selection.country_code" contenteditable></span>&nbsp;<span class="glyphicon glyphicon-pencil"></span></span>

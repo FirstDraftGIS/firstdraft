@@ -41,14 +41,14 @@ import geojson, json, requests, StringIO, sys, zipfile
 from geojson import Feature, FeatureCollection, MultiPolygon, Point
 import geojson
 from json import dumps, loads
-from re import findall
+from re import findall, search
 from requests import get
 from appfd.scripts.resolve import *
 from sendfile import sendfile
 from scrp import getTextContentViaMarionette, getRandomUserAgentString
 from subprocess import call, check_output
 from super_python import superfy
-from urllib import quote, quote_plus, urlretrieve
+from urllib import quote, quote_plus, unquote, urlretrieve
 from openpyxl import load_workbook
 #import sys
 
@@ -246,31 +246,32 @@ def iframe(request):
     print e
 
 def index(request):
-    print "starting index with request"
+    #print "starting index with request"
 
-    user = request.user
-    alerts = list(Alert.objects.filter(user=None))
-    print "type(alerts) is", type(alerts)
-    try:
-        if user.is_authenticated():
-            if request.user.is_active:
-                print "user is activate so no need to deal with activation"
-                activation = Activation.objects.get(user=request.user)
-                if not activation.notified_success:
-                    alerts.append({"type": "success", "text": "You have successfully activated your account!"})
-                    activation.notified_success = True
-                    activation.save()
-            else:
-                print "user is not active, so haven't activated yet"
-                alerts.append({"type": "danger", "text": "Activate your account by going to the link we sent in an email to " + str(request.user.email)})
-        else:
-            print "User hasn't logged in, so don't bother with account activation alerts"
+    #user = request.user
+    #alerts = list(Alert.objects.filter(user=None))
+    #print "type(alerts) is", type(alerts)
+    #try:
+        #if user.is_authenticated():
+        #    if request.user.is_active:
+        #        print "user is activate so no need to deal with activation"
+        #        activation = Activation.objects.get(user=request.user)
+        #        if not activation.notified_success:
+        #            alerts.append({"type": "success", "text": "You have successfully activated your account!"})
+        #            activation.notified_success = True
+        #            activation.save()
+        #    else:
+        #        print "user is not active, so haven't activated yet"
+        #        alerts.append({"type": "danger", "text": "Activate your account by going to the link we sent in an email to " + str(request.user.email)})
+        #else:
+        #    print "User hasn't logged in, so don't bother with account activation alerts"
 
-    except Exception as e: print e
+    #except Exception as e: print e
 
 
-    print "about to finish index"
-    return render(request, "appfd/index.html", {'alerts': alerts})
+    #print "about to finish index"
+    #return render(request, "appfd/index.html", {'alerts': alerts})
+    return render(request, "appfd/index.html")
 
 @csrf_protect
 def password_recovery(request):
@@ -370,47 +371,35 @@ def team(request):
     return render(request, "appfd/team.html", {'team_members': team_members})
 
 
-def create(job):
-    print "starting create with", job
+def generate_map_from_text(job):
 
-    key = job['key']
-    text = job['data']
-    capture_context = job['capture_context']
-    print "capture_context:", capture_context
-    # basically this is a hack, so that if you paste in text
-    # it assumes everything that is capitalized could be a place
-    # is there something we can do here for Arabic?
-    names = [name for name in list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text))) if len(name) > 3]
-    print "names are", names
-    number_of_names = len(names)
-    print "number_of_names:", number_of_names
-    if number_of_names < 100:
-        location_extractor.load_non_locations()
-        names = [name for name in names if name not in location_extractor.nonlocations]
-        if capture_context:
-            features = resolve_locations(location_extractor.extract_locations_with_context(text, names), max_seconds=10)
-        else:
-            print "AHHHHHHH!!!!!!" * 100
-            features = resolve_locations([{"name": name, "count": text.count(name)} for name in location_extractor.extract_locations(text)], max_seconds=10)
-    else:
-        print "if we have an insane amount of capitalized words, lets just use our parsing"
-        if capture_context:
-            features = resolve_locations(location_extractor.extract_locations_with_context(text), max_seconds=10)
-        else:
-            features = resolve_locations([{"name": loc, "count": text.count(loc)} for loc in location_extractor.extract_locations(text)], max_seconds=10)
- 
+    try:
 
-    # add order to all the features
-    order = Order.objects.get(token=key)
-    for feature in features:
-        feature.order = order
+        print "starting create with", job
 
-    Feature.objects.bulk_create(features)
-    print "saved features"
+        key = job['key']
+        text = job['text']
+    
+        # basically this is a hack, so that if you paste in text
+        # it assumes everything that is capitalized could be a place
+        # is there something we can do here for Arabic?
+        names = [name for name in list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text))) if len(name) > 3]
+        print "names are", names
+        number_of_names = len(names)
+        print "number_of_names:", number_of_names
+        if number_of_names < 100:
+            location_extractor.load_non_locations()
+            names = [name for name in names if name not in location_extractor.nonlocations]
+            resolve_locations(location_extractor.extract_locations_with_context(text, names), order_id=job['order_id'], max_seconds=10)
 
-    finish_order(key)
+        finish_order(key)
+
+    except Exception as e:
+        print e
 
 def generate_map_from_urls_to_webpages(job):
+
+  try:
 
     print "starting generate_map_from_links_to_urls with", job['key']
 
@@ -425,11 +414,18 @@ def generate_map_from_urls_to_webpages(job):
     all_text = ""
     filenames_and_urls = []
     for url in job['urls']:
-        url = url.strip()
+        url = url.strip().strip('"').strip('"')
         if url:
+
+            # we want to respect Google, so we avoid adding an automated click through
+            # by just directly getting the url
+            if url.startswith("https://www.google.com/url?"):
+                url = unquote(search("(?<=&url=)[^&]{10,}", url).group(0))
+
             if not url.startswith("http"):
                 print "we assume that the user didn't include the protocol"
                 url = "http://" + url
+
             filename = url.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
             filenames_and_urls.append({"url": url, "filename": filename})
 
@@ -457,9 +453,11 @@ def generate_map_from_urls_to_webpages(job):
                 f.write(text.encode("utf-8"))
             all_text += text
         resolve_locations(location_extractor.extract_locations_with_context(all_text), order_id=job['order_id'], max_seconds=10)
-        print "features via Marionette:", features[:5]
 
     finish_order(key)
+
+  except Exception as e:
+    print "ERROR in generate_map_from_urls_to_webpages:", e
   
 def create_map_from_link_to_file(job):
     print "starting create_from_link_to_file with", job
@@ -510,31 +508,36 @@ def finish_order(key):
     order = Order.objects.get(token=key).finish()
     print "finished order", order
 
-def create_from_file(job):
-    print "starting create_from_file with", job
-    content_type = job['file'].content_type
-    print "content_type is", content_type
+def generate_map_from_file(job):
 
-    # .split("/")[-1] prevents would-be hackers from passing in paths as filenames
-    job['filename'] = filename = job['file'].name.split("/")[-1]
-    if filename.endswith(('.xls','.xlsx')):
-        print "user uploaded an excel file!"
-        create_from_xl(job)
-    elif filename.endswith('.csv'):
-        print "user uploaded a csv file!"
-        create_map_from_csv(job)
-    elif filename.endswith(".pdf"):
-        print "user uploaded a pdf file!"
-        create_map_from_pdf(job)
-    elif filename.endswith(".docx"):
-        print "user uploaded a docx file!"
-        create_map_from_docx(job)
+    try:
+        print "starting generate_map_from_file with", job
+        content_type = job['file'].content_type
+        print "content_type is", content_type
 
-    finish_order(job['key'])
+        # .split("/")[-1] prevents would-be hackers from passing in paths as filenames
+        job['filename'] = filename = job['file'].name.split("/")[-1]
+        if filename.endswith(('.xls','.xlsx')):
+            print "user uploaded an excel file!"
+            create_from_xl(job)
+        elif filename.endswith('.csv'):
+            print "user uploaded a csv file!"
+            create_map_from_csv(job)
+        elif filename.endswith(".pdf"):
+            print "user uploaded a pdf file!"
+            generate_map_from_pdf(job)
+        elif filename.endswith(".docx"):
+            print "user uploaded a docx file!"
+            create_map_from_docx(job)
 
-def create_map_from_pdf(job):
+        finish_order(job['key'])
 
-    print "starting create_map_from_pdf with", job
+    except Exception as e:
+        print e
+
+def generate_map_from_pdf(job):
+
+    print "starting generate_map_from_pdf with", job
 
     # unpack job dictionary key, file and maybe filepath
     key = job['key']
@@ -556,16 +559,7 @@ def create_map_from_pdf(job):
                 destination.write(chunk)
         print "wrote file"
 
-    features = resolve_locations(location_extractor.extract_locations_with_context(file_obj), max_seconds=10)
-    print "features:", len(features)
-
-    # add order to all the features
-    order = Order.objects.get(token=key)
-    for feature in features:
-        feature.order = order
-
-    Feature.objects.bulk_create(features)
-    print "saved features"
+    resolve_locations(location_extractor.extract_locations_with_context(file_obj), order_id=job['order_id'], max_seconds=10)
 
 def create_map_from_csv(job):
     print "starting create_map_from_csv with", job
@@ -780,7 +774,7 @@ def create_from_xl(job):
     print "finished creating geojson from excel file"
 
 def does_map_exist(request, job, extension):
-    print "starting does_map_exist"
+    #print "starting does_map_exist"
     try:
         if extension == "csv":
             if isfile("/home/usrfd/maps/" + job + "/" + job + ".csv"):
@@ -808,6 +802,8 @@ def get_map(request, job, extension):
     print "starting get_map with", job, extension
     path_to_directory = "/home/usrfd/maps/" + job + "/"
 
+    # auto-verify all features places, because assuming users mostly download when done
+    Feature.objects.filter(order__token=job).update(verified=True)
 
     # currently, loads zip file in memory and returns it
     # todo: use mod_xsendfile, so don't load into memory
@@ -834,30 +830,25 @@ def get_map(request, job, extension):
 
 
 def request_map_from_text(request):
-    print "starting upload"
-    if request.method == 'POST':
-        print "request.method is post"
-        key = get_random_string(25)
-        Order.objects.create(token=key)
-        from django.db import connection 
-        connection.close()
-        print "dir(request)", dir(request)
-        print "request.body:", request.body
-        data = loads(request.body)
-        print "data.keys():", data.keys()
-        job = {
-              'data': data['text'],
-              'key': key
-        }
-        if "capture_context" in data:
-            job['capture_context'] = data['capture_context']
+    try:
+        print "starting request_map_from_text"
+        if request.method == 'POST':
+            key = get_random_string(25)
+            order_id = Order.objects.create(token=key).id
+            from django.db import connection 
+            connection.close()
+            job = {
+                'text': loads(request.body)['text'],
+                'key': key,
+                'order_id': order_id
+            }
+            Process(target=generate_map_from_text, args=(job,)).start()
+            return HttpResponse(job['key'])
         else:
-            job['capture_context'] = True
+            return HttpResponse("You have to post!")
 
-        Process(target=create, args=(job,)).start()
-        return HttpResponse(job['key'])
-    else:
-        return HttpResponse("You have to post!")
+    except Exception as e:
+        print e
 
 def request_map_from_urls_to_webpages(request):
     try:
@@ -868,7 +859,6 @@ def request_map_from_urls_to_webpages(request):
             order_id = Order.objects.create(token=key).id
             from django.db import connection
             connection.close()
-            print "request.body:", loads(request.body)['urls']
             job = {
                 'urls': loads(request.body)['urls'],
                 'key': key,
@@ -880,26 +870,6 @@ def request_map_from_urls_to_webpages(request):
             return HttpResponse("You have to POST!")
     except Exception as e:
         print e
-
-def start_link(request):
-  try:
-    print "starting start_link"
-    if request.method == 'POST':
-        print "request.method is post"
-        key = get_random_string(25)
-        Order.objects.create(token=key)
-        from django.db import connection 
-        connection.close()
-        job = {
-              'link': loads(request.body)['link'],
-              'key': key
-        }
-        Process(target=create_map_from_link, args=(job,)).start()
-        return HttpResponse(job['key'])
-    else:
-        return HttpResponse("You have to post!")
-  except Exception as e:
-    print e
 
 def request_map_from_urls_to_files(request):
   try:
@@ -928,34 +898,35 @@ def thanks(request):
         list_to_thank += [(package.split("(")[0].strip(), None) for package in f.read().strip().split("\n")]
         return render(request, "appfd/thanks.html", {'list_to_thank': list_to_thank})
 
-def upload_file(request):
-  try:
-    print "starting upload_file"
-    if request.method == 'POST':
-        print "request.method is post"
-        form = UploadFileForm(request.POST, request.FILES)
-        print "form is", form
-        if form.is_valid():
-            print "form is valid"
-            print "request.FILES is", request.FILES
-            key = get_random_string(25)
-            Order.objects.create(token=key)
-            from django.db import connection 
-            connection.close()
-            job = {
-              'file': request.FILES['file'],
-              'key': key 
-            }
-            print "job is", job
-            Process(target=create_from_file, args=(job,)).start()
-            return HttpResponse(job['key'])
+def request_map_from_file(request):
+
+    try:
+        print "starting upload_file"
+        if request.method == 'POST':
+            form = UploadFileForm(request.POST, request.FILES)
+            if form.is_valid():
+                print "form is valid"
+                print "request.FILES is", request.FILES
+                key = get_random_string(25)
+                order_id = Order.objects.create(token=key).id
+                from django.db import connection 
+                connection.close()
+                job = {
+                    'file': request.FILES['file'],
+                    'key': key,
+                    'order_id': order_id
+                }
+                print "job is", job
+                Process(target=generate_map_from_file, args=(job,)).start()
+                return HttpResponse(job['key'])
+            else:
+                print form.errors
+                return HttpResponse("post data was malformed")
         else:
-            print form.errors
-            return HttpResponse("post data was malformed")
-    else:
-        return HttpResponse("You have to post!")
-  except Exception as e:
-    print "e is", e
+            return HttpResponse("You have to post!")
+
+    except Exception as e:
+        print "e is", e
 
 def view_frequency_map(request, job):
     return render(request, "appfd/view_frequency_map.html", {'job': job})
