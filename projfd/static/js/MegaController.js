@@ -44,6 +44,15 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     console.log("starting MegaController");
 
+
+    $scope.show_advanced_options = false;
+
+    $scope.patterns = {
+        //csv: "[^;].*"
+        csv: "\d+"
+    };
+
+
     $scope.closeModal = function(id) {
         modals[id].modal('hide');
     };
@@ -80,7 +89,12 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.start_text = "";
     $scope.request_map_from_text = function() {
         $scope.openModal("load");
-        $http.post('/request_map_from_text', {'text': $scope.start_text}).then(function(response) {
+        var data = {
+            'max_time': $scope.max_time,
+            'text': $scope.start_text
+        };
+        if($scope.countries) data.countries = $scope.countries.split(",").map(function(c){return c.trim();});
+        $http.post('/request_map_from_text', data).then(function(response) {
             console.log("response is", response);
             $scope.job = response.data;
             $scope.process_job();
@@ -97,6 +111,8 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         // thx https://uncorkedstudios.com/blog/multipartformdata-file-upload-with-angularjs
         var fd = new FormData();
         fd.append('file', $scope.start_file);
+        fd.append('max_time', $scope.max_time);
+        if($scope.countries) fd.append("countries", $scope.countries.split(",").map(function(c){return c.trim();}));
         $http.post('/request_map_from_file', fd, {
             transformRequest: angular.identity,
             headers: {'Content-Type': undefined}
@@ -114,7 +130,12 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.request_map_from_urls_to_webpages = function() {
         console.log("starting request_map_from_urls_to_webpages");
         $scope.openModal("load");
-        $http.post('/request_map_from_urls_to_webpages', {'urls': $scope.urls_to_webpages.split("\n").filter(Boolean)}).then(function(response) {
+        var data = {
+            'max_time': $scope.max_time,
+            'urls': $scope.urls_to_webpages.split("\n").filter(Boolean)
+        };
+        if($scope.countries) data.countries = $scope.countries.split(",").map(function(c){return c.trim();});
+        $http.post('/request_map_from_urls_to_webpages', data).then(function(response) {
             console.log("Response is", response);
             $scope.job = response.data;
             $scope.process_job();
@@ -128,7 +149,12 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.request_map_from_urls_to_files = function() {
         console.log("starting request_map_from_urls_to_files");
         $scope.openModal("load");
-        $http.post('/request_map_from_urls_to_files', {'urls': $scope.urls_to_files.split("\n").filter(Boolean)}).then(function(response) {
+        var data = {
+            'max_time': $scope.max_time,
+            'urls': $scope.urls_to_files.split("\n").filter(Boolean)
+        };
+        if($scope.countries) data.countries = $scope.countries.split(",").map(function(c){return c.trim();});
+        $http.post('/request_map_from_urls_to_files', data).then(function(response) {
             console.log("Response is", response);
             $scope.job = response.data;
             $scope.process_job();
@@ -146,6 +172,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.editModal = $(document.getElementById("editModal"));
     $scope.fixModal = $(document.getElementById("fixModal"));
     $scope.loadModal = $(document.getElementById("loadModal"));
+    $scope.max_time = 10;
     //$('#download_link_csv').href = '/get_map/' + job + '/csv';
     //$('#download_link_geojson').href = '/get_map/' + job + '/geojson';
     //$('#download_link_shp').href = '/get_map/' + job + '/zip';
@@ -186,14 +213,16 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     $scope.clear_everything = function() {
         console.log("starting clear_everything");
-        $scope.start_text = "";
+        $scope.clear_layers();
+        $scope.correct_features = [];
+        $scope.countries = "";
+        $scope.features = [];
+        $scope.features_that_appear_in_table = [];
+        $scope.show_advanced_options = false;
         $scope.start_file = null;
+        $scope.start_text = "";
         $scope.urls_to_files = "";
         $scope.urls_to_webpages = "";
-        $scope.clear_layers();
-        $scope.features = [];
-        $scope.correct_features = [];
-        $scope.features_that_appear_in_table;
     };
 
 

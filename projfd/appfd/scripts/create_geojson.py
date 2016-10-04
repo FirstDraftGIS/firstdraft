@@ -7,6 +7,10 @@ from os.path import isdir
 
 def run(key):
     print "starting create_geojson with key " + key
+
+    from django.db import connection
+    connection.close()
+
     features = []
     for feature in mFeature.objects.filter(order__token=key):
 

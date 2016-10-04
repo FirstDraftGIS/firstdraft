@@ -375,10 +375,12 @@ def generate_map_from_text(job):
 
     try:
 
-        print "starting create with", job
+        print "starting generate_map_from_text with", job
 
         key = job['key']
+        max_seconds = int(job['max_seconds']) if 'max_seconds' in job else 10
         text = job['text']
+        countries = job['countries'] if "countries" in job else []
     
         # basically this is a hack, so that if you paste in text
         # it assumes everything that is capitalized could be a place
@@ -390,7 +392,7 @@ def generate_map_from_text(job):
         if number_of_names < 100:
             location_extractor.load_non_locations()
             names = [name for name in names if name not in location_extractor.nonlocations]
-            resolve_locations(location_extractor.extract_locations_with_context(text, names), order_id=job['order_id'], max_seconds=10)
+            resolve_locations(location_extractor.extract_locations_with_context(text, names), order_id=job['order_id'], max_seconds=max_seconds, countries=countries)
 
         finish_order(key)
 
@@ -404,6 +406,8 @@ def generate_map_from_urls_to_webpages(job):
     print "starting generate_map_from_links_to_urls with", job['key']
 
     key = job['key']
+    countries = job['countries'] if 'countries' in job else []
+    print "in gen, countries:", countries
 
     # make directory to store saved webpage and maps
     directory = "/home/usrfd/maps/" + key + "/"
@@ -435,16 +439,40 @@ def generate_map_from_urls_to_webpages(job):
         headers = {"User-Agent": getRandomUserAgentString()}
         text = get(url, headers=headers).text
         if match("https?://(www.)?bbc.com", url):
-            text = BeautifulSoup(text).select(".story-body")[0].text
-            print "got text using bbc parser:", len(text)
+            try:
+                selected_text = BeautifulSoup(text).select(".story-body")[0].text
+                if len(selected_text) > 100:
+                    text = selected_text
+                    print "got text using bbc parser:", len(text)
+            except Exception as e:
+                print e
+        elif match("https?://(www.)?reuters.com/article/", url):
+            try:
+                selected_text = BeautifulSoup(text).select("#article-text")[0].text
+                if len(selected_text) > 100:
+                    text = selected_text
+                    print "got text using reuters parser:", len(text)
+            except Exception as e:
+                print e
+        elif match("https?://(www.)?nytimes.com/", url):
+            try:
+                selected_text = BeautifulSoup(text).select("article#story")[0].text
+                if len(selected_text) > 100:
+                    text = selected_text
+                    print "got text using NYTimes parser:", len(text)
+            except Exception as e:
+                print e
+
+
         text = bnlp_clean(text)
 
         with open(directory + filename, "wb") as f:
             f.write(text.encode('utf-8'))
 
         all_text += text
+    print "all_text:", type(all_text)
 
-    if not resolve_locations(location_extractor.extract_locations_with_context(text), order_id=job['order_id'], max_seconds=10):
+    if not resolve_locations(location_extractor.extract_locations_with_context(text), order_id=job['order_id'], max_seconds=10, countries=countries):
         print "no features, so try with selenium"
         all_text = ""
         for filename_and_url in filenames_and_urls:
@@ -452,7 +480,7 @@ def generate_map_from_urls_to_webpages(job):
             with open(directory + filename_and_url['filename'], "wb") as f:
                 f.write(text.encode("utf-8"))
             all_text += text
-        resolve_locations(location_extractor.extract_locations_with_context(all_text), order_id=job['order_id'], max_seconds=10)
+        resolve_locations(location_extractor.extract_locations_with_context(all_text), order_id=job['order_id'], max_seconds=10, countries=countries)
 
     finish_order(key)
 
@@ -498,10 +526,8 @@ def finish_order(key):
 
     print "starting finish order with", key
 
-    create_geojson.run(key)
-    create_frequency_geojson(key)
-    create_shapefiles.run(key)
-    create_csv.run(key)
+    for _method in create_geojson.run, create_frequency_geojson, create_shapefiles.run, create_csv.run:
+        Process(target=_method, args=(key,)).start()
 
     from django.db import connection 
     connection.close()
@@ -542,6 +568,7 @@ def generate_map_from_pdf(job):
     # unpack job dictionary key, file and maybe filepath
     key = job['key']
     filename = job['filename']
+    countries = job['countries'] if "countries" in job else []
 
     directory = "/home/usrfd/maps/" + key + "/"
     file_obj = job['file']
@@ -559,7 +586,7 @@ def generate_map_from_pdf(job):
                 destination.write(chunk)
         print "wrote file"
 
-    resolve_locations(location_extractor.extract_locations_with_context(file_obj), order_id=job['order_id'], max_seconds=10)
+    resolve_locations(location_extractor.extract_locations_with_context(file_obj), order_id=job['order_id'], max_seconds=10, countries=countries)
 
 def create_map_from_csv(job):
     print "starting create_map_from_csv with", job
@@ -837,11 +864,16 @@ def request_map_from_text(request):
             order_id = Order.objects.create(token=key).id
             from django.db import connection 
             connection.close()
+            data = loads(request.body)
+            max_time = int(data['max_time']) if 'max_time' in data else 10
             job = {
-                'text': loads(request.body)['text'],
+                'text': data['text'],
+                'max_seconds': max_time,
                 'key': key,
                 'order_id': order_id
             }
+            if "countries" in data:
+                job['countries'] = data['countries']
             Process(target=generate_map_from_text, args=(job,)).start()
             return HttpResponse(job['key'])
         else:
@@ -859,11 +891,15 @@ def request_map_from_urls_to_webpages(request):
             order_id = Order.objects.create(token=key).id
             from django.db import connection
             connection.close()
+            data = loads(request.body)
             job = {
-                'urls': loads(request.body)['urls'],
+                'urls': data['urls'],
                 'key': key,
                 'order_id': order_id
             }
+            if "countries" in data:
+                job['countries'] = data["countries"]
+            print "job:", job
             Process(target=generate_map_from_urls_to_webpages, args=(job,)).start()
             return HttpResponse(job['key'])
         else:
@@ -907,6 +943,7 @@ def request_map_from_file(request):
             if form.is_valid():
                 print "form is valid"
                 print "request.FILES is", request.FILES
+                print "request.POST:", request.POST
                 key = get_random_string(25)
                 order_id = Order.objects.create(token=key).id
                 from django.db import connection 
@@ -916,6 +953,13 @@ def request_map_from_file(request):
                     'key': key,
                     'order_id': order_id
                 }
+                if "countries" in request.POST:
+                    countries = request.POST['countries']
+                    if isinstance(countries, str) or isinstance(countries, unicode):
+                        countries = [countries]
+                    elif isinstance(countries, list):
+                        countries = countries[0].split(",")
+                    job['countries'] = countries
                 print "job is", job
                 Process(target=generate_map_from_file, args=(job,)).start()
                 return HttpResponse(job['key'])

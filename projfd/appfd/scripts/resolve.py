@@ -11,9 +11,12 @@ from django.db import connection
 from django.db.models import Q
 import editdistance
 from multiprocessing import *
-from numpy import amin, argmin, mean, median
+from numpy import amin, argmin, mean, median, where
 from random import shuffle
+from pytz import UTC
+from scipy.cluster.vq import kmeans
 from scipy.spatial.distance import cdist
+from sklearn.cluster import KMeans
 from super_python import *
 from sys import exit
 from timeit import default_timer
@@ -36,14 +39,20 @@ class GeoEntity(object):
         self.topic_id = int(topic_id) if topic_id else None
         self.has_mpoly = row[10] == "True"
         self.has_pcode = row[11] == "True"
+        self.popularity = int(row[12])
+        print "popularity = ", row[12]
 
 # takes in a list of locations and resovles them to features in the database
-def resolve_locations(locations, order_id, max_seconds=86400):
+def resolve_locations(locations, order_id, max_seconds=10, countries=[]):
   try:
     print "starting resolve_locations with", type(locations)
     print "locations = ", len(locations), locations[:5]
+    print "countries:", countries
 
     start = datetime.now()
+
+  
+    order = Order.objects.get(id=order_id)
 
     name_location = {}
     name_topic = {}
@@ -60,6 +69,8 @@ def resolve_locations(locations, order_id, max_seconds=86400):
             else:
                 name_topic[name] = None
 
+    number_of_locations = len(locations)
+
     #print "names", len(names), names[:5]
 
     # randomize order in order to minimize statistic bias
@@ -69,12 +80,27 @@ def resolve_locations(locations, order_id, max_seconds=86400):
 
     cursor = connection.cursor()
 
-    statement = "SELECT * FROM fdgis_resolve('{" + ", ".join(names) + "}'::TEXT[]);"
+    seconds_left = max_seconds - (datetime.now().replace(tzinfo=UTC) - order.start).total_seconds() 
+    print "seconds_left:", seconds_left
+    if seconds_left > 60:
+        if countries:
+            statement = "SELECT * FROM fdgis_resolve_with_countries('{" + ", ".join(names) + "}'::TEXT[], '{" + ", ".join(countries) + "}'::TEXT[], true);"
+        else:
+            statement = "SELECT * FROM fdgis_resolve('{" + ", ".join(names) + "}'::TEXT[], true);"
+    else:
+        if countries:
+            statement = "SELECT * FROM fdgis_resolve_with_countries('{" + ", ".join(names) + "}'::TEXT[], '{" + ", ".join(countries) + "}'::TEXT[], false);"
+        else:
+            statement = "SELECT * FROM fdgis_resolve('{" + ", ".join(names) + "}'::TEXT[], false);"
+
+
+
     #print statement
     cursor.execute(statement)
     #print "executed"
 
     geoentities = [GeoEntity(row) for row in cursor.fetchall()]
+    number_of_geoentities = len(geoentities)
 
     #print "geoentities", type(geoentities), len(geoentities)
 
@@ -88,6 +114,22 @@ def resolve_locations(locations, order_id, max_seconds=86400):
         all_coords.append(geoentity.point.coords)
         target_geoentities[geoentity.target].append(geoentity)
         target_coords[geoentity.target].append(geoentity.point.coords)
+
+    #number_of_clusters =  max(3, number_of_locations/20)
+    number_of_clusters = 3
+    print "number_of_clusters:", number_of_clusters
+    #centroids = kmeans(all_coords, number_of_clusters)[0]
+    #print "centroids:", centroids
+    estimator = KMeans(n_clusters=number_of_clusters)
+    estimator.fit(all_coords)
+    labels = estimator.labels_
+    cluster_count = Counter()
+    for cluster in labels:
+        cluster_count[cluster] += 1
+    cluster_frequency = {cluster: float(count) / number_of_geoentities for cluster, count in cluster_count.iteritems() }
+    for i in range(number_of_geoentities):
+        geoentities[i].cluster_frequency = cluster_frequency[labels[i]]
+    
 
     #print "target_geoentities:", len(target_geoentities)
     for target, options in target_geoentities.items():
@@ -133,7 +175,7 @@ def resolve_locations(locations, order_id, max_seconds=86400):
         if need_to_save:
             feature.save()
         for option in options:
-            featureplaces.append(FeaturePlace(confidence=float(option.probability), correct=option.correct, country_rank=option.country_rank, feature=feature, median_distance=option.median_distance_from_all_other_points, place_id=option.place_id))
+            featureplaces.append(FeaturePlace(confidence=float(option.probability), correct=option.correct, country_rank=option.country_rank, feature=feature, median_distance=option.median_distance_from_all_other_points, place_id=option.place_id, popularity=option.popularity))
 
     FeaturePlace.objects.bulk_create(featureplaces)
 

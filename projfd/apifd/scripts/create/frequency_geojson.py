@@ -13,6 +13,9 @@ from os.path import isdir, isfile
 def run(token):
     print "\nstarting create.frequency_geojson"
 
+    from django.db import connection
+    connection.close()
+
     path_to_geojson = "/home/usrfd/maps/" + token + "/" + token + "_frequency.geojson"
     order = Order.objects.filter(token=token).first()
     print "order:", order

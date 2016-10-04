@@ -10,6 +10,19 @@
           <div class="form-group">
               <textarea class="form-control" rows="5" ng-model="start_text"></textarea>
           </div>
+          <div class="form-group">
+              <div class="btn btn-default btn-xs" ng-click="show_advanced_options = !show_advanced_options">Advanced Options</div>
+              <div ng-if="show_advanced_options">
+                  <label>Max Time</label>
+                  <div class="input-group">
+                      <input type="number" min="1" max="999" step="1" class="form-control" ng-model="$parent.max_time">
+                      <span class="input-group-addon">Seconds</span>
+                  </div>
+                  </br>
+                  <p>Type in the names of the countries that you want to limit the results to below, separating them by a comma.</p>
+                  <textarea class="form-control" rows="1" ng-model="$parent.countries"></textarea>
+              </div>
+          </div>
           <div style="text-align: center"><button class='btn btn-lg btn-primary' ng-click="request_map_from_text()">Generate the Map</button></div>
       </div>
    </div>

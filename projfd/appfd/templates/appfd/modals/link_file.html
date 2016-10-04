@@ -11,6 +11,13 @@
               <p>You can add multiple urls, but put each on a separate line!  This will still only generate 1 map for everything.</p>
               <textarea class="form-control" rows="5" ng-model="urls_to_files"></textarea>
           </div>
+          <div class="form-group">
+              <div class="btn btn-default btn-xs" ng-click="show_advanced_options = !show_advanced_options">Advanced Options</div>
+              <div ng-if="show_advanced_options">
+                  <p>Type in the names of the countries that you want to limit the results to below, separating them by a comma.</p>
+                  <textarea class="form-control" rows="1" ng-model="$parent.countries"></textarea>
+              </div>
+          </div>
           <div style="text-align: center"><button class='btn btn-lg btn-primary' ng-click="request_map_from_urls_to_files()">Generate the Map</button></div>
       </div>
    </div>

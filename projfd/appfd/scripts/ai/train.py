@@ -6,6 +6,7 @@ from os.path import dirname, realpath
 from pandas import DataFrame
 from random import choice
 from sklearn import datasets, metrics
+from shutil import rmtree
 import tensorflow as tf
 from tensorflow import constant, SparseTensor, Graph, Session
 #from tensorflow.contrib.learn import LinearClassifier

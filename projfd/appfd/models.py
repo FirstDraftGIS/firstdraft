@@ -90,10 +90,12 @@ class Feature(Model):
 class FeaturePlace(Model):
     feature = ForeignKey("Feature")
     place = ForeignKey("Place")
+    cluster_frequency = FloatField(null=True)
     confidence = DecimalField(max_digits=5, decimal_places=4)
     country_rank = IntegerField(null=True)
     correct = NullBooleanField(null=True)
     median_distance = FloatField()
+    popularity = IntegerField()
     def __str__(self): 
         return str(self.feature.id) + "~" + str(self.place.id)
 

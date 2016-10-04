@@ -27,7 +27,7 @@ def run():
     key = get_random_string(25)
     order_id = Order.objects.create(token=key).id
 
-    resolve_locations(locations, order_id=order_id)
+    resolve_locations(locations, order_id=order_id, countries=["Syria", "United States", "Afghanistan"])
     print "took", (datetime.now()-start).total_seconds()
 
   except Exception as e:

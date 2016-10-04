@@ -6,6 +6,9 @@ from os.path import isdir
 def run(key):
     print "starting create_csv with key " + key
 
+    from django.db import connection
+    connection.close()
+
     directory = "/home/usrfd/maps/" + key + "/"
     if not isdir(directory):
         mkdir(directory)
