@@ -3,6 +3,7 @@ behave-django
 bnlp
 bscrp
 beautifulsoup4
+beryl
 boto
 date-extractor
 Django==1.9.9
