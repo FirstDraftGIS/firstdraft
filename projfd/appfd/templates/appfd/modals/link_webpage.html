@@ -14,8 +14,10 @@
           <div class="form-group">
               <div class="btn btn-default btn-xs" ng-click="show_advanced_options = !show_advanced_options">Advanced Options</div>
               <div ng-if="show_advanced_options">
-                  <p>Type in the names of the countries that you want to limit the results to below, separating them by a comma.</p>
-                  <textarea class="form-control" rows="1" ng-model="$parent.countries"></textarea>
+                  <p><b>Countries:</b> Type in the names of the countries that you want to limit the results to below, separating them by a comma.</p>
+                  <input type="text" class="form-control" rows="1" ng-model="$parent.countries">
+                  <p><b>Admin 1 Codes:</b> Type in the codes of the admin 1 political entities (states in the USA) that you want to limit the results to below, separating them by a comma.</p>
+                  <input type="text" class="form-control" rows="1" ng-model="$parent.admin1limits"></div>
               </div>
           </div>
           <div style="text-align: center"><button class='btn btn-lg btn-primary' ng-click="request_map_from_urls_to_webpages()">Generate the Map</button></div>
