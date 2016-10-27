@@ -70,6 +70,16 @@ from openpyxl import load_workbook
 #    #f = open("/tmp/stdout","w")
 #    sys.stdout = sys.stderr
 
+# returns longest soup
+def soupify(text):
+    soups = []
+    for parser in ["html5lib", "html.parser"]:
+        try:
+            soup = BeautifulSoup(text, parser)
+            soups.append([soup, len(soup)])
+        except Exception as e:
+            print e
+    return sorted(soups, key=lambda tup: -1 * tup[1])[0][0]
 
 def _map(request, job):
 
@@ -407,13 +417,17 @@ def generate_map_from_urls_to_webpages(job):
 
     key = job['key']
     countries = job['countries'] if 'countries' in job else []
+    admin1limits = job['admin1limits'] if 'admin1limits' in job else []
     print "in gen, countries:", countries
+    print "in gen, admin1limits:", admin1limits
 
     # make directory to store saved webpage and maps
     directory = "/home/usrfd/maps/" + key + "/"
     mkdir(directory)
 
     print "urls:", job['urls']
+    
+    locations = []
 
     all_text = ""
     filenames_and_urls = []
@@ -438,17 +452,44 @@ def generate_map_from_urls_to_webpages(job):
         url = filename_and_url['url']
         headers = {"User-Agent": getRandomUserAgentString()}
         text = get(url, headers=headers).text
+        soup = soupify(text)
         if match("https?://(www.)?bbc.com", url):
             try:
-                selected_text = BeautifulSoup(text).select(".story-body")[0].text
+                selected_text = soup.select(".story-body")[0].text
                 if len(selected_text) > 100:
                     text = selected_text
                     print "got text using bbc parser:", len(text)
             except Exception as e:
                 print e
+        elif match("https?://(www.)?dw.com", url):
+            try:
+                selected_text = soup.select("#bodyContent .intro")[0].text + soup.select("#bodyContent .group")[0].text
+                if len(selected_text) > 500:
+                    text = selected_text
+                    print "got text using bbc parser:", len(text)
+            except Exception as e:
+                print e
+        elif match("https?://(www.)?observer.org.sz", url):
+            try:
+                selected_text = soup.select("#article_holder")[0].text
+                if len(selected_text) > 500:
+                    text = selected_text
+                    print "got text using bbc parser:", len(text)
+            except Exception as e:
+                print e
+ 
+        # for cnn will need to write custom parser that get text and then parses out headline and javascript
+        #elif match("https?://(www.)?cnn.com", url):XXX
+        #    try:
+        #        selected_text = BeautifulSoup(text).select(".story-body")[0].text
+        #        if len(selected_text) > 100:
+        #            text = selected_text
+        #            print "got text using bbc parser:", len(text)
+        #    except Exception as e:
+        #        print e
         elif match("https?://(www.)?reuters.com/article/", url):
             try:
-                selected_text = BeautifulSoup(text).select("#article-text")[0].text
+                selected_text = soup.select("#article-text")[0].text
                 if len(selected_text) > 100:
                     text = selected_text
                     print "got text using reuters parser:", len(text)
@@ -456,7 +497,7 @@ def generate_map_from_urls_to_webpages(job):
                 print e
         elif match("https?://(www.)?nytimes.com/", url):
             try:
-                selected_text = BeautifulSoup(text).select("article#story")[0].text
+                selected_text = soup.select("article#story")[0].text
                 if len(selected_text) > 100:
                     text = selected_text
                     print "got text using NYTimes parser:", len(text)
@@ -472,7 +513,58 @@ def generate_map_from_urls_to_webpages(job):
         all_text += text
     print "all_text:", type(all_text)
 
-    if not resolve_locations(location_extractor.extract_locations_with_context(text), order_id=job['order_id'], max_seconds=10, countries=countries):
+    names = [name for name in list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text))) if len(name) > 3]
+    print "names are", names
+    number_of_names = len(names)
+    print "number_of_names:", number_of_names
+
+    location_extractor.load_language_into_dictionary_of_keywords("English")
+    abbreviations = location_extractor.dictionary_of_keywords['English']['abbreviations']
+
+
+    tables = soup.select("table")
+    for table in tables:
+        rows = table.select("tr")
+        if len(rows) > 10:
+            print "more than 10 rows in table!"
+            header = [th.text for th in table.select("thead tr th")]
+
+            #get location column
+            location_column_index = None
+            state_column_index = None
+            for column_index, head in enumerate(header):
+                head = head.strip().lower()
+                print "head:", [head]
+                if head == "city":
+                    location_column_index = column_index
+                elif head == "state":
+                    admin1_column_index = column_index
+            print "location_column_index:", location_column_index
+            print "admin1_column_index:", admin1_column_index
+
+            for row in table.select("tbody tr"):
+                tds = [td.text for td in row.select("td")] 
+                print "tds:", tds
+                location = tds[location_column_index].strip()
+                admin1 = tds[admin1_column_index].strip()
+
+                #just try to directly resolve this location and if can't, then pass to ai
+                locations.append({"name": location, "count": 1, "admin1code": admin1})
+
+            print "locations from html table:", locations
+           
+
+    # don't add it if already found it via table
+    for location in location_extractor.extract_locations_with_context(all_text):
+        name = location['name']
+        skip = False
+        for l in locations:
+            if name == l['name']:
+                skip = True
+        if not skip:
+            locations.append(location)
+
+    if not resolve_locations(locations, order_id=job['order_id'], max_seconds=10, countries=countries, admin1codes=admin1limits):
         print "no features, so try with selenium"
         all_text = ""
         for filename_and_url in filenames_and_urls:
@@ -480,45 +572,66 @@ def generate_map_from_urls_to_webpages(job):
             with open(directory + filename_and_url['filename'], "wb") as f:
                 f.write(text.encode("utf-8"))
             all_text += text
-        resolve_locations(location_extractor.extract_locations_with_context(all_text), order_id=job['order_id'], max_seconds=10, countries=countries)
+        resolve_locations(location_extractor.extract_locations_with_context(all_text), order_id=job['order_id'], max_seconds=10, countries=countries, admin1codes=admin1limits)
 
     finish_order(key)
 
   except Exception as e:
     print "ERROR in generate_map_from_urls_to_webpages:", e
   
-def create_map_from_link_to_file(job):
-    print "starting create_from_link_to_file with", job
+def generate_map_from_urls_to_files(job):
+    print "starting generate_map_from_urls_to_files with", job
+
+    key = job['key']                                                                                           
+    countries = job['countries'] if 'countries' in job else []                                                 
+    print "in gen, countries:", countries             
 
     # make directory to store saved webpage and maps
     directory = "/home/usrfd/maps/" + job['key'] + "/"
     mkdir(directory)
 
-    # get url
-    link = job['link']
+    print "urls:", job['urls']
 
-    # get web page text
-    filename = link.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(":","_").replace("__","_")
+    filenames_and_urls = []
+    for url in job['urls']:
+        url = url.strip().strip('"').strip('"')                                                                
+        if url:                                                                                                
+            # we want to respect Google, so we avoid adding an automated click through                         
+            # by just directly getting the url                                                                 
+            if url.startswith("https://www.google.com/url?"):                                                  
+                url = unquote(search("(?<=&url=)[^&]{10,}", url).group(0))                                     
+                                                                                                               
+            if not url.startswith("http"):                                                                     
+                print "we assume that the user didn't include the protocol"                                    
+                url = "http://" + url    
 
-    # create path to file
-    path_to_file = directory + filename
+            # get web page text
+            filename = url.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(":","_").replace("__","_")
+            filenames_and_urls.append({"url": url, "filename": filename})
 
-    # save file to folder
-    urlretrieve(link, path_to_file)
+    for filename_and_url in filenames_and_urls[:1]:
+        filename = filename_and_url['filename']                                                                
+        url = filename_and_url['url'] 
+
+        # create path to file
+        path_to_file = directory + filename
+
+        # save file to folder
+        urlretrieve(url, path_to_file)
  
-    mimeType = from_file(path_to_file, mime=True)
-    print "mimeType is", mimeType
+        mimeType = from_file(path_to_file, mime=True)
+        print "mimeType is", mimeType
 
-    job['file'] = open(path_to_file, "rb")
-    job['filename'] = filename
-    job['filepath'] = path_to_file
+        job['file'] = open(path_to_file, "rb")
+        job['filename'] = filename
+        job['filepath'] = path_to_file
     
-    if filename.endswith(('.xls','.xlsm','.xlsx')):
-        create_from_xl(job)
-    elif filename.endswith('.csv'):
-        create_map_from_csv(job)
-    elif filename.endswith(".pdf"):
-        create_map_from_pdf(job)
+        if filename.endswith(('.xls','.xlsm','.xlsx')):
+            generate_map_from_xl(job)
+        elif filename.endswith('.csv'):
+            generate_map_from_csv(job)
+        elif filename.endswith(".pdf"):
+            generate_map_from_pdf(job)
 
     finish_order(job['key'])
 
@@ -545,10 +658,10 @@ def generate_map_from_file(job):
         job['filename'] = filename = job['file'].name.split("/")[-1]
         if filename.endswith(('.xls','.xlsx')):
             print "user uploaded an excel file!"
-            create_from_xl(job)
+            generate_map_from_xl(job)
         elif filename.endswith('.csv'):
             print "user uploaded a csv file!"
-            create_map_from_csv(job)
+            generate_map_from_csv(job)
         elif filename.endswith(".pdf"):
             print "user uploaded a pdf file!"
             generate_map_from_pdf(job)
@@ -588,96 +701,68 @@ def generate_map_from_pdf(job):
 
     resolve_locations(location_extractor.extract_locations_with_context(file_obj), order_id=job['order_id'], max_seconds=10, countries=countries)
 
-def create_map_from_csv(job):
-    print "starting create_map_from_csv with", job
-    directory = "/home/usrfd/maps/" + job['key'] + "/"
-    filename = job['filename']
+def generate_map_from_csv(job):
 
-    if 'filepath' not in job:
-        file_obj = job['file']
+    try:
 
-        # make directory to store excel file and maps
-        mkdir(directory)
+        print "starting generate_map_from_csv with", job
+        countries = job['countries'] if "countries" in job else []
+        filename = job['filename']
+        key = job['key']
+        max_seconds = int(job['max_seconds']) if 'max_seconds' in job else 10
 
-        filepath = directory + "/" + filename
+        directory = "/home/usrfd/maps/" + key + "/"
 
-        # save file to disk
-        with open(filepath, 'wb+') as destination:
-            for chunk in file_obj.chunks():
-                destination.write(chunk)
-        print "wrote file"
-    else:
-        filepath = job['filepath']
+        if 'filepath' not in job:
+            file_obj = job['file']
 
-    rows = []
+            # make directory to store excel file and maps
+            mkdir(directory)
 
-    f = open(filepath, 'r')
-    reader = csv.reader(f)
+            filepath = directory + "/" + filename
 
-    #first ten lines
-    top_lines = []
-    for index, line in enumerate(reader):
-        top_lines.append(line)
-        if index == 3:
-            break
-    print "top_lines are", top_lines
-
-    headerRow = tables.getHeaderRow(top_lines)
-    print "headeRow is", headerRow
-
-
-    location_column_index = tables.getLocationColumn(top_lines)
-    print "location_column_index is", location_column_index 
-
-
-    features = []
-
-    for row_index, row in enumerate(top_lines):
-        if headerRow and row_index == 0:
-            pass
+            # save file to disk
+            with open(filepath, 'wb+') as destination:
+                for chunk in file_obj.chunks():
+                    destination.write(chunk)
+            print "wrote file"
         else:
-            geometry = None
-            properties = {}
-            for column_index, value in enumerate(row):
-                value = tables.clean(value)
-                if column_index == location_column_index:
-                    place = resolve.resolve(value)
-                    if place:
-                        point = place.point
-                        geometry = Point((point.x,point.y))
-                    if headerRow:
-                        properties[headerRow[column_index]] = value
-                    else:
-                        properties[column_index] = value
-            feature = Feature(geometry=geometry, properties=properties)
-            features.append(feature)
+            filepath = job['filepath']
 
-    for row_index, row in enumerate(reader):
-        geometry = None
-        properties = {}
-        for column_index, value in enumerate(row):
-            value = tables.clean(value)
-            if column_index == location_column_index:
-                place = resolve.resolve(value)
-                if place:
-                    point = place.point
-                    geometry = Point((point.x,point.y))
-                if headerRow:
-                    properties[headerRow[column_index]] = value
-                else:
-                    properties[column_index] = value
-        feature = Feature(geometry=geometry, properties=properties)
-        features.append(feature)
+        rows = []
+
+        f = open(filepath, 'r')
+        reader = csv.reader(f)
+
+        #first ten lines
+        top_lines = []
+        for index, line in enumerate(reader):
+            top_lines.append(line)
+            if index == 10:
+                break
+        print "top_lines are", top_lines
+
+        headerRow = tables.getHeaderRow(top_lines)
+        print "headeRow is", headerRow
 
 
-    featureCollection = FeatureCollection(features)
-    serialized = geojson.dumps(featureCollection, sort_keys=True)
-   
-    with open(directory + filename.split(".")[0] + "." + "geojson", "wb") as f:
-        f.write(serialized)
+        location_column_index = tables.getLocationColumn(top_lines)
+        print "location_column_index is", location_column_index 
 
-    print "finished creating geojson from csv file"
-    f.close()
+        names = []
+        for row_index, row in enumerate(top_lines):
+            if headerRow and row_index == 0:
+                pass
+            else:
+                name = row[location_column_index]
+                if name:
+                    names.append(name)
+
+        locations = [ {"name": name} for name in names]
+        resolve_locations(locations, order_id=job['order_id'], max_seconds=max_seconds, countries=countries)
+
+    except Exception as e:
+        print "ERROR in generate_map_from_csv:", e
 
 def create_map_from_docx(job):
     print "starting create_from_docx with", job
@@ -724,81 +809,61 @@ def create_map_from_docx(job):
     with open(path_to_geojson, "wb") as f:
         f.write(serialized)
 
-def create_from_xl(job):
-    print "starting create_from_xl with", job
-    directory = "/home/usrfd/maps/" + job['key'] + "/"
-    filename = job['filename']
+def generate_map_from_xl(job):
 
-    if 'filepath' not in job:
-        file_obj = job['file']
+    try:
+        print "starting generate_map_from_xl with", job
+        countries = job['countries'] if "countries" in job else []
+        filename = job['filename']
+        key = job['key']
+        max_seconds = int(job['max_seconds']) if 'max_seconds' in job else 10
 
-        # make directory to store excel file and maps
-        mkdir(directory)
+        directory = "/home/usrfd/maps/" + key + "/"
 
-        filepath = directory + "/" + filename
+        if 'filepath' not in job:
+            file_obj = job['file']
 
-        # save file to disk
-        with open(filepath, 'wb+') as destination:
-            for chunk in file_obj.chunks():
-                destination.write(chunk)
-        print "wrote file"
-    else:
-        filepath = job['filepath']
+            # make directory to store excel file and maps
+            mkdir(directory)
 
-    wb = load_workbook(filepath)
-    print "wb is", wb
+            filepath = directory + "/" + filename
 
-    features = []
+            # save file to disk
+            with open(filepath, 'wb+') as destination:
+                for chunk in file_obj.chunks():
+                    destination.write(chunk)
+            print "wrote file"
+        else:
+            filepath = job['filepath']
 
-    for sheet in wb:
-        rows = sheet.rows
-        headerRow = getHeaderRow(rows[0], rows)
+        wb = load_workbook(filepath)
+        print "wb is", wb
 
+        names = []
+        for sheet in wb:
+            rows = list(sheet.rows)
 
-        location_column_index = getLocationColumn(sheet)
-        print "location_column_index is", location_column_index 
+            top_lines = rows[:10]
+            headerRow = excel.getHeaderRow(top_lines[0], top_lines)
+            print "headerRow:", headerRow
 
-        for row_index, row in enumerate(rows):
-            if headerRow:
-                if row_index == 0:
+            location_column_index = excel.getLocationColumn(sheet)
+            print "location_column_index is", location_column_index 
+
+            for row_index, row in enumerate(rows):
+                if headerRow and row_index == 0:
                     pass
                 else:
-                    geometry = None
-                    properties = {}
-                    for cell_index, cell in enumerate(row):
-                        value = cleanCellValue(cell.value)
-                        if cell_index == location_column_index:
-                            place = resolve.resolve(value)
-                            if place:
-                                point = place.point
-                                geometry = Point((point.x,point.y))
-                        properties[headerRow[cell_index]] = value
-                    feature = Feature(geometry=geometry, properties=properties)
-                    features.append(feature)
-            else: #not headerRow
-                geometry = None
-                properties = {}
-                for cell_index, cell in enumerate(row):
-                    value = cleanCellValue(cell.value)
-                    if cell_index == location_column_index:
-                        #strip makes sure we remove any white space
-                        place = resolve.resolve(value)
-                        if place:
-                            point = place.point
-                            geometry = Point((point.x,point.y))
-                        
-                    properties[cell_index] = value
-                feature = Feature(geometry=geometry, properties=properties)
-                features.append(feature)
+                    print "uncleaned:", row[location_column_index]
+                    value = cleanCellValue(row[location_column_index])
+                    if value:
+                        names.append(value)
 
+        locations = [ {"name": name} for name in names]
+        resolve_locations(locations, order_id=job['order_id'], max_seconds=max_seconds, countries=countries)
 
-    featureCollection = FeatureCollection(features)
-    serialized = geojson.dumps(featureCollection, sort_keys=True)
-   
-    with open(directory + filename.split(".")[0] + "." + "geojson", "wb") as f:
-        f.write(serialized)
-
-    print "finished creating geojson from excel file"
+    except Exception as e:
+        print "ERROR in generate_map_from_xl:", e
 
 def does_map_exist(request, job, extension):
     #print "starting does_map_exist"
@@ -899,6 +964,8 @@ def request_map_from_urls_to_webpages(request):
             }
             if "countries" in data:
                 job['countries'] = data["countries"]
+            if "admin1limits" in data:
+                job['admin1limits'] = data['admin1limits']
             print "job:", job
             Process(target=generate_map_from_urls_to_webpages, args=(job,)).start()
             return HttpResponse(job['key'])
@@ -913,14 +980,20 @@ def request_map_from_urls_to_files(request):
     if request.method == 'POST':
         print "request.method is post"
         key = get_random_string(25)
-        Order.objects.create(token=key)
+        order_id = Order.objects.create(token=key).id
         from django.db import connection 
         connection.close()
+        data = loads(request.body)
+        urls = [url.strip() for url in data['urls'] if url.strip()]
         job = {
-              'link': loads(request.body)['link'],
-              'key': key
+              'urls': urls,
+              'key': key,
+              'order_id': order_id
         }
-        Process(target=create_map_from_link_to_file, args=(job,)).start()
+        if "countries" in data:
+            job['countries'] = data["countries"]
+        print "job:", job
+        Process(target=generate_map_from_urls_to_files, args=(job,)).start()
         return HttpResponse(job['key'])
     else:
         return HttpResponse("You have to post!")

@@ -94,6 +94,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             'text': $scope.start_text
         };
         if($scope.countries) data.countries = $scope.countries.split(",").map(function(c){return c.trim();});
+        if($scope.admin1limits) data.admin1limits = $scope.admin1limits.split(",").map(function(c){return c.trim();});
         $http.post('/request_map_from_text', data).then(function(response) {
             console.log("response is", response);
             $scope.job = response.data;
@@ -113,6 +114,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         fd.append('file', $scope.start_file);
         fd.append('max_time', $scope.max_time);
         if($scope.countries) fd.append("countries", $scope.countries.split(",").map(function(c){return c.trim();}));
+        if($scope.admin1limits) data.admin1limits = $scope.admin1limits.split(",").map(function(c){return c.trim();});
         $http.post('/request_map_from_file', fd, {
             transformRequest: angular.identity,
             headers: {'Content-Type': undefined}
@@ -135,6 +137,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             'urls': $scope.urls_to_webpages.split("\n").filter(Boolean)
         };
         if($scope.countries) data.countries = $scope.countries.split(",").map(function(c){return c.trim();});
+        if($scope.admin1limits) data.admin1limits = $scope.admin1limits.split(",").map(function(c){return c.trim();});
         $http.post('/request_map_from_urls_to_webpages', data).then(function(response) {
             console.log("Response is", response);
             $scope.job = response.data;
@@ -154,6 +157,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             'urls': $scope.urls_to_files.split("\n").filter(Boolean)
         };
         if($scope.countries) data.countries = $scope.countries.split(",").map(function(c){return c.trim();});
+        if($scope.admin1limits) data.admin1limits = $scope.admin1limits.split(",").map(function(c){return c.trim();});
         $http.post('/request_map_from_urls_to_files', data).then(function(response) {
             console.log("Response is", response);
             $scope.job = response.data;
@@ -216,6 +220,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.clear_layers();
         $scope.correct_features = [];
         $scope.countries = "";
+        $scope.admin1limits = "";
         $scope.features = [];
         $scope.features_that_appear_in_table = [];
         $scope.show_advanced_options = false;

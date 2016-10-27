@@ -28,26 +28,27 @@ class GeoEntity(object):
         self.place_id = row[0]
         self.admin_level = str(row[1])
         self.country_code = row[2]
-        self.country_rank = row[3] or 999
-        self.target, self.edit_distance = row[4].split("--")
+        self.admin1code = row[3] or None
+        self.country_rank = row[4] or 999
+        self.target, self.edit_distance = row[5].split("--")
         self.edit_distance = int(self.edit_distance)
-        self.place_name = row[5]
-        self.alias = row[6]
-        self.population = int(row[7] or 0)
-        self.point = GEOSGeometry(row[8])
-        topic_id = row[9]
+        self.place_name = row[6]
+        self.alias = row[7]
+        self.population = int(row[8] or 0)
+        self.point = GEOSGeometry(row[9])
+        topic_id = row[10]
         self.topic_id = int(topic_id) if topic_id else None
-        self.has_mpoly = row[10] == "True"
-        self.has_pcode = row[11] == "True"
-        self.popularity = int(row[12])
-        print "popularity = ", row[12]
+        self.has_mpoly = row[11] == "True"
+        self.has_pcode = row[12] == "True"
+        self.popularity = int(row[13])
 
 # takes in a list of locations and resovles them to features in the database
-def resolve_locations(locations, order_id, max_seconds=10, countries=[]):
+def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1codes=[]):
   try:
     print "starting resolve_locations with", type(locations)
     print "locations = ", len(locations), locations[:5]
     print "countries:", countries
+    print "admin1codes:", admin1codes
 
     start = datetime.now()
 
@@ -58,8 +59,10 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[]):
     name_topic = {}
     names = []
     for location in locations:
-        name = location['name']
-        if "," not in name: #skipping over places with commas in them.. because won't find in db anyway... probably need more longterm solution like escape quoting in psql
+        #cleaning name a little just to play it safe; sometimes have blank depending on extract method
+        name = location['name'] = location['name'].strip()
+        #skipping over places with commas and parentheses in them.. because won't find in db anyway... probably need more longterm solution like escape quoting in psql
+        if name and not any(char in name for char in [',', ')', '(', '?', "'", '"']): 
             names.append(name)
             name_location[name] = location
             if "context" in location:
@@ -69,6 +72,7 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[]):
             else:
                 name_topic[name] = None
 
+
     number_of_locations = len(locations)
 
     #print "names", len(names), names[:5]
@@ -77,6 +81,7 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[]):
     shuffle(names)
 
     names = set(names)
+    print "names:", names
 
     cursor = connection.cursor()
 
@@ -95,11 +100,39 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[]):
 
 
 
-    #print statement
+    print "statement:\n", statement
     cursor.execute(statement)
     #print "executed"
 
     geoentities = [GeoEntity(row) for row in cursor.fetchall()]
+
+    if admin1codes:
+        geoentities = [g for g in geoentities if g.admin1code in admin1codes]
+
+
+    print "filtering out geoentities that don't match admin1 code if there is an admin1 code match"
+    for location in locations:
+        if 'admin1code' in location:
+            name = location['name']
+            admin1code = location['admin1code'] 
+            if admin1code:
+                print "name:", name
+                print "admin1code:", admin1code
+                # are there any in geoentities that match
+                matches = []
+                not_matches = []
+                for geoentity in geoentities:
+                    if geoentity.place_name == name or geoentity.alias == name:
+                        if geoentity.admin1code == admin1code:
+                            matches.append(geoentity)
+                        else:
+                            not_matches.append(geoentity)
+                #print "matches:", matches
+                #print "not_matches:", not_matches
+                if matches:
+                    for geoentity in not_matches:
+                        geoentities.remove(geoentity)
+
     number_of_geoentities = len(geoentities)
 
     #print "geoentities", type(geoentities), len(geoentities)
@@ -163,7 +196,8 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[]):
     for target, options in target_geoentities.items():
         l = name_location[target]
         topic_id = name_topic[target] if target in name_topic else None
-        feature = Feature.objects.create(count=l['count'], name=target, geometry_used="Point", order_id=order_id, topic_id=topic_id, verified=False) 
+        count = l['count'] if 'count' in l else 1
+        feature = Feature.objects.create(count=count, name=target, geometry_used="Point", order_id=order_id, topic_id=topic_id, verified=False) 
         need_to_save = False
         if "context" in l:
             feature.text = l['context']
