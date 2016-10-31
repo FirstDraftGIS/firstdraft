@@ -22,7 +22,7 @@ mod_wsgi
 nltk
 numpy
 openpyxl
-pandas
+pandas==0.18.1
 Pillow
 psycopg2
 PyPDF2
