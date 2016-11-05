@@ -12,14 +12,14 @@ from sklearn import datasets, metrics
 import tensorflow as tf
 from tensorflow import constant, SparseTensor, Graph, Session
 from tensorflow.contrib.learn.python.learn import LinearClassifier
-from tensorflow.contrib.layers import sparse_column_with_keys, sparse_column_with_hash_bucket, real_valued_column
+from tensorflow.contrib.layers import bucketized_column, crossed_column, sparse_column_with_keys, sparse_column_with_hash_bucket, real_valued_column
 from tempfile import mkdtemp
 
 PATH_TO_DIRECTORY_OF_THIS_FILE = dirname(realpath(__file__))
 MODEL_DIR = PATH_TO_DIRECTORY_OF_THIS_FILE + "/classifier"
 
-CATEGORICAL_COLUMNS = ["admin_level", "country_code", "has_mpoly", "has_pcode", "matches_topic"]
-CONTINUOUS_COLUMNS = ["cluster_frequency", "country_rank", "edit_distance", "median_distance", "population", "popularity"]
+CATEGORICAL_COLUMNS = ["admin_level", "country_code", "edit_distance", "has_mpoly", "has_pcode", "matches_topic"]
+CONTINUOUS_COLUMNS = ["cluster_frequency", "country_rank", "median_distance", "population", "popularity"]
 LABEL_COLUMN = "correct"
 COLUMNS = sorted(CATEGORICAL_COLUMNS + CONTINUOUS_COLUMNS) + [LABEL_COLUMN]
 print "COLUMNS:", COLUMNS
@@ -27,21 +27,27 @@ print "COLUMNS:", COLUMNS
 
 admin_level = sparse_column_with_keys(column_name="admin_level", keys=["None","0","1","2","3","4","5","6"]) # I've never seen admin 6, but you never know!
 cluster_frequency = real_valued_column("cluster_frequency")
+cluster_frequency_buckets = bucketized_column(cluster_frequency, boundaries=[0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1])
 country_code = sparse_column_with_hash_bucket("country_code", hash_bucket_size=500)
 country_rank = real_valued_column("country_rank")
-edit_distance = real_valued_column("edit_distance")
+edit_distance = sparse_column_with_keys(column_name="edit_distance", keys=["0", "1", "2"])
 geoname_id = sparse_column_with_hash_bucket("country_code", hash_bucket_size=20000000)
 has_pcode = sparse_column_with_keys(column_name="has_pcode", keys=["True", "False"])
 has_mpoly = sparse_column_with_keys(column_name="has_mpoly", keys=["True", "False"])
 matches_topic = sparse_column_with_keys(column_name="matches_topic", keys=["True", "False"])
 median_distance = real_valued_column("median_distance")
+median_distance_buckets = bucketized_column(median_distance, boundaries=[10,50,100,200,300])
 population = real_valued_column("population")
+population_buckets = bucketized_column(population, boundaries=[0, 1, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000])
 popularity = real_valued_column("popularity")
+admin_level_x_median_distance = crossed_column([admin_level, median_distance_buckets], hash_bucket_size=int(1e4))
+admin_level_x_cluster_frequency = crossed_column([admin_level, cluster_frequency_buckets], hash_bucket_size=int(1e4))
+admin_level_x_country_code = crossed_column([admin_level, country_code], hash_bucket_size=int(1e4))
         
 #number_of_other_points_in_country = sparse_column_with_hash_bucket("number_of_other_points_in_country", hash_bucket_size=1000)
 #number_of_other_points_in_admin1 = sparse_column_with_hash_bucket("number_of_other_points_in_admin1", hash_bucket_size=1000)
 #number_of_other_points_in_admin2 = sparse_column_with_hash_bucket("number_of_other_points_in_admin2", hash_bucket_size=1000)
-feature_columns = [admin_level, cluster_frequency, country_code, country_rank, edit_distance, has_mpoly, has_pcode, median_distance, matches_topic, population, popularity]
+feature_columns = [admin_level, cluster_frequency_buckets, country_code, country_rank, edit_distance, has_mpoly, has_pcode, matches_topic, median_distance, median_distance_buckets, population_buckets, popularity, admin_level_x_cluster_frequency, admin_level_x_country_code, admin_level_x_median_distance]
 print "feature_columns:", feature_columns
 
 class bcolors:
@@ -132,7 +138,7 @@ def train():
                 df_train['country_rank'].set_value(index, feature['featureplace__country_rank'] or 999) 
                 df_train['has_mpoly'].set_value(index, str(feature['featureplace__place__mpoly'] is not None))
                 df_train['has_pcode'].set_value(index, str(feature['featureplace__place__pcode'] is not None)) 
-                df_train['edit_distance'].set_value(index, 0)
+                df_train['edit_distance'].set_value(index, "0")
                 df_train['median_distance'].set_value(index, feature['featureplace__median_distance'] or 9999 )
                 df_train['matches_topic'].set_value(index, str(feature['topic_id'] == feature["featureplace__place__topic_id"]) if feature['topic_id'] else "False")
                 df_train['population'].set_value(index, int(feature['featureplace__place__population'] or 0))
@@ -148,7 +154,7 @@ def train():
                 df_test['country_rank'].set_value(index, feature['featureplace__country_rank'] or 999) 
                 df_test['has_mpoly'].set_value(index, str(feature['featureplace__place__mpoly'] is not None))
                 df_test['has_pcode'].set_value(index, str(feature['featureplace__place__pcode'] is not None)) 
-                df_test['edit_distance'].set_value(index, 0)
+                df_test['edit_distance'].set_value(index, "0")
                 df_test['median_distance'].set_value(index, feature['featureplace__median_distance'] or 9999 )
                 df_test['matches_topic'].set_value(index, str(feature['topic_id'] == feature["featureplace__place__topic_id"]) if feature['topic_id'] else "False")
                 df_test['population'].set_value(index, int(feature['featureplace__place__population'] or 0))
@@ -171,9 +177,15 @@ def train():
             print("%s: %s" % (key, results[key]))
 
         weights = classifier.weights_
-        #print "weights for", weights.keys()
+        print "weights for", weights.keys()
         for key in weights:
             print key, ":", weights[key]
+
+        print "\nfeature_columns:"
+        feature_column_names = [feature_column.name for feature_column in feature_columns]
+        feature_column_names.sort()
+        for feature_column_name in feature_column_names:
+            print "\t- ", feature_column_name
 
         print "took", (datetime.now() - start).total_seconds(), "seconds to train"
 
@@ -202,41 +214,13 @@ def run(geoentities):
             df['cluster_frequency'].set_value(index, g.cluster_frequency or 0)
             df['country_code'].set_value(index, g.country_code or "UNKNOWN")
             df['country_rank'].set_value(index, g.country_rank or 999)
-            df['edit_distance'].set_value(index, g.edit_distance)
+            df['edit_distance'].set_value(index, str(g.edit_distance))
             df['has_mpoly'].set_value(index, str(g.has_mpoly or False))
             df['has_pcode'].set_value(index, str(g.has_pcode or False))
             df['median_distance'].set_value(index, g.median_distance_from_all_other_points)
             df['matches_topic'].set_value(index, str(g.matches_topic or "False"))
             df['population'].set_value(index, g.population)
             df['popularity'].set_value(index, g.popularity)
-        """
-        admin_level = []
-        cluster_frequency = []
-        country_code = []
-        country_rank = []
-        edit_distance = []
-        has_mpoly = []
-        has_pcode = []
-        median_distance = []
-        matches_topic = []
-        population = []
-        popularity = []
-         
-        for g in geoentities:
-            admin_level.append(str(g.admin_level))
-            cluster_frequency.append(g.cluster_frequency or 0)
-            country_code.append(str(g.country_code))
-            country_rank.append(g.country_rank or 999)
-            edit_distance.append(g.edit_distance)
-            has_mpoly.append(str(g.has_mpoly or False))
-            has_pcode.append(str(g.has_pcode or False))
-            median_distance.append(g.median_distance_from_all_other_points)
-            matches_topic.append(str(g.matches_topic or False))
-            population.append(g.population or 0)
-            popularity.append(FeaturePlace.objects.filter(correct=True, feature__verified=True, place_id=g.place_id).count())
-        """
-        
-    
 
         print "populating df took", (datetime.now() - start_df).total_seconds(), "seconds"
 
