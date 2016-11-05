@@ -35,6 +35,7 @@ python-social-auth
 pyvirtualdisplay
 pytz
 requests
+scikit-learn
 scipy
 scrp
 selenium
