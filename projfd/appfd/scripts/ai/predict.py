@@ -11,14 +11,14 @@ from shutil import rmtree
 from sklearn import datasets, metrics
 import tensorflow as tf
 from tensorflow import constant, SparseTensor, Graph, Session
-from tensorflow.contrib.learn.python.learn import LinearClassifier
-from tensorflow.contrib.layers import bucketized_column, crossed_column, sparse_column_with_keys, sparse_column_with_hash_bucket, real_valued_column
+from tensorflow.contrib.learn.python.learn import DNNLinearCombinedClassifier, LinearClassifier
+from tensorflow.contrib.layers import bucketized_column, crossed_column, embedding_column, sparse_column_with_keys, sparse_column_with_hash_bucket, real_valued_column
 from tempfile import mkdtemp
 
 PATH_TO_DIRECTORY_OF_THIS_FILE = dirname(realpath(__file__))
 MODEL_DIR = PATH_TO_DIRECTORY_OF_THIS_FILE + "/classifier"
 
-CATEGORICAL_COLUMNS = ["admin_level", "country_code", "edit_distance", "has_mpoly", "has_pcode", "matches_topic"]
+CATEGORICAL_COLUMNS = ["admin_level", "country_code", "edit_distance", "has_mpoly", "has_pcode", "is_highest_population", "is_lowest_admin_level", "matches_topic"]
 CONTINUOUS_COLUMNS = ["cluster_frequency", "country_rank", "median_distance", "population", "popularity"]
 LABEL_COLUMN = "correct"
 COLUMNS = sorted(CATEGORICAL_COLUMNS + CONTINUOUS_COLUMNS) + [LABEL_COLUMN]
@@ -31,9 +31,10 @@ cluster_frequency_buckets = bucketized_column(cluster_frequency, boundaries=[0, 
 country_code = sparse_column_with_hash_bucket("country_code", hash_bucket_size=500)
 country_rank = real_valued_column("country_rank")
 edit_distance = sparse_column_with_keys(column_name="edit_distance", keys=["0", "1", "2"])
-geoname_id = sparse_column_with_hash_bucket("country_code", hash_bucket_size=20000000)
 has_pcode = sparse_column_with_keys(column_name="has_pcode", keys=["True", "False"])
 has_mpoly = sparse_column_with_keys(column_name="has_mpoly", keys=["True", "False"])
+is_lowest_admin_level = sparse_column_with_keys(column_name="is_lowest_admin_level", keys=["True", "False"])
+is_highest_population = sparse_column_with_keys(column_name="is_highest_population", keys=["True", "False"])
 matches_topic = sparse_column_with_keys(column_name="matches_topic", keys=["True", "False"])
 median_distance = real_valued_column("median_distance")
 median_distance_buckets = bucketized_column(median_distance, boundaries=[10,50,100,200,300])
@@ -47,8 +48,24 @@ admin_level_x_country_code = crossed_column([admin_level, country_code], hash_bu
 #number_of_other_points_in_country = sparse_column_with_hash_bucket("number_of_other_points_in_country", hash_bucket_size=1000)
 #number_of_other_points_in_admin1 = sparse_column_with_hash_bucket("number_of_other_points_in_admin1", hash_bucket_size=1000)
 #number_of_other_points_in_admin2 = sparse_column_with_hash_bucket("number_of_other_points_in_admin2", hash_bucket_size=1000)
-feature_columns = [admin_level, cluster_frequency_buckets, country_code, country_rank, edit_distance, has_mpoly, has_pcode, matches_topic, median_distance, median_distance_buckets, population_buckets, popularity, admin_level_x_cluster_frequency, admin_level_x_country_code, admin_level_x_median_distance]
-print "feature_columns:", feature_columns
+#feature_columns = [admin_level, cluster_frequency_buckets, country_code, country_rank, edit_distance, is_lowest_admin_level, has_mpoly, has_pcode, matches_topic, median_distance, median_distance_buckets, population_buckets, popularity, admin_level_x_cluster_frequency, admin_level_x_country_code, admin_level_x_median_distance]
+#print "feature_columns:", feature_columns
+wide_columns = [admin_level, cluster_frequency_buckets, country_code, country_rank, edit_distance, is_highest_population, is_lowest_admin_level, has_mpoly, has_pcode, matches_topic, median_distance, median_distance_buckets, population_buckets, popularity, admin_level_x_cluster_frequency, admin_level_x_country_code, admin_level_x_median_distance]
+deep_columns = [
+    embedding_column(admin_level, dimension=8),
+    cluster_frequency,
+    cluster_frequency_buckets,
+    embedding_column(country_code, dimension=8),
+    country_rank,
+    embedding_column(has_mpoly, dimension=8),
+    embedding_column(has_pcode, dimension=8),
+    embedding_column(is_lowest_admin_level, dimension=8),
+    embedding_column(is_highest_population, dimension=8),
+    median_distance_buckets,
+    population_buckets,
+    popularity
+]
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -66,56 +83,51 @@ def fail(string):
 def info(string):
     print(bcolors.OKBLUE + string + bcolors.ENDC)
 
-def input_fn(df):
+def input_fn(d):
   try:
-    """Input builder function."""
-    info("Creates a dictionary mapping from each continuous feature column name (k) to the values of that column stored in a constant Tensor.")
-    continuous_cols = {}
+    num_rows = len(d['admin_level'])
+    feature_cols = {}
     for k in CONTINUOUS_COLUMNS:
-        print "K:", k
-        #print "values:", type(df[k].values[0]), df[k].values[:5]
-        continuous_cols[k] = constant(df[k].values, dtype=tf.float32)
-        print continuous_cols[k]
+        feature_cols[k] = constant(d[k], dtype=tf.float32)
 
-    info("Creates a dictionary mapping from each categorical feature column name (k) to the values of that column stored in a tf.SparseTensor.")
-    categorical_cols = {}
     for k in CATEGORICAL_COLUMNS:
-        print "k:", k
-        print "values:", type(df[k].values[0]), df[k].values[:5]
-        categorical_cols[k] = SparseTensor(
-            indices=[[i, 0] for i in range(df[k].size)],
-            values=df[k].values,
-            shape=[df[k].size, 1])
-        print "SparseTensor:", categorical_cols[k]
-    info("Merges the two dictionaries into one.")
-    feature_cols = dict(continuous_cols)
-    feature_cols.update(categorical_cols)
-    info("Converts the label column into a constant Tensor.")
-    label = constant(df[LABEL_COLUMN].values)
-    info("Returns the feature columns and the label.")
+        feature_cols[k] = SparseTensor(
+            indices=[[i, 0] for i in range(num_rows)],
+            values=d[k],
+            shape=[num_rows, 1])
+    label = constant(d[LABEL_COLUMN])
     return feature_cols, label
   except Exception as e:
     fail("EXCEPTION in input_fn: " + str(e))
+
+
+def get_fake_df():
+    return dict([(k, []) for k in COLUMNS])
 
 def train():
     try:
 
         start = datetime.now()
 
-        df_train = DataFrame(columns=COLUMNS)
-        df_test = DataFrame(columns=COLUMNS)
+        df_train = get_fake_df()
+        df_test = get_fake_df()
 
         print "starting appbkto.scripts.predict.train"
         connection.close()
-        features = list(Feature.objects.filter(verified=True).values("featureplace__place__admin_level","featureplace__correct","featureplace__place_id","featureplace__cluster_frequency","featureplace__place__country_code","featureplace__country_rank","featureplace__place__mpoly","featureplace__place__pcode","featureplace__popularity","featureplace__place__population","featureplace__median_distance","featureplace__place__topic_id","topic_id"))
+        features = list(Feature.objects.filter(verified=True).values("id","featureplace__id","featureplace__place__admin_level","featureplace__correct","featureplace__place_id","featureplace__cluster_frequency","featureplace__place__country_code","featureplace__country_rank","featureplace__place__mpoly","featureplace__place__pcode","featureplace__popularity","featureplace__place__population","featureplace__median_distance","featureplace__place__topic_id","topic_id"))
         print "features:", type(features), len(features)
 
         rmtree(MODEL_DIR, ignore_errors=True)
 
         print "creating classifier"
-        classifier = LinearClassifier(feature_columns, model_dir=MODEL_DIR)
+        #classifier = LinearClassifier(feature_columns, model_dir=MODEL_DIR)
+        classifier = DNNLinearCombinedClassifier(
+            model_dir=MODEL_DIR,
+            linear_feature_columns=wide_columns,
+            dnn_feature_columns=deep_columns,
+            dnn_hidden_units=[100,50]
+        )
         print "classifier:", classifier
- 
 
         number_of_features = len(features)
 
@@ -131,35 +143,69 @@ def train():
 
             # data frame for training
             for index, feature in enumerate(features[:half]):
+
+                fid = feature['id']
+                fpid = feature['featureplace__id']
+
+                feature_admin_levels = set([f['featureplace__place__admin_level'] for f in features if f['featureplace__place__admin_level'] and f['id'] == fid])
+                if feature_admin_levels:
+                    lowest_admin_level = min(feature_admin_levels)
+                else:
+                    lowest_admin_level = -99
+
+                population = feature['featureplace__place__population']
+                is_highest_population = population and population == max([f['featureplace__place__population'] for f in features if f['id'] == fid]) or False
+                
+
                 place_id = feature['featureplace__place_id']
-                df_train['admin_level'].set_value(index, str(feature['featureplace__place__admin_level'] or "None"))
-                df_train['cluster_frequency'].set_value(index, feature['featureplace__cluster_frequency'] or 0)
-                df_train['country_code'].set_value(index, feature['featureplace__place__country_code'] or "None") 
-                df_train['country_rank'].set_value(index, feature['featureplace__country_rank'] or 999) 
-                df_train['has_mpoly'].set_value(index, str(feature['featureplace__place__mpoly'] is not None))
-                df_train['has_pcode'].set_value(index, str(feature['featureplace__place__pcode'] is not None)) 
-                df_train['edit_distance'].set_value(index, "0")
-                df_train['median_distance'].set_value(index, feature['featureplace__median_distance'] or 9999 )
-                df_train['matches_topic'].set_value(index, str(feature['topic_id'] == feature["featureplace__place__topic_id"]) if feature['topic_id'] else "False")
-                df_train['population'].set_value(index, int(feature['featureplace__place__population'] or 0))
-                df_train['popularity'].set_value(index, int(feature['featureplace__popularity'] or 0))
-                df_train['correct'].set_value(index, 1 if feature['featureplace__correct'] else 0)
+                admin_level = feature['featureplace__place__admin_level']
+                df_train['admin_level'].append(str(admin_level or "None"))
+                df_train['cluster_frequency'].append(feature['featureplace__cluster_frequency'] or 0)
+                df_train['country_code'].append(feature['featureplace__place__country_code'] or "None") 
+                df_train['country_rank'].append(feature['featureplace__country_rank'] or 999) 
+                df_train['has_mpoly'].append(str(feature['featureplace__place__mpoly'] is not None))
+                df_train['has_pcode'].append(str(feature['featureplace__place__pcode'] is not None)) 
+                df_train['is_lowest_admin_level'].append(str(lowest_admin_level == admin_level))
+                df_train['is_highest_population'].append(str(is_highest_population))
+                df_train['edit_distance'].append("0")
+                df_train['median_distance'].append(feature['featureplace__median_distance'] or 9999 )
+                df_train['matches_topic'].append(str(feature['topic_id'] == feature["featureplace__place__topic_id"]) if feature['topic_id'] else "False")
+                df_train['population'].append(int(population or 0))
+                df_train['popularity'].append(int(feature['featureplace__popularity'] or 0))
+                df_train['correct'].append(1 if feature['featureplace__correct'] else 0)
 
             # data frame for testing
             for index, feature in enumerate(features[half:]):
+
+                fid = feature['id']
+                fpid = feature['featureplace__id']
+
+                feature_admin_levels = set([f['featureplace__place__admin_level'] for f in features if f['featureplace__place__admin_level'] and f['id'] == fid])
+                if feature_admin_levels:
+                    lowest_admin_level = min(feature_admin_levels)
+                else:
+                    lowest_admin_level = -99
+
+                population = feature['featureplace__place__population']
+                is_highest_population = population and population == max([f['featureplace__place__population'] for f in features if f['id'] == fid]) or False
+ 
+
                 place_id = feature['featureplace__place_id']
-                df_test['admin_level'].set_value(index, str(feature['featureplace__place__admin_level'] or "None"))
-                df_test['cluster_frequency'].set_value(index, feature['featureplace__cluster_frequency'] or 0)
-                df_test['country_code'].set_value(index, feature['featureplace__place__country_code'] or "None") 
-                df_test['country_rank'].set_value(index, feature['featureplace__country_rank'] or 999) 
-                df_test['has_mpoly'].set_value(index, str(feature['featureplace__place__mpoly'] is not None))
-                df_test['has_pcode'].set_value(index, str(feature['featureplace__place__pcode'] is not None)) 
-                df_test['edit_distance'].set_value(index, "0")
-                df_test['median_distance'].set_value(index, feature['featureplace__median_distance'] or 9999 )
-                df_test['matches_topic'].set_value(index, str(feature['topic_id'] == feature["featureplace__place__topic_id"]) if feature['topic_id'] else "False")
-                df_test['population'].set_value(index, int(feature['featureplace__place__population'] or 0))
-                df_test['popularity'].set_value(index, int(feature['featureplace__popularity'] or 0))
-                df_test['correct'].set_value(index, 1 if feature['featureplace__correct'] else 0)
+                admin_level = feature['featureplace__place__admin_level']
+                df_test['admin_level'].append(str(feature['featureplace__place__admin_level'] or "None"))
+                df_test['cluster_frequency'].append(feature['featureplace__cluster_frequency'] or 0)
+                df_test['country_code'].append(feature['featureplace__place__country_code'] or "None") 
+                df_test['country_rank'].append(feature['featureplace__country_rank'] or 999) 
+                df_test['has_mpoly'].append(str(feature['featureplace__place__mpoly'] is not None))
+                df_test['has_pcode'].append(str(feature['featureplace__place__pcode'] is not None)) 
+                df_test['is_lowest_admin_level'].append(str(lowest_admin_level == admin_level))
+                df_test['is_highest_population'].append(str(is_highest_population))
+                df_test['edit_distance'].append("0")
+                df_test['median_distance'].append(feature['featureplace__median_distance'] or 9999 )
+                df_test['matches_topic'].append(str(feature['topic_id'] == feature["featureplace__place__topic_id"]) if feature['topic_id'] else "False")
+                df_test['population'].append(int(feature['featureplace__place__population'] or 0))
+                df_test['popularity'].append(int(feature['featureplace__popularity'] or 0))
+                df_test['correct'].append(1 if feature['featureplace__correct'] else 0)
 
         except Exception as e:
             print e
@@ -168,7 +214,7 @@ def train():
 
         print "fitting"
         try:
-            classifier.fit(input_fn=lambda: input_fn(df_train), steps=10)
+            classifier.fit(input_fn=lambda: input_fn(df_train), steps=200)
         except Exception as e:
             fail("EXCEPTION fitting model in scripts.ai.predict.train: " + str(e))
         print "\nfitted"
@@ -176,18 +222,7 @@ def train():
         for key in sorted(results):
             print("%s: %s" % (key, results[key]))
 
-        weights = classifier.weights_
-        print "weights for", weights.keys()
-        for key in weights:
-            print key, ":", weights[key]
-
-        print "\nfeature_columns:"
-        feature_column_names = [feature_column.name for feature_column in feature_columns]
-        feature_column_names.sort()
-        for feature_column_name in feature_column_names:
-            print "\t- ", feature_column_name
-
-        print "took", (datetime.now() - start).total_seconds(), "seconds to train"
+        print "took", ((datetime.now() - start).total_seconds() / 60), "minutes to train"
 
     except Exception as e:
         fail("EXCEPTION in ai.predict.train: " + str(e))
@@ -204,25 +239,34 @@ def run(geoentities):
         
         print "creating the classifier took", (datetime.now() - start).total_seconds(), "seconds"
 
-        df = DataFrame(columns=COLUMNS)
+        df = get_fake_df
         print "about to populate data frame for prediction"
         start_df = datetime.now()
         
         for index, g in enumerate(geoentities):
             place_id = g.place_id
-            df['admin_level'].set_value(index, str(g.admin_level or "None"))
-            df['cluster_frequency'].set_value(index, g.cluster_frequency or 0)
-            df['country_code'].set_value(index, g.country_code or "UNKNOWN")
-            df['country_rank'].set_value(index, g.country_rank or 999)
-            df['edit_distance'].set_value(index, str(g.edit_distance))
-            df['has_mpoly'].set_value(index, str(g.has_mpoly or False))
-            df['has_pcode'].set_value(index, str(g.has_pcode or False))
-            df['median_distance'].set_value(index, g.median_distance_from_all_other_points)
-            df['matches_topic'].set_value(index, str(g.matches_topic or "False"))
-            df['population'].set_value(index, g.population)
-            df['popularity'].set_value(index, g.popularity)
+            name = g.name
 
-        print "populating df took", (datetime.now() - start_df).total_seconds(), "seconds"
+	    feature_admin_levels = set([g.admin_level for g in geoentities if g.admin_level and g.name == name])
+            if feature_admin_levels:
+                lowest_admin_level = min(feature_admin_levels)
+            else:
+                lowest_admin_level = -99
+
+            df['admin_level'].append(str(g.admin_level or "None"))
+            df['cluster_frequency'].append(g.cluster_frequency or 0)
+            df['country_code'].append(g.country_code or "UNKNOWN")
+            df['country_rank'].append(g.country_rank or 999)
+            df['edit_distance'].append(str(g.edit_distance))
+            df['has_mpoly'].append(str(g.has_mpoly or False))
+            df['has_pcode'].append(str(g.has_pcode or False))
+            df['is_lowest_admin_level'].append(str(lowest_admin_level == g.admin_level))
+            df['median_distance'].append(g.median_distance_from_all_other_points)
+            df['matches_topic'].append(str(g.matches_topic or "False"))
+            df['population'].append(g.population)
+            df['popularity'].append(g.popularity)
+
+        print "populating df took", ((datetime.now() - start_df).total_seconds() / 60), "minutes"
 
         for index, row in enumerate(classifier.predict_proba(input_fn=lambda: input_fn(df))):
             geoentities[index].probability = row[1]
