@@ -120,7 +120,6 @@ def train():
         rmtree(MODEL_DIR, ignore_errors=True)
 
         print "creating classifier"
-        #classifier = LinearClassifier(feature_columns, model_dir=MODEL_DIR)
         classifier = DNNLinearCombinedClassifier(
             model_dir=MODEL_DIR,
             linear_feature_columns=wide_columns,
@@ -235,36 +234,48 @@ def run(geoentities):
         connection.close()
 
         start = datetime.now()        
-        classifier = LinearClassifier(feature_columns, model_dir=MODEL_DIR)
-        
+
+        classifier = DNNLinearCombinedClassifier(
+            model_dir=MODEL_DIR,
+            linear_feature_columns=wide_columns,
+            dnn_feature_columns=deep_columns,
+            dnn_hidden_units=[100,50]
+        )
+        print "classifier:", classifier
+
         print "creating the classifier took", (datetime.now() - start).total_seconds(), "seconds"
 
-        df = get_fake_df
+        df = get_fake_df()
         print "about to populate data frame for prediction"
         start_df = datetime.now()
         
-        for index, g in enumerate(geoentities):
-            place_id = g.place_id
-            name = g.name
+        for index, geoentity in enumerate(geoentities):
+            place_id = geoentity.place_id
+            name = geoentity.target
 
-	    feature_admin_levels = set([g.admin_level for g in geoentities if g.admin_level and g.name == name])
+	    feature_admin_levels = set([g.admin_level for g in geoentities if g.admin_level and g.target == name])
             if feature_admin_levels:
                 lowest_admin_level = min(feature_admin_levels)
             else:
                 lowest_admin_level = -99
 
-            df['admin_level'].append(str(g.admin_level or "None"))
-            df['cluster_frequency'].append(g.cluster_frequency or 0)
-            df['country_code'].append(g.country_code or "UNKNOWN")
-            df['country_rank'].append(g.country_rank or 999)
-            df['edit_distance'].append(str(g.edit_distance))
-            df['has_mpoly'].append(str(g.has_mpoly or False))
-            df['has_pcode'].append(str(g.has_pcode or False))
+            population = g.population
+            is_highest_population = population and population == max([g.population for g in geoentities if g.target == name]) or False
+
+            admin_level = geoentity.admin_level
+            df['admin_level'].append(str(geoentity.admin_level or "None"))
+            df['cluster_frequency'].append(geoentity.cluster_frequency or 0)
+            df['country_code'].append(geoentity.country_code or "UNKNOWN")
+            df['country_rank'].append(geoentity.country_rank or 999)
+            df['edit_distance'].append(str(geoentity.edit_distance))
+            df['has_mpoly'].append(str(geoentity.has_mpoly or False))
+            df['has_pcode'].append(str(geoentity.has_pcode or False))
             df['is_lowest_admin_level'].append(str(lowest_admin_level == g.admin_level))
-            df['median_distance'].append(g.median_distance_from_all_other_points)
-            df['matches_topic'].append(str(g.matches_topic or "False"))
-            df['population'].append(g.population)
-            df['popularity'].append(g.popularity)
+            df['is_highest_population'].append(str(is_highest_population))
+            df['median_distance'].append(geoentity.median_distance_from_all_other_points)
+            df['matches_topic'].append(str(geoentity.matches_topic or "False"))
+            df['population'].append(geoentity.population)
+            df['popularity'].append(geoentity.popularity)
 
         print "populating df took", ((datetime.now() - start_df).total_seconds() / 60), "minutes"
 
