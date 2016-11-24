@@ -5,6 +5,7 @@ bscrp
 beautifulsoup4
 beryl
 boto
+Cython
 date-extractor
 Django==1.9.9
 djangorestframework
@@ -34,6 +35,7 @@ python-social-auth
 pyvirtualdisplay
 pytz
 requests
+git+://github.com/scikit-learn/scikit-learn
 scrp
 selenium
 stop-words
