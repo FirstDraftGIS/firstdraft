@@ -14,7 +14,8 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confn
 # hopefully this is only temporary
 # pip installation of numpy and scipy is throwing a UnicodeDecodeError
 echo "INSTALLING NUMPY AND SCIPY"
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" install python-numpy python-scipy python-sklearn
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" install python-numpy python-scipy
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" install python-sklearn
 
 echo "INSTALLING DJANGO"
 sudo pip install django==1.9.9
