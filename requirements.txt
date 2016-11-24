@@ -34,7 +34,6 @@ python-social-auth
 pyvirtualdisplay
 pytz
 requests
-scikit-learn
 scrp
 selenium
 stop-words
