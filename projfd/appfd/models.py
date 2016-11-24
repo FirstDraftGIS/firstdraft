@@ -139,6 +139,8 @@ class Place(Model):
     area_sqkm = IntegerField(null=True, blank=True)
     country_code = CharField(max_length=10, null=True, blank=True, db_index=True)
     district_num = IntegerField(null=True, blank=True)
+    feature_class = CharField(max_length=5, null=True, blank=True)
+    feature_code = CharField(max_length=5, null=True, blank=True)
     fips = IntegerField(null=True, blank=True, db_index=True)
     geonameid = IntegerField(null=True, blank=True, db_index=True)
     mls = MultiLineStringField(null=True, blank=True)

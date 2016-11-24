@@ -17,8 +17,11 @@ for table in ["appfd_alias", "appfd_alternatename", "appfd_place"]:
     call("sudo -u postgres psql -c 'TRUNCATE " + table + " CASCADE;' dbfd", shell=True)
 print "done"
 
+delimiter = "\t"
+null = "null"
+
 output_file = open("/tmp/allCountriesCleaned.txt", "wb")
-writer = csv.writer(output_file)
+writer = csv.writer(output_file, delimiter=delimiter)
 
 wkb_w = WKBWriter()
 wkb_w.srid = True
@@ -35,10 +38,10 @@ with open("/tmp/allCountries.txt", "r") as f:
         elif feature_code == "ADM3": admin_level = "3"
         elif feature_code == "ADM4": admin_level = "4"
         elif feature_code == "ADM5": admin_level = "5"
-        else: admin_level = ""
+        else: admin_level = "null"
         point = wkb_w.write_hex(Point(float(longitude), float(latitude), srid=4326))
-        writer.writerow([ counter, admin_level, admin1_code, admin2_code, "", country_code, "", "", geonameid, "", "", name, "", point, population, "", "", timezone ])
-        if counter % 1000000 == 0:
+        writer.writerow([ counter, admin_level or null, admin1_code or null, admin2_code or null, null, country_code or null, null, feature_class or null, feature_code or null, null, geonameid or null, null, null, name or null, null, point or null, population or null, null, null, timezone or null, null ])
+        if counter % 100000 == 0:
              print counter, ":", str((datetime.now() - start).total_seconds()), "seconds so far"
       except Exception as e:
         print e
@@ -47,7 +50,8 @@ output_file.close()
 print "closed output_file"
 
 print "about to execute COPY"
-call("""sudo -u postgres psql -c "COPY appfd_place FROM '/tmp/allCountriesCleaned.txt' WITH CSV;" dbfd""", shell=True)
+# defaults to using text format with tab separator
+call("""sudo -u postgres psql -c "COPY appfd_place FROM '/tmp/allCountriesCleaned.txt' WITH DELIMITER '""" + delimiter + """' NULL '""" + null + """';" dbfd""", shell=True)
 print "executed statement"
 
 total_seconds = (datetime.now() - start).total_seconds()
