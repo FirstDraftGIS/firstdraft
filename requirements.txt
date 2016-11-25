@@ -21,6 +21,7 @@ location-extractor
 marionette_client
 mod_wsgi
 nltk
+numpy
 openpyxl
 pandas==0.18.1
 Pillow
@@ -36,6 +37,7 @@ pyvirtualdisplay
 pytz
 requests
 scikit-learn==0.17.1
+scipy
 scrp
 selenium
 stop-words
