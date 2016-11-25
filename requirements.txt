@@ -35,7 +35,7 @@ python-social-auth
 pyvirtualdisplay
 pytz
 requests
-scikit-learn=0.17
+scikit-learn=0.17.1
 scrp
 selenium
 stop-words
