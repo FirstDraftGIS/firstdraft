@@ -79,6 +79,8 @@ sudo -H -u usrfd bash -c "cd /home/usrfd && virtualenv /home/usrfd/venv"
 
 echo "INSTALLING PYTHON PACKAGES"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -r /home/usrfd/firstdraft/requirements.txt --upgrade"
+# have to install scikit-learn separately because need to have NumPy and SciPy installed first
+sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install scikit-learn"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip list"
 sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python -c 'import nltk; nltk.download(\"stopwords\")'"
 
