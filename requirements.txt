@@ -24,6 +24,7 @@ nltk
 numpy
 openpyxl
 pandas==0.18.1
+Pattern
 Pillow
 psycopg2
 PyPDF2
