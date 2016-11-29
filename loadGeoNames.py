@@ -54,8 +54,8 @@ print "about to execute COPY"
 call("""sudo -u postgres psql -c "COPY appfd_place FROM '/tmp/allCountriesCleaned.txt' WITH DELIMITER '""" + delimiter + """' NULL '""" + null + """';" dbfd""", shell=True)
 print "executed statement"
 
-total_seconds = (datetime.now() - start).total_seconds()
-message = "Loading geonames took " + str(total_seconds) + " seconds."
+total_minutes = (datetime.now() - start).total_seconds() / 60
+message = "Loading geonames took " + str(total_minutes) + " minutes."
 print message
 with open("log.txt", "wb") as f:
     f.write(message)
