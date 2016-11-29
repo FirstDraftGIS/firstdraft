@@ -98,6 +98,9 @@ sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO
 sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "www-data";' dbfd;
 sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO "www-data";' dbfd;
 
+echo "CREATING INDEXES AND SQL FUNCTIONS"
+sudo -u postgres psql -f /home/usrfd/firstdraft/sql_scripts/resolve.sql dbfd
+
 echo "CREATING MAPS FOLDER"
 sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
 sudo chown "www-data":"www-data" -R /home/usrfd/maps
