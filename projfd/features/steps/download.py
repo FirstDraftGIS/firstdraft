@@ -1,44 +1,29 @@
 from appfd.models import Place
 from os.path import isfile
 from os import remove
+from time import sleep
 from urllib import urlretrieve
 
+def download(driver, extension):
+    url = driver.find_element_by_id("download_link_" + extension).get_attribute("href")
+    path_to_downloaded = "/tmp/test." + extension
+    urlretrieve(url, path_to_downloaded)
+    assert isfile(path_to_downloaded)
+
+@then("we click download")
+def click_download(context):
+    context.driver.save_screenshot("/tmp/asdf.png")
+    context.driver.find_element_by_css_selector("[data-target='#downloadModal']").click()
+    sleep(1)
 
 @then('we should be able to download a CSV')
 def download_csv(context):
-    # not really clicking it to download it... what real testing would be
-    # just getting href from link and trying to download that
-    # or maybe check wherever Firefoxe's download directory is
-
-    # 1. find button that says csv under download heading
-    # 2. click it
-    # 3. assert/check if file in Firefox's download directory wherever that is
-    # 4. delete file, cleaning up
-
-    #url = context.driver.find_element_by_id("href_csv").get_attribute("href")
-    #print("url of csv:", url)
-    #path_to_file = "/tmp/test.csv")
-    #urlretrieve(url, "/tmp/test.csv")
-    #assert isfile("/tmp/test.csv")
-    #context.driver.document.getElementById("href_csv").click()
-    context.driver.save_screenshot("/tmp/precsv.png")
-    context.driver.find_element_by_partial_link_text('CSV').click()
-    #path_to_file = "/tmp/"
-
+    download(context.driver, "csv")
 
 @then('we should be able to download a GeoJSON')
 def download_geojson(context):
-    context.driver.find_element_by_partial_link_text('GeoJSON').click()
-    #url = context.driver.find_element_by_id("href_geojson").get_attribute("href")
-    #print("url of GeoJSON:", url)
-    #urlretrieve(url, "/tmp/test.geojson")
-    #assert isfile("/tmp/test.geojson")
-
+    download(context.driver, "geojson")
 
 @then('we should be able to download a Shapefile')
 def download_shp(context):
-    context.driver.find_element_by_partial_link_text('Shapefile').click()
-    #url = context.driver.find_element_by_id("href_shp").get_attribute("href")
-    #print("url of Shapefile:", url)
-    #urlretrieve(url, "/tmp/test.zip")
-    #assert isfile("/tmp/test.zip")
+    download(context.driver, "shp")

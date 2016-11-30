@@ -2,7 +2,7 @@ CREATE INDEX index_name_first_char ON appfd_place (LEFT(name,1));
 CREATE INDEX index_name_char_length ON appfd_place (char_length(name));
 CREATE INDEX idx_places_trgm_gist_name ON appfd_place USING gist (name gist_trgm_ops);
 CREATE INDEX idx_places_trgm_gin_name ON appfd_place USING gin (name gin_trgm_ops);
-set_limit(0.5);
+SELECT set_limit(0.5);
 
 CREATE FUNCTION indexOf(haystack ANYARRAY, needle ANYELEMENT)
 RETURNS INT AS $$
@@ -14,8 +14,15 @@ $$ LANGUAGE sql STABLE;
 
 CREATE OR REPLACE FUNCTION calc_popularity(placeid int)
 RETURNS int AS $$
-    SELECT count(appfd_featureplace.id)::int FROM appfd_featureplace INNER JOIN appfd_feature ON (appfd_featureplace.feature_id = appfd_feature.id) WHERE appfd_feature.verified = true AND appfd_featureplace.correct = true AND appfd_featureplace.place_id = placeid;
-$$ LANGUAGE sql STABLE;
+DECLARE
+    plus int;
+    negative int;
+BEGIN
+    plus := (SELECT count(appfd_featureplace.id)::int FROM appfd_featureplace INNER JOIN appfd_feature ON (appfd_featureplace.feature_id = appfd_feature.id) WHERE appfd_feature.verified = true AND appfd_featureplace.correct = true AND appfd_featureplace.place_id = placeid);
+    negative := (SELECT count(appfd_featureplace.id)::int FROM appfd_featureplace INNER JOIN appfd_feature ON (appfd_featureplace.feature_id = appfd_feature.id) WHERE appfd_feature.verified = true AND appfd_featureplace.correct = false AND appfd_featureplace.place_id = placeid);
+    return plus - negative;
+END; $$
+LANGUAGE PLPGSQL;
 
 DROP TYPE geoentity CASCADE;
 create type geoentity as (
@@ -35,7 +42,7 @@ create type geoentity as (
   popularity int
 );
 
-DROP FUNCTION fdgis_resolve(text[], thorough boolean DEFAULT false);
+DROP FUNCTION fdgis_resolve(text[], thorough boolean);
 CREATE OR REPLACE FUNCTION
 fdgis_resolve(names text[], thorough boolean DEFAULT false)
 RETURNS setof geoentity AS $$
@@ -64,7 +71,7 @@ BEGIN
 END; $$
 LANGUAGE PLPGSQL;
 
-DROP FUNCTION fdgis_resolve_with_countries(names text[], countries text[], thorough boolean DEFAULT false);
+DROP FUNCTION fdgis_resolve_with_countries(names text[], countries text[], thorough boolean);
 CREATE OR REPLACE FUNCTION
 fdgis_resolve_with_countries(names text[], countries text[], thorough boolean DEFAULT false)
 RETURNS setof geoentity AS $$
@@ -94,11 +101,3 @@ BEGIN
     RETURN;
 END; $$
 LANGUAGE PLPGSQL;
-
-
-
-
-
-
-
-SELECT target FROM fdgis_resolve('{Afghanistan, Kuwaiti, Italy}'::TEXT[]);

@@ -18,17 +18,20 @@ def open_our_browser(context):
 
 @when("we start with a link to {url}")
 def start_with_a_link(context, url):
-    print("url:", url)
-    context.driver.find_element_by_css_selector("input[value=url_to_webpage]").click()
-    context.driver.find_element_by_id("url_to_webpage").send_keys(url)
-    context.driver.find_element_by_id("next").click()
+    context.driver.save_screenshot("/tmp/asdf.png")
+    context.driver.find_element_by_css_selector('''[ng-click="openModal('linkWebpage')"]''').click()
+    sleep(1)
+    context.driver.find_element_by_css_selector("[ng-model='urls_to_webpages']").send_keys(url)
+    sleep(1)
+    context.driver.find_element_by_css_selector("[ng-click='request_map_from_urls_to_webpages()']").click()
 
 @when("user enters a link to a file at {url}")
 def start_with_a_link_to_a_file(context, url):
-    print("url:", url)
-    context.driver.find_element_by_css_selector("input[value=url_to_file]").click()
-    context.driver.find_element_by_id("url_to_file").send_keys(url)
-    context.driver.find_element_by_id("next").click()
+    context.driver.find_element_by_css_selector('''[ng-click="openModal('linkFile')"]''').click()
+    sleep(1)
+    context.driver.find_element_by_css_selector("[ng-model='urls_to_files']").send_keys(url)
+    sleep(1)
+    context.driver.find_element_by_css_selector("[ng-click='request_map_from_urls_to_files()']").click()
 
 @when("after we wait for {x} seconds")
 @then("after we wait for {x} seconds")

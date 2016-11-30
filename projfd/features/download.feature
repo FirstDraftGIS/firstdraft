@@ -5,9 +5,10 @@ Feature: Download
         When we start with a link to <url>
          And after we wait for 60 seconds
         Then we should see a map
+         And we click download
          And we should be able to download a CSV
          And we should be able to download a GeoJSON
-         #And we should be able to download a Shapefile
+         And we should be able to download a Shapefile
 
         Examples: urls
             | url |
