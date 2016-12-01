@@ -8,6 +8,10 @@ def run():
     with open("/home/usrfd/firstdraft/projfd/appfd/scripts/datasets.txt") as f:
         for line in f.read().splitlines():
             if not line.startswith("#") and line:
-                load(line)
+                try:
+                    load(line)
+                except Exception as e:
+                    print "CAUGHT EXCEPTION trying to load " + line
+                    print e
 
     print "finishing loadDatasets"

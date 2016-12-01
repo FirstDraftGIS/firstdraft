@@ -32,9 +32,10 @@ from zipfile import is_zipfile
 from django.utils.crypto import get_random_string
 
 def get_matching_place(fields):
+  try:
     print "\nstarting get_matching_place with", fields
     # look up place and see if one is nearby or whatever
-    matches_via_name_and_cc = Place.objects.filter(name=fields['name'], country_code=fields['country_code'])
+    matches_via_name_and_cc = Place.objects.filter(name=fields['name'], country_code=fields['country_code']) if "country_code" in fields else None
     if matches_via_name_and_cc:
         print "\tmatches via name and country code:", matches_via_name_and_cc
 
@@ -82,11 +83,14 @@ def get_matching_place(fields):
                     return matches_via_distance.distance(fields['point']).order_by('distance')
 
         # should probably do something with levenstein distance filter and edit distance filter
-
         
     print "no matches"
+  except Exception as e:
+    print "CAUGHT exception in get_matching_place with:", e
+    raise e
 
 def get_values_list(layer, field, max_errors=0.05):
+  try:
     number_of_features = len(layer)
     values = []
     errors = 0
@@ -96,22 +100,6 @@ def get_values_list(layer, field, max_errors=0.05):
             value = feature.get(field)
         except DjangoUnicodeDecodeError as e:
             errors += 1
-            continue
-            """
-            for encoding in ["utf-8", "ISO8859", "CP1251"]:
-                #feature._encoding = encoding
-                value = feature[field]
-                setattr(value._feat, "encoding", encoding)
-                value["_feat.encoding"] = value["_feat.encoding"]._replace(v=encoding)
-                value = value.as_string()
-                print "value:", value
-                raw_input()
-        #        try:
-        #            value = force_text(string, encoding=self._feat.encoding, strings_only=True)
-        #        except Exception as e:
-        #            print e
-        print "value:", value
-           """
         if isinstance(value, str):
             value.append(value.decode("utf-8").lower())
         elif isinstance(value, unicode):
@@ -122,6 +110,9 @@ def get_values_list(layer, field, max_errors=0.05):
         raise Exception("Hit Max Errors on get_values_list")
 
     return values
+  except Exception as e:
+    print "CAUGHT EXCEPTION IN get_values_list:", e
+    raise e
  
 
 
@@ -397,6 +388,7 @@ def download(url, path_to_directory):
 
 @superfy
 def run(path):
+  try:
     print "starting load.run with ", path
     admin_level = None
     country_code = None
@@ -638,3 +630,6 @@ def run(path):
                     print "CAUGHT EXCEPTION on feature", i, "|", feature
                     print e
                     #raw_input()
+
+  except Exception as e:
+    print "CAUGHT EXCEPTION in load:", e
