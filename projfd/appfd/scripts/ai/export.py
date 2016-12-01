@@ -1,6 +1,10 @@
 from appfd.models import Feature
 from appfd.scripts.ai.predict import get_df_from_features
+from datetime import datetime
+from os.path import dirname, realpath
 from pandas import DataFrame
+
+path_to_directory_of_this_file = dirname(realpath(__file__))
 
 # used to create csv that other fdgis instances can read in to train their models
 def run():
@@ -13,8 +17,10 @@ def run():
 
         dataFrame = DataFrame(data=data)
         
-        path_to_csv = "/tmp/fdgis_data.txt"
+        path_to_csv = path_to_directory_of_this_file + "/data/" + datetime.now().isoformat() + ".csv"
         dataFrame.to_csv(path_to_csv, sep="\t")
+
+        print "saved data to ", path_to_csv
 
     except Exception as e:
         print e

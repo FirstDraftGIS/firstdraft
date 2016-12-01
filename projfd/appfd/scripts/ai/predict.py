@@ -3,9 +3,11 @@ from collections import Counter
 from datetime import datetime
 from decimal import Decimal
 from django.db import connection
-from numpy import array, ndarray
+from numpy import array, float64, int64, ndarray
+from numpy import bool as numpy_bool
+from os import listdir
 from os.path import dirname, realpath
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 from random import choice, shuffle
 from shutil import rmtree
 from sklearn import datasets, metrics
@@ -16,6 +18,7 @@ from tensorflow.contrib.layers import bucketized_column, crossed_column, embeddi
 from tempfile import mkdtemp
 
 PATH_TO_DIRECTORY_OF_THIS_FILE = dirname(realpath(__file__))
+PATH_TO_DIRECTORY_OF_INPUT_DATA = PATH_TO_DIRECTORY_OF_THIS_FILE + "/data/input"
 MODEL_DIR = PATH_TO_DIRECTORY_OF_THIS_FILE + "/classifier"
 
 CATEGORICAL_COLUMNS = ["admin_level", "country_code", "edit_distance", "has_mpoly", "has_pcode", "is_country", "is_highest_population", "is_lowest_admin_level", "matches_topic"]
@@ -106,13 +109,75 @@ def input_fn(d):
 def get_fake_df():
     return dict([(k, []) for k in COLUMNS])
 
+def get_df_from_features(features):
+
+    df = get_fake_df()
+    add_features_to_df(df, features)
+    return df
+
+def add_features_to_df(df, features):
+
+    # data frame for training
+    for index, feature in enumerate(features):
+
+        fid = feature['id']
+        fpid = feature['featureplace__id']
+
+        feature_admin_levels = set([f['featureplace__place__admin_level'] for f in features if f['featureplace__place__admin_level'] and f['id'] == fid])
+        if feature_admin_levels:
+            lowest_admin_level = min(feature_admin_levels)
+        else:
+            lowest_admin_level = -99
+
+        population = feature['featureplace__place__population']
+        is_highest_population = population and population == max([f['featureplace__place__population'] for f in features if f['id'] == fid]) or False
+
+        place_id = feature['featureplace__place_id']
+        admin_level = feature['featureplace__place__admin_level']
+        df['admin_level'].append(str(admin_level or "None"))
+        df['cluster_frequency'].append(feature['featureplace__cluster_frequency'] or 0)
+        df['country_code'].append(feature['featureplace__place__country_code'] or "None") 
+        df['country_rank'].append(feature['featureplace__country_rank'] or 999) 
+        df['has_mpoly'].append(str(feature['featureplace__place__mpoly'] is not None))
+        df['has_pcode'].append(str(feature['featureplace__place__pcode'] is not None)) 
+        df['is_country'].append(str(admin_level == 0))
+        df['is_lowest_admin_level'].append(str(lowest_admin_level == admin_level))
+        df['is_highest_population'].append(str(is_highest_population))
+        df['edit_distance'].append("0")
+        df['median_distance'].append(feature['featureplace__median_distance'] or 9999 )
+        df['matches_topic'].append(str(feature['topic_id'] == feature["featureplace__place__topic_id"]) if feature['topic_id'] else "False")
+        df['population'].append(int(population or 0))
+        df['popularity'].append(int(feature['featureplace__popularity'] or 0))
+        df['correct'].append(1 if feature['featureplace__correct'] else 0)
+
+def get_df_from_csv(path_to_csv):
+    d = {}
+    real_df = read_csv(path_to_csv, sep="\t")
+    for column_name in real_df:
+        # ignore columns we no longer use
+        if column_name in COLUMNS:
+            print "ED column_name:", column_name
+            column = real_df[column_name]
+            values = list(real_df[column_name].values)
+            if column_name == "country_code":
+                values = [unicode(v) for v in values]
+            elif column_name == "edit_distance":
+                values = [str(v) for v in values]
+            elif column.dtype == numpy_bool:
+                values = [str(v) for v in values]
+            elif column.dtype == int64:
+                values = [int(v) for v in values]
+            elif column.dtype == float64:
+                values = [float(v) for v in values]
+
+            d[column_name] = values
+    return d
+
+
 def train():
     try:
 
         start = datetime.now()
-
-        df_train = get_fake_df()
-        df_test = get_fake_df()
 
         print "starting appbkto.scripts.predict.train"
         connection.close()
@@ -132,89 +197,32 @@ def train():
 
         number_of_features = len(features)
 
-        try:
+        print "training with real data"
 
-            print "training with real data"
+        print "shuffle the features"
+        shuffle(features)
 
-            print "shuffle the features"
-            shuffle(features)
+        half = number_of_features / 2
+        print "half is", half
 
-            half = number_of_features / 2
-            print "half is", half
+        df_train = get_df_from_features(features[:half])
+        df_test = get_df_from_features(features[half:])
 
-            # data frame for training
-            for index, feature in enumerate(features[:half]):
-
-                fid = feature['id']
-                fpid = feature['featureplace__id']
-
-                feature_admin_levels = set([f['featureplace__place__admin_level'] for f in features if f['featureplace__place__admin_level'] and f['id'] == fid])
-                if feature_admin_levels:
-                    lowest_admin_level = min(feature_admin_levels)
-                else:
-                    lowest_admin_level = -99
-
-                population = feature['featureplace__place__population']
-                is_highest_population = population and population == max([f['featureplace__place__population'] for f in features if f['id'] == fid]) or False
-                
-
-                place_id = feature['featureplace__place_id']
-                admin_level = feature['featureplace__place__admin_level']
-                df_train['admin_level'].append(str(admin_level or "None"))
-                df_train['cluster_frequency'].append(feature['featureplace__cluster_frequency'] or 0)
-                df_train['country_code'].append(feature['featureplace__place__country_code'] or "None") 
-                df_train['country_rank'].append(feature['featureplace__country_rank'] or 999) 
-                df_train['has_mpoly'].append(str(feature['featureplace__place__mpoly'] is not None))
-                df_train['has_pcode'].append(str(feature['featureplace__place__pcode'] is not None)) 
-                df_train['is_country'].append(str(admin_level == 0))
-                df_train['is_lowest_admin_level'].append(str(lowest_admin_level == admin_level))
-                df_train['is_highest_population'].append(str(is_highest_population))
-                df_train['edit_distance'].append("0")
-                df_train['median_distance'].append(feature['featureplace__median_distance'] or 9999 )
-                df_train['matches_topic'].append(str(feature['topic_id'] == feature["featureplace__place__topic_id"]) if feature['topic_id'] else "False")
-                df_train['population'].append(int(population or 0))
-                df_train['popularity'].append(int(feature['featureplace__popularity'] or 0))
-                df_train['correct'].append(1 if feature['featureplace__correct'] else 0)
-
-            # data frame for testing
-            for index, feature in enumerate(features[half:]):
-
-                fid = feature['id']
-                fpid = feature['featureplace__id']
-
-                feature_admin_levels = set([f['featureplace__place__admin_level'] for f in features if f['featureplace__place__admin_level'] and f['id'] == fid])
-                if feature_admin_levels:
-                    lowest_admin_level = min(feature_admin_levels)
-                else:
-                    lowest_admin_level = -99
-
-                population = feature['featureplace__place__population']
-                is_highest_population = population and population == max([f['featureplace__place__population'] for f in features if f['id'] == fid]) or False
+        for filename in listdir(PATH_TO_DIRECTORY_OF_INPUT_DATA):
+            print "filename for import :", filename
+            if filename.endswith(".csv"):
+                df = get_df_from_csv(PATH_TO_DIRECTORY_OF_INPUT_DATA + "/" + filename)
+                #print "loaded", filename, "into", df
+                half = len(df.values()[0]) / 2
+                print "half:", half
+                for column_name in df:
+                    if type(df_train[column_name][0]) != type(df[column_name][0]):
+                        print "mismatch type for ", column_name
+                        print "type(df_train[column_name][0]):", type(df_train[column_name][0])
+                        print "type(df[column_name][:half][0]):", type(df[column_name][0])
+                    df_train[column_name] = df[column_name][:half]
+                    df_test[column_name] = df[column_name][half:]
  
-
-                place_id = feature['featureplace__place_id']
-                admin_level = feature['featureplace__place__admin_level']
-                df_test['admin_level'].append(str(feature['featureplace__place__admin_level'] or "None"))
-                df_test['cluster_frequency'].append(feature['featureplace__cluster_frequency'] or 0)
-                df_test['country_code'].append(feature['featureplace__place__country_code'] or "None") 
-                df_test['country_rank'].append(feature['featureplace__country_rank'] or 999) 
-                df_test['has_mpoly'].append(str(feature['featureplace__place__mpoly'] is not None))
-                df_test['has_pcode'].append(str(feature['featureplace__place__pcode'] is not None)) 
-                df_test['is_country'].append(str(admin_level == 0))
-                df_test['is_lowest_admin_level'].append(str(lowest_admin_level == admin_level))
-                df_test['is_highest_population'].append(str(is_highest_population))
-                df_test['edit_distance'].append("0")
-                df_test['median_distance'].append(feature['featureplace__median_distance'] or 9999 )
-                df_test['matches_topic'].append(str(feature['topic_id'] == feature["featureplace__place__topic_id"]) if feature['topic_id'] else "False")
-                df_test['population'].append(int(feature['featureplace__place__population'] or 0))
-                df_test['popularity'].append(int(feature['featureplace__popularity'] or 0))
-                df_test['correct'].append(1 if feature['featureplace__correct'] else 0)
-
-        except Exception as e:
-            print e
-
-        print("add in dummy data")
-
         print "fitting"
         try:
             classifier.fit(input_fn=lambda: input_fn(df_train), steps=200)
