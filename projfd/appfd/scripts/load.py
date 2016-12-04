@@ -71,7 +71,7 @@ def get_matching_place(fields):
         if matches_via_distance:
             print "matches_via_distance:", matches_via_distance
             if "admin_level" in fields and fields['admin_level']:
-                matches_via_admin_level = matches_inside_mpoly.filter(admin_level=fields['admin_level'])
+                matches_via_admin_level = matches_via_distance.filter(admin_level=fields['admin_level'])
                 if matches_via_admin_level:
                     print "\tmatches_via_admin_level:", matches_via_admin_level
                     return matches_via_admin_level.distance(fields['point']).order_by('distance')[0]
