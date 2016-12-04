@@ -7,10 +7,13 @@ from django.contrib.gis.geos.prototypes.threadsafe import GEOSFunc
 import psycopg2
 from datetime import datetime
 from subprocess import call, check_output
-from sys import exit
+from sys import argv, exit
 
 start = datetime.now()
 print "starting loadGeoNames at ", start
+
+dry_run = int(argv[1]) if len(argv) == 2 and argv[1] == "dry run"  else None
+print "dry_run:", dry_run
 
 print "deleting all places",
 for table in ["appfd_alias", "appfd_alternatename", "appfd_place"]:
@@ -43,6 +46,9 @@ with open("/tmp/allCountries.txt", "r") as f:
         writer.writerow([ counter, admin_level or null, admin1_code or null, admin2_code or null, null, country_code or null, null, feature_class or null, feature_code or null, null, geonameid or null, null, null, name or null, null, point or null, population or null, null, null, timezone or null, null ])
         if counter % 100000 == 0:
              print counter, ":", str((datetime.now() - start).total_seconds()), "seconds so far"
+             if dry_run:
+                 print "it's a dry_run so don't load all places"
+                 break
       except Exception as e:
         print e
 
