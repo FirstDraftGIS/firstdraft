@@ -12,7 +12,7 @@ from sys import argv, exit
 start = datetime.now()
 print "starting loadGeoNames at ", start
 
-dry_run = int(argv[1]) if len(argv) == 2 and argv[1] == "dry run"  else None
+dry_run = int(argv[1]) if len(argv) == 2 and argv[1] == "dry-run"  else None
 print "dry_run:", dry_run
 
 print "deleting all places",
