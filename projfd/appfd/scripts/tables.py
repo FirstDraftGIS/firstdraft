@@ -1,4 +1,5 @@
 from appfd.models import Place
+from collections import Counter
 # nextRow
 # getTables
 
@@ -44,20 +45,28 @@ def clean(value):
 # erroneously assume that there is only one location column
 # rows are lists of lists
 def getLocationColumn(rows):
+
+    print "starting getLocationColumn"
+    print "with:", rows
+
     # looks quickly and see if keyword mentioned
     for column_index, value in enumerate(rows[0]):
         if str(value).lower().strip() in ('city','community','country','neighborhood','loc','locations','place','province'):
             print "found location column and returning", column_index
             return column_index
 
+    counter = Counter()
+    number_of_rows = len(rows)
     for column_index in range(len(rows[0])):
-        for row_index in range(1,3):
-            value = rows[row_index][column_index]
+        values = [rows[row_index][column_index] for row_index in range(1, number_of_rows)]
+        counter[column_index] = Place.objects.filter(name__in=values).distinct("name").count()
 
-            # assuming that place names can't be numbers
-            if not isinstance(value, float) or isinstance(value, int):
-                if Place.objects.filter(name=value).count() > 0:
-                    return column_index
+    print "counter:", counter
+    return counter.most_common(1)[0][0]
+
+        #    if not isinstance(value, float) or isinstance(value, int):
+        #        if Place.objects.filter(name=value).count() > 0:
+        #            return column_index
 
 # takes in a list of lists
 # each element in a list of column values
