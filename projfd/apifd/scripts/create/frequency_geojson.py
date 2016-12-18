@@ -27,14 +27,14 @@ def run(token):
 
         places_by_id = {}
 
-        print "features:", features
+        #print "features:", features
         for feature in features:
 
             fp = feature.featureplace_set.filter(correct=True).first()
             if fp: 
 
                 place = fp.place
-                print "place:", place
+                #print "place:", place
 
                 # not sure what to do once get to high admin levels like 4 and 5
                 for admin_level in range(2):
@@ -46,7 +46,7 @@ def run(token):
                         if place.country_code:
                             queryset = queryset.filter(country_code=place.country_code)
                         admin_polygon = queryset.filter(admin_level=admin_level, mpoly__contains=place.point).first()
-                        print "admin_polygon:", admin_polygon
+                        #print "admin_polygon:", admin_polygon
                         if admin_polygon:
                             counters[admin_level][admin_polygon.id] += feature.count or 1
                             places_by_id[admin_polygon.id] = admin_polygon

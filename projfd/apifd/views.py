@@ -138,6 +138,29 @@ def features(request, token):
 
     return HttpResponse(json.dumps({"edited": order.edited, "features": list_of_features}), content_type='application/json')
 
+def is_location_in_osm(request):
+    try:
+        print "starting is_location_in_osm"
+        if request.method == "POST":
+            if len(request.body.strip()) > 10:
+                d = json.loads(request.body)
+            elif request.POST:
+                d = request.POST
+
+            name = d['name']
+            countries = [d['country']] if 'country' in d else []
+
+            if resolve_via_osm(names=[name], countries=countries):
+                answer = True
+            else:
+                answer = False
+            return HttpResponse(json.dumps({"answer": answer}), content_type='application/json')
+        else:
+            return HttpResponse("Use POST, please.", content_type='application/json')
+ 
+    except Exception as e:
+        print e
+
 def ready(self, token): 
     try:
         complete = Order.objects.get(token=token).complete

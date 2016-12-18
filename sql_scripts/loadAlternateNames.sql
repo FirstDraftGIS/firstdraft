@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION
 
 loadAlternateName(name text, lang text, gid integer)
     
-RETURNS void AS '
+RETURNS void AS $$
 
     DECLARE
         aliasid int;
@@ -33,9 +33,9 @@ RETURNS void AS '
 
     BEGIN
 
-    aliasid := (SELECT id FROM appfd_alias WHERE alias = $$name$$ LIMIT 1);
+    aliasid := (SELECT id FROM appfd_alias WHERE alias = name LIMIT 1);
     IF aliasid IS NULL THEN
-        INSERT INTO appfd_alias (alias, language) VALUES ($$name$$, lang) RETURNING id INTO aliasid;
+        INSERT INTO appfd_alias (alias, language) VALUES (name, lang) RETURNING id INTO aliasid;
     END IF;
 
     placeid := (SELECT id FROM appfd_place WHERE geonameid = gid);
@@ -49,8 +49,7 @@ RETURNS void AS '
 
     END IF;
 
-END; '
-
+END; $$
 LANGUAGE PLPGSQL;
 
 DO $$DECLARE r record;

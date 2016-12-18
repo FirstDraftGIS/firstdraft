@@ -85,11 +85,20 @@ class bcolors:
 def fail(string):
     print(bcolors.FAIL + string + bcolors.ENDC)
 
+def halve(iterable):
+    half = len(iterable) / 2
+    return iterable[:half], iterable[half:]
+
 def info(string):
     print(bcolors.OKBLUE + string + bcolors.ENDC)
 
 def input_fn(d):
   try:
+
+    for column_name in COLUMNS:
+        if column_name not in d:
+            raise Exception(column_name + " not in d")
+
     num_rows = len(d['admin_level'])
     feature_cols = {}
     for k in CONTINUOUS_COLUMNS:
@@ -101,6 +110,8 @@ def input_fn(d):
             values=d[k],
             shape=[num_rows, 1])
     label = constant(d[LABEL_COLUMN])
+
+
     return feature_cols, label
   except Exception as e:
     fail("EXCEPTION in input_fn: " + str(e))
@@ -156,7 +167,6 @@ def get_df_from_csv(path_to_csv):
     for column_name in real_df:
         # ignore columns we no longer use
         if column_name in COLUMNS:
-            print "ED column_name:", column_name
             column = real_df[column_name]
             values = list(real_df[column_name].values)
             if column_name == "country_code":
@@ -172,7 +182,6 @@ def get_df_from_csv(path_to_csv):
 
             d[column_name] = values
     return d
-
 
 def train():
     try:
@@ -202,28 +211,40 @@ def train():
         print "shuffle the features"
         shuffle(features)
 
-        half = number_of_features / 2
-        print "half is", half
-
-        df_train = get_df_from_features(features[:half])
-        df_test = get_df_from_features(features[half:])
+        features_for_training, features_for_testing = halve(features)
+        df_train = get_df_from_features(features_for_training)
+        print "len(feauters_for_training):", len(features_for_training)
+        print "len(feauters_for_testing):", len(features_for_testing)
+        df_test = get_df_from_features(features_for_testing)
 
         for filename in listdir(PATH_TO_DIRECTORY_OF_INPUT_DATA):
             print "filename for import :", filename
             if filename.endswith(".csv"):
                 df = get_df_from_csv(PATH_TO_DIRECTORY_OF_INPUT_DATA + "/" + filename)
-                #print "loaded", filename, "into", df
-                half = len(df.values()[0]) / 2
-                print "half:", half
                 for column_name in df:
-                    if type(df_train[column_name][0]) != type(df[column_name][0]):
+                    column = df[column_name]
+                    if type(df_train[column_name][0]) != type(column[0]):
                         print "mismatch type for ", column_name
                         print "type(df_train[column_name][0]):", type(df_train[column_name][0])
-                        print "type(df[column_name][:half][0]):", type(df[column_name][0])
-                    df_train[column_name] = df[column_name][:half]
-                    df_test[column_name] = df[column_name][half:]
+
+                    for_training, for_testing = halve(column)
+                    print "len(for_testing):", len(for_testing)
+                    if column_name in df_train:
+                        df_train[column_name].extend(for_training)
+                    else:
+                        df_train[column_name] = for_training
+
+                    if column_name in df_test:
+                        df_test[column_name].extend(for_testing)
+                    else:
+                        df_test[column_name] = for_testing
  
+
+        for column_name in COLUMNS:
+            print column_name, "\t", [v for v in df_train[column_name] if isinstance(v, type(None)) or isinstance(v, list)]
+
         print "fitting"
+        print "keys:", df_train.keys()
         try:
             classifier.fit(input_fn=lambda: input_fn(df_train), steps=200)
         except Exception as e:
@@ -237,6 +258,7 @@ def train():
 
     except Exception as e:
         fail("EXCEPTION in ai.predict.train: " + str(e))
+        raise(e)
 
 def run(geoentities):
 

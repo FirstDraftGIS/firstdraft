@@ -62,7 +62,7 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
         #cleaning name a little just to play it safe; sometimes have blank depending on extract method
         name = location['name'] = location['name'].strip()
         #skipping over places with commas and parentheses in them.. because won't find in db anyway... probably need more longterm solution like escape quoting in psql
-        if name and not any(char in name for char in [',', ')', '(', '?', "'", '"']): 
+        if name and not any(char in name for char in [',', ')', '(', '?', "'", '"', "}", "{"]): 
             names.append(name)
             name_location[name] = location
             if "context" in location:
@@ -100,15 +100,17 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
 
 
 
-    print "statement:\n", statement
+    #print "statement:\n", statement
     cursor.execute(statement)
     #print "executed"
 
     geoentities = [GeoEntity(row) for row in cursor.fetchall()]
+    print "created geoentities"
 
     if admin1codes:
+        print "admin1codes:", admin1codes
         geoentities = [g for g in geoentities if g.admin1code in admin1codes]
-
+        print "filtered by admin1codes"
 
     print "filtering out geoentities that don't match admin1 code if there is an admin1 code match"
     for location in locations:
@@ -116,7 +118,8 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
             name = location['name']
             admin1code = location['admin1code'] 
             if admin1code:
-                print "name:", name
+                try:print "name:", name
+                except: pass
                 print "admin1code:", admin1code
                 # are there any in geoentities that match
                 matches = []
