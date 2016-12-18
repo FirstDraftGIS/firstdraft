@@ -21,7 +21,7 @@ PATH_TO_DIRECTORY_OF_THIS_FILE = dirname(realpath(__file__))
 PATH_TO_DIRECTORY_OF_INPUT_DATA = PATH_TO_DIRECTORY_OF_THIS_FILE + "/data/input"
 MODEL_DIR = PATH_TO_DIRECTORY_OF_THIS_FILE + "/classifier"
 
-CATEGORICAL_COLUMNS = ["admin_level", "country_code", "edit_distance", "has_mpoly", "has_pcode", "is_country", "is_highest_population", "is_lowest_admin_level", "matches_topic"]
+CATEGORICAL_COLUMNS = ["admin_level", "country_code", "edit_distance", "feature_class", "feature_code", "has_mpoly", "has_pcode", "is_country", "is_highest_population", "is_lowest_admin_level", "matches_topic"]
 CONTINUOUS_COLUMNS = ["cluster_frequency", "country_rank", "median_distance", "population", "popularity"]
 LABEL_COLUMN = "correct"
 COLUMNS = sorted(CATEGORICAL_COLUMNS + CONTINUOUS_COLUMNS) + [LABEL_COLUMN]
@@ -34,6 +34,9 @@ cluster_frequency_buckets = bucketized_column(cluster_frequency, boundaries=[0, 
 country_code = sparse_column_with_hash_bucket("country_code", hash_bucket_size=500)
 country_rank = real_valued_column("country_rank")
 edit_distance = sparse_column_with_keys(column_name="edit_distance", keys=["0", "1", "2"])
+feature_class = sparse_column_with_hash_bucket("feature_class", hash_bucket_size=100)
+feature_code = sparse_column_with_hash_bucket("feature_code", hash_bucket_size=1000)
+country_code = sparse_column_with_hash_bucket("country_code", hash_bucket_size=500)
 has_pcode = sparse_column_with_keys(column_name="has_pcode", keys=["True", "False"])
 has_mpoly = sparse_column_with_keys(column_name="has_mpoly", keys=["True", "False"])
 is_country = sparse_column_with_keys(column_name="is_country", keys=["True", "False"])
@@ -149,6 +152,8 @@ def add_features_to_df(df, features):
         df['cluster_frequency'].append(feature['featureplace__cluster_frequency'] or 0)
         df['country_code'].append(feature['featureplace__place__country_code'] or "None") 
         df['country_rank'].append(feature['featureplace__country_rank'] or 999) 
+        df['feature_class'].append(feature['featureplace__place__feature_class'] or "None") 
+        df['feature_code'].append(feature['featureplace__place__feature_code'] or "None") 
         df['has_mpoly'].append(str(feature['featureplace__place__mpoly'] is not None))
         df['has_pcode'].append(str(feature['featureplace__place__pcode'] is not None)) 
         df['is_country'].append(str(admin_level == 0))
@@ -190,7 +195,7 @@ def train():
 
         print "starting appbkto.scripts.predict.train"
         connection.close()
-        features = list(Feature.objects.filter(verified=True).values("id","featureplace__id","featureplace__place__admin_level","featureplace__correct","featureplace__place_id","featureplace__cluster_frequency","featureplace__place__country_code","featureplace__country_rank","featureplace__place__mpoly","featureplace__place__pcode","featureplace__popularity","featureplace__place__population","featureplace__median_distance","featureplace__place__topic_id","topic_id"))
+        features = list(Feature.objects.filter(verified=True).values("id","featureplace__id","featureplace__place__admin_level","featureplace__correct","featureplace__place_id","featureplace__cluster_frequency","featureplace__place__country_code","featureplace__country_rank","featureplace__place__mpoly","featureplace__place__pcode","featureplace__popularity","featureplace__place__population","featureplace__median_distance","featureplace__place__topic_id","topic_id","featureplace__place__feature_code", "featureplace__place__feature_class"))
         print "features:", type(features), len(features)
 
         rmtree(MODEL_DIR, ignore_errors=True)
@@ -302,6 +307,8 @@ def run(geoentities):
             df['country_code'].append(geoentity.country_code or "UNKNOWN")
             df['country_rank'].append(geoentity.country_rank or 999)
             df['edit_distance'].append(str(geoentity.edit_distance))
+            df['feature_class'].append(str(geoentity.feature_class or "None"))
+            df['feature_code'].append(str(geoentity.feature_code or "None"))
             df['has_mpoly'].append(str(geoentity.has_mpoly or False))
             df['has_pcode'].append(str(geoentity.has_pcode or False))
             df['is_country'].append(str(admin_level == 0))
