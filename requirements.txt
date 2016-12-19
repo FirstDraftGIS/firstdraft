@@ -18,7 +18,7 @@ gensim
 geojson
 language-detector
 location-extractor
-marionette_client
+marionette_client==3.2.0
 mod_wsgi
 nltk
 numpy
