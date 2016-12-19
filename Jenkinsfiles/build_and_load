@@ -11,6 +11,10 @@ node('ec2') {
   stage "Load"
   sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/load_dry_run.sh -O /tmp/load_dry_run.sh'
   sh 'sudo bash /tmp/load_dry_run.sh'
+  
+  stage "Save"
+  sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/save.sh -O /tmp/save.sh'
+  sh 'sudo bash /tmp/save.sh'
 }
 
 echo "finishing Jenkinsfile build_and_load"
