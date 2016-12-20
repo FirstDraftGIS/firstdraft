@@ -16,6 +16,7 @@ django-sendfile
 editdistance
 gensim
 geojson
+html5lib
 language-detector
 location-extractor
 marionette_client==3.2.0
