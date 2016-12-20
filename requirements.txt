@@ -19,6 +19,7 @@ geojson
 html5lib
 language-detector
 location-extractor
+lxml
 marionette_client==3.2.0
 mod_wsgi
 nltk
