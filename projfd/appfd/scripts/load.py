@@ -35,28 +35,28 @@ def get_matching_place(fields):
   try:
     print "\nstarting get_matching_place with", fields
     # look up place and see if one is nearby or whatever
-    matches_via_name_and_cc = Place.objects.filter(name=fields['name'], country_code=fields['country_code']) if "country_code" in fields else None
+    matches_via_name_and_cc = Place.objects.filter(name=fields['name'], country_code=fields['country_code']).distinct() if "country_code" in fields else None
     if matches_via_name_and_cc:
         print "\tmatches via name and country code:", matches_via_name_and_cc
 
         # match via same exact point
-        matches_via_point = matches_via_name_and_cc.filter(point=fields['point'])
+        matches_via_point = matches_via_name_and_cc.filter(point=fields['point']).distinct()
         if matches_via_point:
             print "\tmatches_via_point:", matches_via_point
             if fields['admin_level']:
-                matches_via_admin_level = matches_via_point.filter(admin_level=fields['admin_level'])
+                matches_via_admin_level = matches_via_point.filter(admin_level=fields['admin_level']).distinct()
                 if matches_via_admin_level:
                     print "\tmatches_via_admin_level:", matches_via_admin_level
                     return matches_via_admin_level[0]
             else:
-                matches_with_admin_level_3 = matches_via_point.filter(admin_level=3)
+                matches_with_admin_level_3 = matches_via_point.filter(admin_level=3).distinct()
                 if matches_with_admin_level_3:
                     return matches_with_admin_level_3[0]
                 else:
                     return matches_via_point[0]
 
         if 'mpoly' in fields and fields['mpoly']:
-            matches_inside_mpoly = matches_via_name_and_cc.filter(point__within=fields['mpoly'])
+            matches_inside_mpoly = matches_via_name_and_cc.filter(point__within=fields['mpoly']).distinct()
             if matches_inside_mpoly:
                 print "\tmatches inside mpoly:", matches_inside_mpoly
                 if 'admin_level' in fields and fields['admin_level']:
