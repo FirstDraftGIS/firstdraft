@@ -106,7 +106,13 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
     cursor.execute(statement)
     #print "executed"
 
-    geoentities = [GeoEntity(row) for row in cursor.fetchall()]
+    geoentities = []
+    for row in cursor.fetchall():
+        try:
+            geoentities.append(GeoEntity(row))
+        except Exception as e:
+            print "exception creating geoentity... skipping"
+    
     print "created " + str(len(geoentities)) + " geoentities"
 
     if admin1codes:
