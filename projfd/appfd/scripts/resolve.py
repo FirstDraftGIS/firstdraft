@@ -25,24 +25,28 @@ from time import sleep
 class GeoEntity(object):
 
     def __init__(self, row):
-        self.place_id = row[0]
-        self.admin_level = str(row[1])
-        self.country_code = row[2]
-        self.admin1code = row[3] or None
-        self.country_rank = row[4] or 999
-        self.target, self.edit_distance = row[5].split("--")
-        self.edit_distance = int(self.edit_distance)
-        self.place_name = row[6]
-        self.alias = row[7]
-        self.population = int(row[8] or 0)
-        self.point = GEOSGeometry(row[9])
-        topic_id = row[10]
-        self.topic_id = int(topic_id) if topic_id else None
-        self.has_mpoly = row[11] == "True"
-        self.has_pcode = row[12] == "True"
-        self.popularity = int(row[13])
-        self.feature_class = row[14]
-        self.feature_code = row[15]
+        try:
+            self.place_id = row[0]
+            self.admin_level = str(row[1])
+            self.country_code = row[2]
+            self.admin1code = row[3] or None
+            self.country_rank = row[4] or 999
+            self.target, self.edit_distance = row[5].split("--")
+            self.edit_distance = int(self.edit_distance)
+            self.place_name = row[6]
+            self.alias = row[7]
+            self.population = int(row[8] or 0)
+            self.point = GEOSGeometry(row[9])
+            topic_id = row[10]
+            self.topic_id = int(topic_id) if topic_id else None
+            self.has_mpoly = row[11] == "True"
+            self.has_pcode = row[12] == "True"
+            self.popularity = int(row[13])
+            self.feature_class = row[14]
+            self.feature_code = row[15]
+        except Exception as e:
+            print "EXCEPTION in GeoEntity.__init__:", e
+            raise e
 
 # takes in a list of locations and resovles them to features in the database
 def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1codes=[]):
