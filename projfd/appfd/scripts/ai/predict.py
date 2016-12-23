@@ -3,7 +3,7 @@ from collections import Counter
 from datetime import datetime
 from decimal import Decimal
 from django.db import connection
-from numpy import array, float64, int64, ndarray
+from numpy import array, float64, int64, ndarray, mean
 from numpy import bool as numpy_bool
 from os import listdir
 from os.path import dirname, realpath
@@ -105,19 +105,28 @@ def input_fn(d):
     num_rows = len(d['admin_level'])
     feature_cols = {}
     for k in CONTINUOUS_COLUMNS:
+        print "k:", k
         feature_cols[k] = constant(d[k], dtype=tf.float32)
+    print "CONTINUOUS COLUMNS"
 
     for k in CATEGORICAL_COLUMNS:
+        print "k:", k
+        print "y:", len(d[k])
         feature_cols[k] = SparseTensor(
             indices=[[i, 0] for i in range(num_rows)],
             values=d[k],
             shape=[num_rows, 1])
+    print "CATEGORICAL COLUMNS:"
     label = constant(d[LABEL_COLUMN])
 
 
     return feature_cols, label
   except Exception as e:
     fail("EXCEPTION in input_fn: " + str(e))
+    info("Variables are:")
+    _locals = locals()
+    for k in _locals:
+        print k, ":", str(_locals[k])[:25]
 
 
 def get_fake_df():
@@ -226,14 +235,18 @@ def train():
             print "filename for import :", filename
             if filename.endswith(".csv"):
                 df = get_df_from_csv(PATH_TO_DIRECTORY_OF_INPUT_DATA + "/" + filename)
+                column_lengths = {"df_train": [], "df_test": []}
                 for column_name in df:
                     column = df[column_name]
-                    if type(df_train[column_name][0]) != type(column[0]):
+                    if len(df_train[column_name]) > 0 and type(df_train[column_name][0]) != type(column[0]):
                         print "mismatch type for ", column_name
                         print "type(df_train[column_name][0]):", type(df_train[column_name][0])
 
                     for_training, for_testing = halve(column)
-                    print "len(for_testing):", len(for_testing)
+                    print column_name, "len(for_testing):", len(for_testing)
+                    column_lengths['df_train'].append(len(for_training))
+                    column_lengths['df_test'].append(len(for_testing))
+
                     if column_name in df_train:
                         df_train[column_name].extend(for_training)
                     else:
@@ -243,6 +256,25 @@ def train():
                         df_test[column_name].extend(for_testing)
                     else:
                         df_test[column_name] = for_testing
+
+                # if a spare column has been added recently and isn't in the old exported data
+                # just fill in the testing and training frames with a bunch of "NONE"
+                # feature code and feature class are examples of this
+                for COLUMN in COLUMNS:
+                    if COLUMN not in df:
+                        column = globals()[COLUMN]
+                        if str(type(column)) == "<class 'tensorflow.contrib.layers.python.layers.feature_column._SparseColumnHashed'>":
+                            for_training = ["NONE"] * max(column_lengths['df_train'])
+                            if COLUMN in df_train:
+                                df_train[COLUMN].extend(for_training)
+                            else:
+                                df_train[COLUMN] = for_training
+
+                            for_testing = ["NONE"] * max(column_lengths['df_test'])
+                            if COLUMN in df_test:
+                                df_test[COLUMN].extend(for_testing)
+                            else:
+                                df_test[COLUMN] = for_testing
  
 
         for column_name in COLUMNS:
