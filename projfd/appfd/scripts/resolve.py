@@ -41,6 +41,8 @@ class GeoEntity(object):
         self.has_mpoly = row[11] == "True"
         self.has_pcode = row[12] == "True"
         self.popularity = int(row[13])
+        self.feature_class = row[14]
+        self.feature_code = row[15]
 
 # takes in a list of locations and resovles them to features in the database
 def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1codes=[]):
@@ -105,7 +107,7 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
     #print "executed"
 
     geoentities = [GeoEntity(row) for row in cursor.fetchall()]
-    print "created geoentities"
+    print "created " + str(len(geoentities)) + " geoentities"
 
     if admin1codes:
         print "admin1codes:", admin1codes
@@ -138,7 +140,10 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
 
     number_of_geoentities = len(geoentities)
 
-    #print "geoentities", type(geoentities), len(geoentities)
+    if number_of_geoentities == 0:
+        return False
+
+    print "geoentities", type(geoentities), len(geoentities)
 
     # calculate median distance from every other point
     #all_cords = [geoentity.point.coords for geoentity in geoentities]
@@ -157,6 +162,7 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
     #centroids = kmeans(all_coords, number_of_clusters)[0]
     #print "centroids:", centroids
     estimator = KMeans(n_clusters=number_of_clusters)
+    #print "all_coords:", all_coords
     estimator.fit(all_coords)
     labels = estimator.labels_
     cluster_count = Counter()
@@ -167,7 +173,7 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
         geoentities[i].cluster_frequency = cluster_frequency[labels[i]]
     
 
-    #print "target_geoentities:", len(target_geoentities)
+    print "number of target_geoentities:", len(target_geoentities)
     for target, options in target_geoentities.items():
         #print "target:", target
         for i, v in enumerate(median(cdist(target_coords[target], all_coords), axis=1)):
