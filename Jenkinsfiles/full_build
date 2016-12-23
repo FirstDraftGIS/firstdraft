@@ -1,6 +1,7 @@
-echo "starting Jenkinsfile build_and_load"
+echo "starting full build"
 
 def agent_name = ""
+
 
 node('ec2') {
   stage "Build"
@@ -9,11 +10,11 @@ node('ec2') {
   sh 'sudo bash /tmp/build.sh'
 
   stage "Load"
-  sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/load_dry_run.sh -O /tmp/load_dry_run.sh'
-  sh 'sudo bash /tmp/load_dry_run.sh'
+  sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/load.sh -O /tmp/load.sh'
+  sh 'sudo bash /tmp/load.sh'
 }
-
 agent_instance_id = agent_name.find(/i\-[a-z\d]+/)
+
 stage "Save"
 node('master') {
     echo "starting save"
@@ -23,4 +24,4 @@ node('master') {
     echo "ending save"
 }
 
-echo "finishing Jenkinsfile build_and_load"
+echo "finishing full build"

@@ -16,9 +16,11 @@ django-sendfile
 editdistance
 gensim
 geojson
+html5lib
 language-detector
 location-extractor
-marionette_client
+lxml
+marionette_client==3.2.0
 mod_wsgi
 nltk
 numpy
