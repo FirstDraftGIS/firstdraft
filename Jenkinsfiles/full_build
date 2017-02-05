@@ -8,17 +8,17 @@ node('ec2') {
   stage ("Build") {
     agent_name = env.NODE_NAME
     sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/build.sh -O /tmp/build.sh'
-    sh 'sudo bash /tmp/build.sh'
+    sh 'sudo -n bash /tmp/build.sh'
   }
 
   stage("Load") {
     sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/load.sh -O /tmp/load.sh'
-    sh 'sudo bash /tmp/load.sh'
+    sh 'sudo -n bash /tmp/load.sh'
   }
   
   stage("Train") {
     sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/train.sh -O /tmp/train.sh'
-    sh 'sudo bash /tmp/train.sh'
+    sh 'sudo -n bash /tmp/train.sh'
   }
   
 }
