@@ -8,6 +8,7 @@ node('ec2') {
   stage ("Build") {
     agent_name = env.NODE_NAME
     sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/build.sh -O /tmp/build.sh'
+    sh "whoami"
     sh 'sudo -n bash /tmp/build.sh'
   }
 
