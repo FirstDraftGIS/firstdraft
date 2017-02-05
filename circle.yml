@@ -3,7 +3,11 @@ machine:
 
   pre:
     - wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/build.sh -O /tmp/build.sh
-    - sudo -n bash /tmp/build.sh      
+    - sudo -n bash /tmp/build.sh
+    - wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/load.sh -O /tmp/load.sh
+    - sudo -n bash /tmp/load.sh
+    - wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/train.sh -O /tmp/train.sh
+    - sudo -n bash /tmp/train.sh
 
   timezone:
     America/New_York # Set the timezone
