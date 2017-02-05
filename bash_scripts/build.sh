@@ -9,7 +9,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confn
 #sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" dist-upgrade
 
 echo "INSTALLING SYSTEM PACKAGES"
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" install apache2 apache2-dev apache2-mpm-prefork apt-file build-essential cmake curl cython cython3 default-jdk default-jre fabric firefox gcc gfortran git libapache2-mod-wsgi libblas3 libboost-all-dev libc6 libcgal-dev libgdal1-dev libgeos-dev libgmp3-dev liblapack3 libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg libopenblas-dev libproj-dev libpq-dev maven nodejs npm postgresql postgresql-contrib postgresql-server-dev-all postgresql-9.6-postgis-2.3 python python-dev python-pip python-qgis python-virtualenv qgis subversion vim xvfb zip libxslt1-dev
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" install apache2 apache2-dev apache2-mpm-prefork apt-file build-essential cmake curl cython cython3 default-jdk default-jre fabric firefox gcc gfortran git libapache2-mod-wsgi libblas3 libboost-all-dev libc6 libcgal-dev libgdal1-dev libgeos-dev libgmp3-dev liblapack3 libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg libopenblas-dev libproj-dev libpq-dev maven nodejs npm postgresql postgresql-contrib postgresql-server-dev-all  '^postgresql-[0-9].[0-9]-postgis-[0-9].[0-9]$' python python-dev python-pip python-qgis python-virtualenv qgis subversion vim xvfb zip libxslt1-dev
 
 # hopefully this is only temporary
 # pip installation of numpy and scipy is throwing a UnicodeDecodeError
