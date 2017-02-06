@@ -3,12 +3,6 @@ set -o errexit
 
 echo "STARTING build.sh"
 
-echo "CREATING swapfile"
-sudo fallocate -l 8G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" update
 
 # commented this out because updating linux headers takes too long.. should just change AMI instead
