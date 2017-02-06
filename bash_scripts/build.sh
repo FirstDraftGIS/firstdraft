@@ -84,9 +84,11 @@ sudo -H -u usrfd bash -c "cd /home/usrfd/venv/bin && tar -xvzf geckodriver-v0.11
 sudo -H -u usrfd bash -c "rm /home/usrfd/venv/bin/geckodriver-v0.11.1-linux64.tar.gz"
 
 echo "INSTALLING PYTHON PACKAGES"
-sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -r /home/usrfd/firstdraft/requirements.txt --quiet --upgrade"
+sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -r /home/usrfd/firstdraft/requirements.txt --upgrade"
 # have to install scikit-learn separately because need to have NumPy and SciPy installed first
+echo "INSTALL SCIKIT LEARN"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install scikit-learn"
+echo "PRINTING PIP LIST"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip list"
 sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python -c 'import nltk; nltk.download(\"stopwords\")'"
 
