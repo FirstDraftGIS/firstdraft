@@ -3,9 +3,6 @@ set -o errexit
 
 echo "STARTING build.sh"
 
-sudo swapoff -a
-sudo rm /swapfile
-
 sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" update
 
 # commented this out because updating linux headers takes too long.. should just change AMI instead
