@@ -3,7 +3,7 @@ echo "starting full build"
 def agent_name = ""
 
 
-node('agent') {
+node('worker') {
   
   stage ("Build") {
     agent_name = env.NODE_NAME
