@@ -109,7 +109,10 @@ sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
 sudo chown "www-data":"www-data" -R /home/usrfd/maps
 
 echo "SETTING UP APACHE" 
-sudo rm /var/log/apache2/*
+
+if [ -f sudo rm /var/log/apache2/* ] ; then
+    sudo rm /var/log/apache2/*
+fi
 sudo a2enmod wsgi
 sudo cp /home/usrfd/firstdraft/fd.conf /etc/apache2/sites-available/fd.conf
 if [ -f /etc/apache2/sites-enabled/fd.conf ] ; then
