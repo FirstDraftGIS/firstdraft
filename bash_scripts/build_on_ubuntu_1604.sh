@@ -112,7 +112,9 @@ echo "SETTING UP APACHE"
 sudo rm /var/log/apache2/*
 sudo a2enmod wsgi
 sudo cp /home/usrfd/firstdraft/fd.conf /etc/apache2/sites-available/fd.conf
-sudo rm /etc/apache2/sites-enabled/fd.conf
+if [ -f /etc/apache2/sites-enabled/fd.conf ] ; then
+    sudo rm /etc/apache2/sites-enabled/fd.conf
+fi
 sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.conf
 sudo service apache2 restart
 
