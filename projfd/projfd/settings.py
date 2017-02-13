@@ -153,3 +153,6 @@ SENDFILE_URL = '/maps'
 
 #://pythonhosted.org/django-guardian/configuration.html 
 ANONYMOUS_USER_ID = -1
+
+#http://python-social-auth.readthedocs.io/en/latest/configuration/django.html
+SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'email']
