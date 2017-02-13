@@ -7,7 +7,7 @@ node('worker') {
   
   stage ("Build") {
     agent_name = env.NODE_NAME
-    sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/build_ubuntu_1604.sh -O /tmp/build.sh'
+    sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/build_on_ubuntu_1604.sh -O /tmp/build.sh'
     sh "whoami"
     sh 'sudo -n bash /tmp/build.sh'
   }
