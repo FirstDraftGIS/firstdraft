@@ -111,10 +111,12 @@ sudo chown "www-data":"www-data" -R /home/usrfd/maps
 echo "SETTING UP APACHE" 
 
 #http://stackoverflow.com/questions/31318068/shell-script-to-remove-a-file-if-it-already-exist
-[ -e /var/log/apache2/* ] && sudo rm /var/log/apache2/*
+if [ -f "/var/log/apache2/*" ] ; then
+    sudo rm "/var/log/apache2/*"
+fi
 sudo a2enmod wsgi
 sudo cp /home/usrfd/firstdraft/fd.conf /etc/apache2/sites-available/fd.conf
-if [ -f /etc/apache2/sites-enabled/fd.conf ] ; then
+if [ -f "/etc/apache2/sites-enabled/fd.conf" ] ; then
     sudo rm /etc/apache2/sites-enabled/fd.conf
 fi
 sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.conf
