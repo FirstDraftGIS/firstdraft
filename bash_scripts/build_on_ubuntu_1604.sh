@@ -110,7 +110,7 @@ sudo chown "www-data":"www-data" -R /home/usrfd/maps
 
 echo "SETTING UP APACHE" 
 
-if [ -f sudo rm /var/log/apache2/* ] ; then
+if [ -f /var/log/apache2/* ] ; then
     sudo rm /var/log/apache2/*
 fi
 sudo a2enmod wsgi
