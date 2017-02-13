@@ -50,7 +50,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'django_extensions',
-    'social.apps.django_app.default',
+    'social_django',
     'mod_wsgi.server',
     'rest_framework',
     'appfd',
@@ -74,9 +74,9 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'projfd.urls'
 
 AUTHENTICATION_BACKENDS = (
-   'social.backends.facebook.FacebookOAuth2',
-   'social.backends.google.GoogleOAuth2',
-   'social.backends.twitter.TwitterOAuth',
+   'social_core.backends.facebook.FacebookOAuth2',
+   'social_core.backends.google.GoogleOAuth2',
+   'social_core.backends.twitter.TwitterOAuth',
    'django.contrib.auth.backends.ModelBackend',
 )
 
