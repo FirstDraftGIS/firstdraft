@@ -5,9 +5,6 @@ echo "starting save"
 
 echo "agent_instance_id: $agent_instance_id"
 
-# install awscli which allows us to run commands that start with aws
-pip install --upgrade --user awscli
-
 function wait_until_image_is_created {
   echo "starting wait_until_image_is_created with $1"
   while true; do
