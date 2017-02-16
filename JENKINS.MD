@@ -18,6 +18,10 @@ Here's the script signatures that you'll have to approve:
 staticMethod org.codehaus.groovy.runtime.DefaultGroovyMethods find java.lang.String java.lang.String
 ```
 
+Install AWS Command Line Interface, which is used by save to execute aws command
+```
+sudo apt-get install awscli
+```
 
 You may have to run the following depending on your setup.
 - Connect to the Jenkins Server
