@@ -31,7 +31,7 @@ stage("Save") {
     echo "starting save"
     env.agent_instance_id = agent_instance_id
     sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/save.sh -O /tmp/save.sh'
-    sh "bash /tmp/save.sh"
+    sh "sudo -n bash /tmp/save.sh"
     echo "ending save"
   }
 
