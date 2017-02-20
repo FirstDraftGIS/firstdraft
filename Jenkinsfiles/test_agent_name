@@ -6,7 +6,7 @@ node('worker') {
   
   stage ("Build") {
     agent_name = env.NODE_NAME
-    sh "we are just running something on this worker, so we can test grabbing its NODE_NAME, which is synonymous with agent_name"
+    sh "echo 'we are just running something on this worker, so we can test grabbing its NODE_NAME, which is synonymous with agent_name'"
   }
   
 }
