@@ -10,6 +10,7 @@ node('worker') {
   }
   
 }
+echo "agent_name: ${agent_name}"
 agent_instance_id = agent_name.find(/i\-[a-z\d]+/)
 
 stage("Save") {
