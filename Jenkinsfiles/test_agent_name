@@ -17,15 +17,15 @@ echo "agent_instance_id: ${agent_instance_id}"
 stage("Save") {
 
   node('master') {
-    withEnv(['agent_instance_id=${agent_instance_id}']) {
+    withEnv(['agent_instance_id=blablabla']) {
       echo "starting save"
       echo "In save, agent_instance_id is ${agent_instance_id}."
       sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/print_agent_instance_id.sh -O /tmp/print_agent_instance_id.sh'
-      sh "sudo -n bash /tmp/print_agent_instance_id.sh"
+      sh "bash /tmp/print_agent_instance_id.sh"
       echo "ending save"
     }
   }
-
 }
+
 
 echo "finishing test_agent_name"
