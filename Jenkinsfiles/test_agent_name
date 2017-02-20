@@ -17,13 +17,12 @@ echo "agent_instance_id: ${agent_instance_id}"
 stage("Save") {
 
   node('master') {
-    environment {
-      agent_instance_id = agent_instance_id
+    withEnv(['agent_instance_id=${agent_instance_id}']) {
+      echo "starting save"
+      sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/save.sh -O /tmp/save.sh'
+      sh "sudo -n bash /tmp/save.sh"
+      echo "ending save"
     }
-    echo "starting save"
-    sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/save.sh -O /tmp/save.sh'
-    sh "sudo -n bash /tmp/save.sh"
-    echo "ending save"
   }
 
 }
