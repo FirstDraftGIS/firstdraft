@@ -167,13 +167,14 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
         target_coords[geoentity.target].append(geoentity.point.coords)
 
     #number_of_clusters =  max(3, number_of_locations/20)
-    number_of_clusters = 3
+    number_of_clusters = 3 if len(all_coords) >= 3 else len(all_coords)
     print "number_of_clusters:", number_of_clusters
     #centroids = kmeans(all_coords, number_of_clusters)[0]
     #print "centroids:", centroids
     estimator = KMeans(n_clusters=number_of_clusters)
     #print "all_coords:", all_coords
     estimator.fit(all_coords)
+    print "fit estimator"
     labels = estimator.labels_
     cluster_count = Counter()
     for cluster in labels:
