@@ -4,9 +4,6 @@ from django.contrib.auth.models import User, Group
 from django.contrib.gis import admin
 from appfd import views
 from django.conf import settings
-from wagtail.wagtailadmin import urls as wagtailadmin_urls
-from wagtail.wagtaildocs import urls as wagtaildocs_urls
-from wagtail.wagtailcore import urls as wagtail_urls
 import appfd, inspect
 
 #initialize urlpatterns
