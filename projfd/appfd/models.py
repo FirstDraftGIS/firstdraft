@@ -71,6 +71,17 @@ class Email(Model):
     address = EmailField(null=True, blank=True)
     entered = DateTimeField(auto_now_add=True)
 
+class MetaData(Model):
+    order = ForeignKey("Order")
+
+class MetaDataEntry(Model):
+    metadata = ForeignKey("Metadata")
+    key = CharField(max_length=255)
+    value = TextField(max_length=2000)
+
+    def __str__(self):
+        return "[" + str(self.metadata.id) + "] " + str(self.key)
+
 ### this is what consitutes the FeatureCollection of the map
 class Feature(Model):
     order = ForeignKey("Order")

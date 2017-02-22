@@ -1,7 +1,11 @@
 # In forms.py...
-from django import forms
+from django.forms import CharField, FileField, Form, URLField
 
-class UploadFileForm(forms.Form):
-    #upload_file = forms.FileField()
-    #token = forms.CharField()
-    pass
+class LinkForm(Form):
+    data = URLField()
+
+class TextForm(Form):
+    data = CharField()
+
+class FileForm(Form):
+    data = FileField()

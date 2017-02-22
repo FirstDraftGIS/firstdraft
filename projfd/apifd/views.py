@@ -1,7 +1,7 @@
 import appfd, json, geojson
 from .scripts.create.frequency_geojson import run as create_frequency_geojson
 from appfd.scripts import create_geojson, create_csv, create_shapefiles
-from appfd.models import Feature, FeaturePlace, Order, Place
+from appfd.models import Feature, FeaturePlace, MetaData, MetaDataEntry, Order, Place
 from collections import Counter
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -89,6 +89,15 @@ def frequency(request, token, admin_level):
     with open(path_to_geojson) as f:
         text = f.read()
     return HttpResponse(text)
+
+def metadata(request, token):
+    print "starting apifd.metadata with", token
+
+    list_of_metadata = []
+    for metaData in MetaData.objects.filter(order__token=token):
+        list_of_metadata.append(list(MetaDataEntry.objects.filter(metadata=metaData).values()))
+
+    return HttpResponse(json.dumps({"metadata": list_of_metadata}), content_type='application/json')
 
 def features(request, token):
     print "starting apifd.features with", token
