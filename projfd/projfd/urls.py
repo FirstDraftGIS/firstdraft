@@ -4,6 +4,9 @@ from django.contrib.auth.models import User, Group
 from django.contrib.gis import admin
 from appfd import views
 from django.conf import settings
+from wagtail.wagtailadmin import urls as wagtailadmin_urls
+from wagtail.wagtaildocs import urls as wagtaildocs_urls
+from wagtail.wagtailcore import urls as wagtail_urls
 import appfd, inspect
 
 #initialize urlpatterns
@@ -13,6 +16,7 @@ urlpatterns = []
 urlpatterns += [
     #url(r'^appfd/', include('appfd.urls')),
     url(r'^api/', include('apifd.urls')),
+    #url(r'^help/', include('help.urls')),
     url(r'^$', views.index, name="index"),
     #url(r'about$', views.about, name='about'),
     #url(r'activate/(?P<key>[^\./]+)$', views.activate, name='activate'),
@@ -24,13 +28,16 @@ urlpatterns += [
     url(r'^request_map_from_text$', views.request_map_from_text, name="request_map_from_text"),
     url(r'^request_map_from_urls_to_webpages$', views.request_map_from_urls_to_webpages, name="request_map_from_urls_to_webpages"),
     url(r'^request_map_from_urls_to_files$', views.request_map_from_urls_to_files, name="request_map_from_urls_to_files"),
+    url(r'^request_map_from_sources$', views.request_map_from_sources, name="request_map_from_sources"),
     url(r'^does_map_exist/(?P<job>[^/]+)/(?P<extension>[^/]+)$', views.does_map_exist, name='does_map_exist'),
+    url(r'^does_metadata_exist/(?P<job>[^/]+)/(?P<_type>[^/]+)$', views.does_metadata_exist, name='does_metadata_exist'),
     url(r'^disclaimers$', views.disclaimers, name='disclaimers'),
     #url(r'login/$', views.login, name='login'),
     #url(r'logout/', views.user_logout, name='logout'),
     url(r"^embed_frequency_map/(?P<job>[^/]+)$", views.embed_frequency_map_with_job, name="embed_frequency_map_with_job"),
     url(r"^iframe$", views.iframe, name="iframe"),
     url(r'^get_map/(?P<job>[^/]+)/(?P<extension>[^/]+)$', views.get_map, name='get_map'),
+    url(r'^get_metadata/(?P<job>[^/]+)/(?P<metadata_type>[^/]+)$', views.get_metadata, name='get_metadata'),
     url(r'^maps/(?P<job>[^/]+)$', views._map, name='_map'),
     url(r'^mission$', views.mission, name='mission'),
     #url(r'password_recovery$', views.password_recovery, name='password_recovery'),
