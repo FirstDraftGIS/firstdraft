@@ -72,7 +72,8 @@ def run(token):
                 properties['frequency'] = float(count) / total_count
 
                 # can probably make this more efficient by not just getting string representing of geometry and then converting back to Python obj
-                features.append(geojson.Feature(geometry=json.loads(place.mpoly.geojson), properties=properties))
+                if place.mpoly:
+                    features.append(geojson.Feature(geometry=json.loads(place.mpoly.geojson), properties=properties))
 
             featureCollection = geojson.FeatureCollection(features)
             
