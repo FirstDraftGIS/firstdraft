@@ -78,4 +78,5 @@ projfd/appfd/migrations/*
 projfd/appfd/scripts/ai/lsi/index
 projfd/appfd/scripts/ai/lsi/model
 projfd/appfd/scripts/ai/lsi/model.projection
+projfd/appfd/scripts/ai/lsi/dictionary
 projfd/appfd/scripts/ai/data/*

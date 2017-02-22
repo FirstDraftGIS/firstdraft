@@ -1,0 +1,69 @@
+{% extends "help/base.html" %}
+{% load staticfiles %}
+{% block content %}
+
+<div class="page-header">
+    <h1>API HELP</h1>
+</div>
+
+</br>
+
+<div style="max-width: 900px;">
+<div class="list-group">
+    <button type="button" class="list-group-item">Request Map from Text</button>
+</div>
+
+</br>
+
+    
+<h3>Request Map from Text</h3>
+<div class="panel panel-success">
+    <div class="panel-heading">POST&nbsp;/request_map_from_text</div>
+    <div class="panel-body">
+        <h4><b>Send Data</b></h4>
+        <div class="well">
+            <table class="table table-striped">
+                <thead>
+                    <th>Name</th>
+                    <th>Description</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>text</td>
+                        <td>This is the text that you want to geocode and make a map from</td>
+                    </tr> 
+                </tbody>
+            </table>
+        </div>
+
+        <h4><b>Return Text</b></h4>
+        <div class="well">
+            <table class="table table-striped">
+                <thead>
+                    <th>Name</th>
+                    <th>Description</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>key</td>
+                        <td>This is the key that is used to find your map after it's made</td>
+                    </tr> 
+                </tbody>
+            </table>
+        </div>
+
+        <h4><b>Example</b></h4>
+        <div class="well"><p>
+from python import requests
+data = {
+    "text": "I went to Georgia last week and had some great sweet tea!."
+}</p> 
+        </div>
+ 
+ 
+
+    </div>
+</div>
+</div>
+
+{% endblock %}

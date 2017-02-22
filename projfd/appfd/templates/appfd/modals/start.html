@@ -11,22 +11,13 @@
           <p><b>How would you like to start?</b></p>
           <table><tbody>
               <tr>
-                  <td ng-click="openModal('paste')">
-                      <p class="glyphicon glyphicon-paste"></p>
-                      <p>Paste Something You Copied</p>
+                  <td ng-click="close_all_modals_and_open('sources')">
+                      <p class="glyphicon glyphicon-plus-sign"></p>
+                      <p>Create a Map</p>
                   </td>
-                  <td ng-click="openModal('uploadFile')">
-                      <p class="glyphicon glyphicon-upload"></p>
-                      <p>Upload A File</p>
-                  </td>
-              </tr>
-                  <td ng-click="openModal('linkWebpage')">
-                      <p class="glyphicon glyphicon-link"></p>
-                      <p>Link to a Web Page</p>
-                  </td>
-                  <td ng-click="openModal('linkFile')">
-                      <p class="glyphicon glyphicon-file"></p>
-                      <p>Link to a File</p>
+                  <td ng-click="close_all_modals_and_open('uses')">
+                      <p class="glyphicon glyphicon-star"></p>
+                      <p>View Examples</p>
                   </td>
               </tr>
           </table></tbody>

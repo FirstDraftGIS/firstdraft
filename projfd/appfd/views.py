@@ -1,6 +1,9 @@
 from apifd.scripts.create.frequency_geojson import run as create_frequency_geojson
 from appfd import forms, models
+from appfd import cleaner
+from appfd.finisher import finish_order
 from appfd.forms import *
+from appfd.generator import generate_map_from_sources
 from appfd.models import *
 from appfd.scripts import excel, resolve, tables
 from appfd.scripts import create_csv, create_geojson, create_shapefiles
@@ -10,6 +13,7 @@ from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishTex
 from bs4 import BeautifulSoup
 from collections import Counter
 import csv
+from date_extractor import extract_date
 from datetime import datetime
 from docx import Document
 from django.conf import settings
@@ -32,6 +36,7 @@ from django.views.decorators.csrf import csrf_protect
 from itertools import groupby, islice
 import location_extractor
 from magic import from_file
+from metadata_extractor import is_metadata, extract_metadata, save_metadata
 from multiprocessing import Process
 from openpyxl import load_workbook
 from operator import itemgetter
@@ -50,6 +55,7 @@ from subprocess import call, check_output
 from super_python import superfy
 from urllib import quote, quote_plus, unquote, urlretrieve
 from openpyxl import load_workbook
+from zipfile import ZipFile
 #import sys
 
 
@@ -379,7 +385,7 @@ def register(request):
 def team(request):
     team_members = TeamMember.objects.all()
     return render(request, "appfd/team.html", {'team_members': team_members})
-
+   
 
 def generate_map_from_text(job):
 
@@ -392,17 +398,8 @@ def generate_map_from_text(job):
         text = job['text']
         countries = job['countries'] if "countries" in job else []
     
-        # basically this is a hack, so that if you paste in text
-        # it assumes everything that is capitalized could be a place
-        # is there something we can do here for Arabic?
-        names = [name for name in list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text))) if len(name) > 3]
-        print "names are", names
-        number_of_names = len(names)
-        print "number_of_names:", number_of_names
-        if number_of_names < 100:
-            location_extractor.load_non_locations()
-            names = [name for name in names if name not in location_extractor.nonlocations]
-            resolve_locations(location_extractor.extract_locations_with_context(text, names), order_id=job['order_id'], max_seconds=max_seconds, countries=countries)
+        locations = locations_from_text(text)
+        resolve_locations(locations, order_id=job['order_id'], max_seconds=max_seconds, countries=countries)
 
         finish_order(key)
 
@@ -416,6 +413,7 @@ def generate_map_from_urls_to_webpages(job):
     print "starting generate_map_from_links_to_urls with", job['key']
 
     key = job['key']
+    max_seconds = int(job['max_seconds']) if 'max_seconds' in job else 10
     countries = job['countries'] if 'countries' in job else []
     admin1limits = job['admin1limits'] if 'admin1limits' in job else []
     print "in gen, countries:", countries
@@ -513,15 +511,8 @@ def generate_map_from_urls_to_webpages(job):
         all_text += text
     print "all_text:", type(all_text)
 
-    names = [name for name in list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text))) if len(name) > 3]
-    print "names are", names
-    number_of_names = len(names)
-    print "number_of_names:", number_of_names
 
-    location_extractor.load_language_into_dictionary_of_keywords("English")
-    abbreviations = location_extractor.dictionary_of_keywords['English']['abbreviations']
-
-
+    names_from_tables = []
     tables = soup.select("table")
     for table in tables:
         rows = table.select("tr")
@@ -530,8 +521,9 @@ def generate_map_from_urls_to_webpages(job):
             header = [th.text for th in table.select("thead tr th")]
 
             #get location column
+            date_column_index = None
             location_column_index = None
-            state_column_index = None
+            admin1_column_index = None
             for column_index, head in enumerate(header):
                 head = head.strip().lower()
                 print "head:", [head]
@@ -539,23 +531,42 @@ def generate_map_from_urls_to_webpages(job):
                     location_column_index = column_index
                 elif head == "state":
                     admin1_column_index = column_index
+                elif "date" in head or "time" in head:
+                    date_column_index = column_index
             print "location_column_index:", location_column_index
             print "admin1_column_index:", admin1_column_index
+            print "date_column_index:", date_column_index
 
             for row in table.select("tbody tr"):
                 tds = [td.text for td in row.select("td")] 
-                print "tds:", tds
-                location = tds[location_column_index].strip()
-                admin1 = tds[admin1_column_index].strip()
+                #print "tds:", tds
+                d = {'count': 1}
+                d['name'] = name = tds[location_column_index].strip()
+                names_from_tables.append(name)
+                if admin1_column_index is not None:
+                    d['admin1code'] = tds[admin1_column_index].strip()
+                if date_column_index is not None:
+                    #date_string = tds[date_column_index].strip()
+                    #print "date_string:", date_string
+                    #extracted_date = extract_date(date_string)
+                    #print "extracted_date:", extracted_date
+                    d['date'] = extract_date(tds[date_column_index].strip())
 
-                #just try to directly resolve this location and if can't, then pass to ai
-                locations.append({"name": location, "count": 1, "admin1code": admin1})
+                locations.append(d)
 
             print "locations from html table:", locations
-           
 
+    #names = [name for name in list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text))) if len(name) > 3]
+    #print "names are", names[:10], "..."
+    #number_of_names = len(names)
+    #print "number_of_names:", number_of_names
+
+    location_extractor.load_language_into_dictionary_of_keywords("English")
+    abbreviations = location_extractor.dictionary_of_keywords['English']['abbreviations']
+
+    print "names_from_tables:", len(names_from_tables)
     # don't add it if already found it via table
-    for location in location_extractor.extract_locations_with_context(all_text):
+    for location in location_extractor.extract_locations_with_context(all_text, ignore_these_names=names_from_tables, debug=False, max_seconds=max_seconds-5):
         name = location['name']
         skip = False
         for l in locations:
@@ -563,8 +574,9 @@ def generate_map_from_urls_to_webpages(job):
                 skip = True
         if not skip:
             locations.append(location)
+    print "[VIEW]extracted_locations with text"
 
-    if not resolve_locations(locations, order_id=job['order_id'], max_seconds=10, countries=countries, admin1codes=admin1limits):
+    if not resolve_locations(locations, order_id=job['order_id'], max_seconds=max_seconds, countries=countries, admin1codes=admin1limits):
         print "no features, so try with selenium"
         all_text = ""
         for filename_and_url in filenames_and_urls:
@@ -572,7 +584,7 @@ def generate_map_from_urls_to_webpages(job):
             with open(directory + filename_and_url['filename'], "wb") as f:
                 f.write(text.encode("utf-8"))
             all_text += text
-        resolve_locations(location_extractor.extract_locations_with_context(all_text), order_id=job['order_id'], max_seconds=10, countries=countries, admin1codes=admin1limits)
+        resolve_locations(location_extractor.extract_locations_with_context(all_text, ignore_these_names=names_from_tables), order_id=job['order_id'], max_seconds=max_seconds-5, countries=countries, admin1codes=admin1limits)
 
     finish_order(key)
 
@@ -635,18 +647,6 @@ def generate_map_from_urls_to_files(job):
 
     finish_order(job['key'])
 
-def finish_order(key):
-
-    print "starting finish order with", key
-
-    for _method in create_geojson.run, create_frequency_geojson, create_shapefiles.run, create_csv.run:
-        Process(target=_method, args=(key,)).start()
-
-    from django.db import connection 
-    connection.close()
-    order = Order.objects.get(token=key).finish()
-    print "finished order", order
-
 def generate_map_from_file(job):
 
     try:
@@ -673,6 +673,60 @@ def generate_map_from_file(job):
 
     except Exception as e:
         print e
+
+def generate_metadata_from_file(job):
+    try:
+        key = job['key']
+        countries = job['countries'] if "countries" in job else []
+        directory = "/home/usrfd/maps/" + key + "/"
+        file_obj = job['file']
+        filename = job['filename'] if "filename" in job else file_obj.name
+        order_id = job['order_id']
+        print "order_id:", order_id
+        try:
+            order = Order.objects.get(id=order_id)
+            print "order:", order
+        except Exception as e:
+            print "COULDN'T GET ORDER", e
+        if 'filepath' not in job:
+            # make directory to store file and maps
+            mkdir(directory)
+
+            filepath = directory + "/" + filename
+            print "filepath = ", filepath
+
+            # save file to disk
+            with open(filepath, 'wb+') as destination:
+                for chunk in file_obj.chunks():
+                    destination.write(chunk)
+            print "wrote file"
+
+        metadata = extract_metadata(file_obj)
+        print "metadata:", metadata
+        print "directory:", directory
+
+        print "order_id:", order_id
+        for d in metadata:
+            metadata_id = MetaData.objects.create(order_id=order_id).id
+            for k, v in d.items():
+                MetaDataEntry.objects.create(metadata_id=metadata_id, key=k, value=v)
+
+        save_metadata(metadata, _format="ISO 19115-2", path_to_dir=directory)
+
+        with ZipFile(directory + key + "_metadata.zip", 'w') as zipped_shapefile:
+            for filename in listdir(directory):
+                if filename.split(".")[-1] == "xml":
+                    path_to_file = directory + filename
+                    zipped_shapefile.write(path_to_file, filename)
+
+        print "ABOUT TO FINISH ORDER"
+        try:
+            finish_order(job['key'])
+        except Exception as e:
+            print "CAUGHT EXCEPTION trying to finish_order:", e
+        
+    except Exception as e:
+        print "CAUGHT ERROR in generate_metadata_from_file", e
 
 def generate_map_from_pdf(job):
 
@@ -887,6 +941,21 @@ def does_map_exist(request, job, extension):
         print e
         return HttpResponse("no")
 
+def does_metadata_exist(request, job, _type="iso_19115_2"):
+    print "starting does_metadata_exist with", job, _type
+    try:
+        if _type == "iso_19115_2":
+            if isfile("/home/usrfd/maps/" + job + "/" + job + "_metadata.zip"):
+                return HttpResponse("yes")
+            else:
+                return HttpResponse("no")
+    except Exception as e:
+        print "CAUGHT EXCEPTION IN does_metadata_exist:", e
+        return HttpResponse("no")
+
+#
+
+
 #basically looks for the directory that corresponds to the job
 # and returns whatever file in their that ends with geojson
 def get_map(request, job, extension):
@@ -920,6 +989,24 @@ def get_map(request, job, extension):
   except Exception as e:
     print e
 
+def get_metadata(request, job, metadata_type="iso_19115_2"):
+    try:
+        print "starting get_metadata with", job, metadata_type
+        path_to_directory = "/home/usrfd/maps/" + job + "/"
+
+        # should auto-verify metadata at this point
+
+        if metadata_type == "iso_19115_2":
+            filename = job + "_metadata.zip"
+            abspath = path_to_directory + filename
+
+            with open(abspath, "rb") as zip_file:
+                response = HttpResponse(zip_file, content_type='application/force-download')
+                response['Content-Disposition'] = 'attachment; filename="%s"' % filename
+                return response
+
+    except Exception as e:
+        print e
 
 def request_map_from_text(request):
     try:
@@ -957,15 +1044,20 @@ def request_map_from_urls_to_webpages(request):
             from django.db import connection
             connection.close()
             data = loads(request.body)
+            max_time = int(data['max_time']) if 'max_time' in data else 10
             job = {
                 'urls': data['urls'],
+                'max_seconds': max_time,
                 'key': key,
                 'order_id': order_id
             }
             if "countries" in data:
                 job['countries'] = data["countries"]
             if "admin1limits" in data:
-                job['admin1limits'] = data['admin1limits']
+                admin1limits = data['admin1limits']
+                if isinstance(admin1limits, str) or isinstance(admin1limits, unicode):
+                    admin1limits = [admin1limits]
+                job['admin1limits'] = admin1limits
             print "job:", job
             Process(target=generate_map_from_urls_to_webpages, args=(job,)).start()
             return HttpResponse(job['key'])
@@ -1034,7 +1126,11 @@ def request_map_from_file(request):
                         countries = countries[0].split(",")
                     job['countries'] = countries
                 print "job is", job
-                Process(target=generate_map_from_file, args=(job,)).start()
+                ### will have to remove once separate metadata into own option
+                if is_metadata(request.FILES['file']):
+                    Process(target=generate_metadata_from_file, args=(job,)).start()
+                else:
+                    Process(target=generate_map_from_file, args=(job,)).start()
                 return HttpResponse(job['key'])
             else:
                 print form.errors
@@ -1044,6 +1140,66 @@ def request_map_from_file(request):
 
     except Exception as e:
         print "e is", e
+
+
+def locations_from_text(text):
+    # basically this is a hack, so that if you paste in text
+    # it assumes everything that is capitalized could be a place
+    # is there something we can do here for Arabic?
+    names = [name for name in list(set(findall("(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}", text))) if len(name) > 3]
+    print "names are", names
+    number_of_names = len(names)
+    print "number_of_names:", number_of_names
+    if number_of_names < 100:
+        location_extractor.load_non_locations()
+        names = [name for name in names if name not in location_extractor.nonlocations]
+        return location_extractor.extract_locations_with_context(text, names)
+
+def request_map_from_sources(request):
+
+    try:
+        print "starting upload_file"
+        if request.method == 'POST':
+            # need to add a way, so can upload advanced options
+            #print "request.FILES", type(request.FILES['source_1_data'])
+            cleaned = cleaner.clean(request.POST, request.FILES)
+            print "cleaned:", cleaned
+            if cleaned:
+                key = get_random_string(25)
+                order_id = Order.objects.create(token=key).id
+                from django.db import connection 
+                connection.close()
+                sources = cleaned['sources']
+                job = {
+                    'sources': sources,
+                    'key': key,
+                    'order_id': order_id
+                }
+                if "countries" in cleaned:
+                    job['countries'] = cleaned['countries']
+
+               
+                data = []
+                metadata = []
+                print "sources:", sources
+                for source in sources:
+                    if is_metadata(source['data']):
+                        print "is metadata"
+                        metadata.append(source)
+                    else:
+                        print "is NOT metadata"
+                        data.append(source)
+
+                print "data:", data
+                print "metadata:", metadata
+
+                Process(target=generate_map_from_sources, args=(job, data, metadata)).start()
+
+                return HttpResponse(job['key'])
+                
+    except Exception as e:
+        print e
+ 
 
 def view_frequency_map(request, job):
     return render(request, "appfd/view_frequency_map.html", {'job': job})

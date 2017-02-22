@@ -1,0 +1,43 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+    {% block head %}
+    <head>
+        <meta charset="utf-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>First Draft</title>
+            {% include "appfd/css.html" %}
+            <script src="{% static 'js/external/underscore.min.js' %}"></script>
+            <script src="{% static 'js/external/jquery.min.js' %}"></script>
+            <script src="{% static 'js/external/jquery-ui.min.js' %}"></script>
+            <script src="{% static 'js/external/angular.min.js' %}"></script>
+            <script src="{% static 'js/external/bootstrap.min.js' %}"></script>
+            <script src="{% static 'js/external/ui-bootstrap.min.js' %}"></script>
+            <link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
+            <link rel="apple-touch-icon" sizes="57x57" href="{% static 'img/logo.png' %}">
+            <link rel="apple-touch-icon" sizes="60x60" href="{% static 'img/logo.png' %}">
+            <link rel="apple-touch-icon" sizes="72x72" href="{% static 'img/logo.png' %}">
+            <link rel="apple-touch-icon" sizes="76x76" href="{% static 'img/logo.png' %}">
+            <link rel="apple-touch-icon" sizes="114x114" href="{% static 'img/logo.png' %}">
+            <link rel="apple-touch-icon" sizes="120x120" href="{% static 'img/logo.png' %}">
+            <link rel="apple-touch-icon" sizes="144x144" href="{% static 'img/logo.png' %}">
+            <link rel="apple-touch-icon" sizes="152x152" href="{% static 'img/logo.png' %}">
+            <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/logo.png' %}">
+            <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}" sizes="32x32">
+            <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}" sizes="192x192">
+            <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}" sizes="96x96">
+            <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}" sizes="16x16">
+            <meta name="msapplication-TileColor" content="#da532c">
+            <meta name="msapplication-TileImage" content="{% static 'img/logo.png' %}">
+            <meta name="theme-color" content="#ffffff">
+    </head>
+    {% endblock %}
+    <body>
+        {% include "help/header.html" %}
+        <div style="max-width: 900px; padding: 15px;"> 
+        {% block content %}
+        {% endblock %}
+        </div>
+    </body>
+</html>

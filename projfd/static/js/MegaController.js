@@ -1,13 +1,20 @@
 //collect modals
 modals = {};
-["start", "paste", "uploadFile", "linkFile", "linkWebpage", "download", "help", "fix", "load"].forEach(function(id) {
-    modals[id] = $("#" + id + "Modal");
+
+modals_as_jquery_elements = $(".modal");
+
+modals_as_jquery_elements
+.each(function(id, element) {
+    modals[element.id.replace("Modal","")] = $(element);
+})
+.on("shown.bs.modal", function() {
+    // had to do this hack because bootstrap doesn't enable scrolling on modal when activated by JavaScript
+    $("body").addClass("modal-open");
 });
 
+
 function close_all_modals () {
-    for (var modal in modals) {
-       modals[modal].modal('hide');
-    }
+    modals_as_jquery_elements.modal("hide");
 }
 
 // has to be initiated by a user gesture
@@ -44,7 +51,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     console.log("starting MegaController");
 
-
+    //$scope.sources = [];
+    //$scope.sources = [{type: 'text', text: '12234567890asdfghjkl'}, {type: 'file', file:null}, {type: 'link', link: 'https://bbc.com/news/world-middle-east-19744533'}];
+    $scope.sources = [{type: 'link', data: 'https://bbc.com/news/world-middle-east-19744533'}];
     $scope.show_advanced_options = false;
 
     $scope.patterns = {
@@ -57,16 +66,80 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         modals[id].modal('hide');
     };
 
-    $scope.openModal = function(id) {
-        console.log("starting openModal with", id);
-        modals.start.modal('hide');
+    navbar_collapse = $(".navbar-collapse");
+    $scope.open_modal = function(id) {
         modals[id].modal('show');
-        $(".navbar-collapse").collapse('hide');
+        navbar_collapse.collapse('hide');
+    };
+
+    $scope.close_all_modals_and_open = function(id) {
+        close_all_modals();
+        $scope.open_modal(id);
+    };
+
+    $scope.getClassForTypeOfSource = function(type) {
+        switch(type) {
+            case 'file':
+                return 'glyphicon-file';
+            case 'link':
+                return 'glyphicon-link';
+            case 'text':
+                return 'glyphicon-text-size';
+        }
+    };
+
+
+    $("#file-to-add").change(function(event){
+        var files = event.target.files;
+        if (files.length > 0) {
+            var file = event.target.files[0];
+        
+            $scope.sources.push({
+                type: "file",
+                data: file,
+                name: file.name
+            });
+            $scope.$apply(); // updates view like contentinit in Angular 2
+            $scope.close_all_modals_and_open("sources");
+        }
+   });
+
+
+    $scope.add = {
+        links: function() {
+            console.log("link");
+            if ($scope.text_of_links_to_add && $scope.text_of_links_to_add.length > 0) {
+                $scope.text_of_links_to_add.split("\n").forEach(function(line) {
+                    if (line && line.length > 5) {
+                        var link = line.trim();
+                        if (!link.startsWith("http")) {
+                            link = "http://" + link;
+                        }
+                        $scope.sources.push({
+                            type: "link",
+                            data: link
+                        });
+                    }
+                });
+                $scope.text_of_links_to_add = "";
+                $scope.close_all_modals_and_open("sources");
+            }
+        },
+        text: function() {
+            if ($scope.text_to_add && $scope.text_to_add.length > 0) {
+                $scope.sources.push({
+                    type: "text",
+                    data: $scope.text_to_add
+                });
+                $scope.text_to_add = "";
+                $scope.close_all_modals_and_open("sources");
+            }
+        }
     };
 
 
     $scope.push_polygons_back = function() {
-        _.values(map._layers).filter(function(layer){
+        _.values(map._layers).forEach(function(layer){
             if (layer && layer._latlngs) {
                 layer.bringToBack();
             }
@@ -84,89 +157,34 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.check_downloadability_of_extension("csv");
         $scope.check_downloadability_of_extension("geojson");
         $scope.check_downloadability_of_extension("shp");
+        $scope.check_downloadability_of_metadata("iso_19115_2");
     };
 
-    $scope.start_text = "";
-    $scope.request_map_from_text = function() {
-        $scope.openModal("load");
-        var data = {
-            'max_time': $scope.max_time,
-            'text': $scope.start_text
-        };
-        if($scope.countries) data.countries = $scope.countries.split(",").map(function(c){return c.trim();});
-        if($scope.admin1limits) data.admin1limits = $scope.admin1limits.split(",").map(function(c){return c.trim();});
-        $http.post('/request_map_from_text', data).then(function(response) {
-            console.log("response is", response);
-            $scope.job = response.data;
-            $scope.process_job();
-            $scope.get_features_when_ready();
-        });
-        $scope.start_text = "";
-        $scope.clear_everything();
-        modals.paste.modal('hide');
-        //requestFullScreen();
-    };
 
-    $scope.request_map_from_file = function() {
-        $scope.openModal("load");
-        // thx https://uncorkedstudios.com/blog/multipartformdata-file-upload-with-angularjs
-        var fd = new FormData();
-        fd.append('file', $scope.start_file);
-        fd.append('max_time', $scope.max_time);
-        if($scope.countries) fd.append("countries", $scope.countries.split(",").map(function(c){return c.trim();}));
-        if($scope.admin1limits) data.admin1limits = $scope.admin1limits.split(",").map(function(c){return c.trim();});
-        $http.post('/request_map_from_file', fd, {
-            transformRequest: angular.identity,
-            headers: {'Content-Type': undefined}
-        }).then(function(response) {
-            $scope.job = response.data;
-            $scope.process_job();
-            $scope.get_features_when_ready();
-        }); 
-        $scope.clear_everything();
-        $scope.clear_everything();
-        modals.uploadFile.modal('hide');
-        //requestFullScreen();
-    };
+    $scope.generate = function() {
+        if ($scope.sources.length > 0) {
+            $scope.close_all_modals_and_open("load");
+            if($scope.countries) data.countries = $scope.countries.split(",").map(function(c){return c.trim();});
+            if($scope.admin1limits) data.admin1limits = $scope.admin1limits.split(",").map(function(c){return c.trim();});
 
-    $scope.request_map_from_urls_to_webpages = function() {
-        console.log("starting request_map_from_urls_to_webpages");
-        $scope.openModal("load");
-        var data = {
-            'max_time': $scope.max_time,
-            'urls': $scope.urls_to_webpages.split("\n").filter(Boolean)
-        };
-        if($scope.countries) data.countries = $scope.countries.split(",").map(function(c){return c.trim();});
-        if($scope.admin1limits) data.admin1limits = $scope.admin1limits.split(",").map(function(c){return c.trim();});
-        $http.post('/request_map_from_urls_to_webpages', data).then(function(response) {
-            console.log("Response is", response);
-            $scope.job = response.data;
-            $scope.process_job();
-            $scope.get_features_when_ready();
-        });
-        $scope.clear_everything();
-        modals.linkWebpage.modal('hide');
-        //requestFullScreen();
-    };
+            // thx https://uncorkedstudios.com/blog/multipartformdata-file-upload-with-angularjs
+            var formData = new FormData();
+            formData.append('max_time', $scope.max_time);
 
-    $scope.request_map_from_urls_to_files = function() {
-        console.log("starting request_map_from_urls_to_files");
-        $scope.openModal("load");
-        var data = {
-            'max_time': $scope.max_time,
-            'urls': $scope.urls_to_files.split("\n").filter(Boolean)
-        };
-        if($scope.countries) data.countries = $scope.countries.split(",").map(function(c){return c.trim();});
-        if($scope.admin1limits) data.admin1limits = $scope.admin1limits.split(",").map(function(c){return c.trim();});
-        $http.post('/request_map_from_urls_to_files', data).then(function(response) {
-            console.log("Response is", response);
-            $scope.job = response.data;
-            $scope.process_job();
-            $scope.get_features_when_ready();
-        });
-        $scope.clear_everything();
-        modals.linkFile.modal('hide');
-        //requestFullScreen();
+            $scope.sources.forEach(function(source, index) {
+                formData.append("source_" + index + "_type", source.type);
+                formData.append("source_" + index + "_data", source.data);
+            });
+
+            $http.post('/request_map_from_sources', formData, {
+                transformRequest: angular.identity,
+                headers: {'Content-Type': undefined}
+            }).then(function(response) {
+                $scope.job = response.data;
+                $scope.process_job();
+                $scope.get_map_when_ready();
+            });
+        }
     };
 
     $scope.features = [];
@@ -177,9 +195,6 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.fixModal = $(document.getElementById("fixModal"));
     $scope.loadModal = $(document.getElementById("loadModal"));
     $scope.max_time = 10;
-    //$('#download_link_csv').href = '/get_map/' + job + '/csv';
-    //$('#download_link_geojson').href = '/get_map/' + job + '/geojson';
-    //$('#download_link_shp').href = '/get_map/' + job + '/zip';
 
     map = L.map('map', {"fullscreenControl": true});
 
@@ -248,12 +263,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         console.log("starting setStyleForRowItem with", rowItem);
     }
 
-    $scope.get_features_when_ready = function() {
-        console.log("starting get_features_when_ready");
-        
-
+    $scope.get_map_when_ready = function() {
+        console.log("starting get_map_when_ready");
         function stop() { $interval.cancel(request);};
-
         var request = $interval( function(){
             console.log("checking if", $scope.job, "is ready"); 
             $http.get('/api/ready/' + $scope.job).then(function(response) {
@@ -261,10 +273,10 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
                 if (response.data === "ready") {
                     stop();
                     $scope.getFeatures();
+                    $scope.getMetaData();
                 }
             });
         }, 2000);
-
     };
 
     $scope.check_downloadability_of_extension = function(extension) {
@@ -284,6 +296,27 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             });
         }, 2000);
     }; 
+
+    $scope.check_downloadability_of_metadata = function(metadata) {
+        return;
+        function stop() { $interval.cancel(request); };
+
+        var request = $interval( function(){
+            console.log("checking downloadability of metadata", $scope.job, metadata);
+            document.getElementById("download_metadata_link_" + metadata).href = window.location.origin + "/get_metadata/" + $scope.job + "/" + metadata;
+            $http.get('/does_metadata_exist/' + $scope.job + "/" + metadata).then(function(response) {
+                console.log("got response", response);
+                if (response.data === "yes") {
+                    stop();
+                    $scope["ready_to_download_metadata_" + metadata] = true;
+                } else {
+                    $scope["ready_to_download_metadata_" + metadata] = false;
+                }
+            });
+        }, 2000);
+    }; 
+
+
 
 
     $scope.fixLocationUsingTheMap = fixLocation = function(feature) {
@@ -422,11 +455,15 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     };
 
     $scope.getFeatures = function() {
-        console.log("starting getFeatures");
         $http.get(window.location.origin + "/api/features/" + $scope.job).then(function(response) {
-            console.log("response:", response);
             $scope.features = response.data.features;
             $scope.loadFeatures();
+        });
+    };
+
+    $scope.getMetaData = function() {
+        $http.get(window.location.origin + "/api/metadata/" + $scope.job).then(function(response) {
+            $scope.metadata = response.data.metadata;
         });
     };
 
@@ -490,9 +527,6 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         console.log("selection:", $scope.selection);
         $scope.fixModal.modal();
     };
-
-
-
 
 
     $scope.editDropdownOptionsFunction = function(rowEntity, columnDef) {
@@ -580,7 +614,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     if (window.location.hash) {
         $scope.job = window.location.hash.replace("#","");
         $scope.process_job();
-        $scope.get_features_when_ready();
+        $scope.get_map_when_ready();
     } else {
         modals.start.modal();
     }
