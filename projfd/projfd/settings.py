@@ -29,8 +29,8 @@ TEMPLATES = [{
             "django.template.context_processors.static",
             "django.template.context_processors.tz",
             "django.contrib.messages.context_processors.messages",
-            'social.apps.django_app.context_processors.backends',
-            'social.apps.django_app.context_processors.login_redirect'
+            "social_django.context_processors.backends",
+            "social_django.context_processors.login_redirect"
         ]
     },
 },]
@@ -50,7 +50,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'django_extensions',
-    'social.apps.django_app.default',
+    'social_django',
     'mod_wsgi.server',
     'rest_framework',
     'appfd',
@@ -74,9 +74,9 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'projfd.urls'
 
 AUTHENTICATION_BACKENDS = (
-   'social.backends.facebook.FacebookOAuth2',
-   'social.backends.google.GoogleOAuth2',
-   'social.backends.twitter.TwitterOAuth',
+   'social_core.backends.facebook.FacebookOAuth2',
+   'social_core.backends.google.GoogleOAuth2',
+   'social_core.backends.twitter.TwitterOAuth',
    'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -153,3 +153,6 @@ SENDFILE_URL = '/maps'
 
 #://pythonhosted.org/django-guardian/configuration.html 
 ANONYMOUS_USER_ID = -1
+
+#http://python-social-auth.readthedocs.io/en/latest/configuration/django.html
+SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'email']

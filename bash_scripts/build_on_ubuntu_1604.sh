@@ -9,7 +9,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confn
 #sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" dist-upgrade
 
 echo "INSTALLING SYSTEM PACKAGES"
-sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" install apache2 apache2-dev apache2-mpm-prefork apt-file build-essential cmake curl cython cython3 default-jdk default-jre fabric firefox gcc gfortran git libapache2-mod-wsgi libatlas-base-dev libblas3 libblas-dev liblapack-dev libboost-all-dev libc6 libcgal-dev libgdal1-dev libgeos-dev libgmp3-dev liblapack3 libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg libopenblas-dev libproj-dev libpq-dev maven nodejs npm postgresql postgresql-contrib postgresql-server-dev-all  '^postgresql-[0-9].[0-9]-postgis-[0-9].[0-9]$' python python-dev python-pip python-qgis python-virtualenv qgis subversion vim xvfb zip libxslt1-dev
+sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" install apache2 apache2-dev apt-file build-essential cmake curl cython cython3 default-jdk default-jre fabric firefox gcc gfortran git libapache2-mod-wsgi libatlas-base-dev libblas3 libblas-dev liblapack-dev libboost-all-dev libc6 libcgal-dev libgdal1-dev libgeos-dev libgmp3-dev liblapack3 libmpfr-dev libmpfr-doc libmpfr4 libmpfr4-dbg libopenblas-dev libproj-dev libpq-dev maven nodejs npm postgresql postgresql-contrib postgresql-server-dev-all  '^postgresql-[0-9].[0-9]-postgis-[0-9].[0-9]$' python python-dev python-pip python-qgis python-virtualenv qgis subversion vim xvfb zip libxslt1-dev
 
 # hopefully this is only temporary
 # pip installation of numpy and scipy is throwing a UnicodeDecodeError
@@ -109,10 +109,16 @@ sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
 sudo chown "www-data":"www-data" -R /home/usrfd/maps
 
 echo "SETTING UP APACHE" 
-sudo rm /var/log/apache2/*
+
+#http://stackoverflow.com/questions/31318068/shell-script-to-remove-a-file-if-it-already-exist
+if [ -f "/var/log/apache2/*" ] ; then
+    sudo rm "/var/log/apache2/*"
+fi
 sudo a2enmod wsgi
 sudo cp /home/usrfd/firstdraft/fd.conf /etc/apache2/sites-available/fd.conf
-sudo rm /etc/apache2/sites-enabled/fd.conf
+if [ -f "/etc/apache2/sites-enabled/fd.conf" ] ; then
+    sudo rm /etc/apache2/sites-enabled/fd.conf
+fi
 sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.conf
 sudo service apache2 restart
 

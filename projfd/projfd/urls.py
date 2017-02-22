@@ -50,7 +50,7 @@ urlpatterns += [
     url(r'thanks/', views.thanks, name='thanks'),
     url(r'view_map/(?P<job>[^/]+)', views.view_map, name='view_map'),
     url(r'view_frequency_map/(?P<job>[^/]+)', views.view_frequency_map, name='view_frequency_map'),
-    url('', include('social.apps.django_app.urls', namespace='social')),
+    url('', include('social_django.urls', namespace='social')),
     url('', include('django.contrib.auth.urls', namespace='auth'))
 ]
 
