@@ -27,7 +27,9 @@ sudo apt-get install awscli
 ```
 
 ### Configure AWS
+We have to first log in as the tomcat user because that user runs Jenkins
 ```
+sudo su tomcat
 sudo aws configure
 ```
 
