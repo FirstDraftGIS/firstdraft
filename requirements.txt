@@ -47,3 +47,4 @@ stop-words
 super_python
 tensorflow
 titlecase
+validators
