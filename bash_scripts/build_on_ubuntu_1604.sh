@@ -25,6 +25,9 @@ sudo npm install npm -g;
 # if node command not found link it to existing nodejs command
 if [ ! -f /usr/bin/node ]; then sudo ln -s /usr/bin/nodejs /usr/bin/node; fi
 
+echo "INSTALLING GULP"
+sudo npm install gulp-cli -g
+
 echo "SETTING UP DATABASE"
 sudo service postgresql restart
 
