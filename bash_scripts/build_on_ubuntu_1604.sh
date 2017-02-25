@@ -125,4 +125,8 @@ fi
 sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.conf
 sudo service apache2 restart
 
+echo "Add Aliases"
+echo "alias a='sudo su usrfd'" >> ~/.bashrc
+sudo -u usrfd bash -c "echo \"alias a='cd ~/ && source venv/bin/activate && cd firstdraft/projfd'\" >> /home/usrfd/.bashrc"
+
 echo "FINISHING build.sh"
