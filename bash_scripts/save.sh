@@ -1,7 +1,8 @@
 # abort script if any problems 
 set -o errexit
 
-echo "starting save"
+echo "starting save as user"
+whoami
 
 echo "agent_instance_id: $agent_instance_id"
 
