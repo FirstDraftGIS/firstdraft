@@ -91,6 +91,11 @@ sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate
 # have to install scikit-learn separately because need to have NumPy and SciPy installed first
 echo "INSTALL SCIKIT LEARN"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install scikit-learn"
+
+echo "INSTALLING newspaper"
+sudo -H -u usrfd bash -c "cd /home/usrfd && git clone https://github.com/DanielJDufour/newspaper.git";
+sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && pip install -e /home/usrfd/newspaper";
+
 echo "PRINTING PIP LIST"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip list"
 sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python -c 'import nltk; nltk.download(\"stopwords\")'"
