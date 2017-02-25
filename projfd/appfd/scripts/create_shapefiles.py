@@ -67,17 +67,17 @@ def run(key):
                     print "pyshp doesn't seem to be able to handle mpoly with original coords"
                     coords = coords[0]
                     writer_polygons.poly(parts=coords, shapeType=shapefile.POLYGONM)
+    if features:
+        directory = "/home/usrfd/maps/" + key + "/"
+        writer_points.save(directory + key + "_points")
+        if wrote_mpoly:
+            writer_polygons.save(directory + key + "_polygons")
 
-    directory = "/home/usrfd/maps/" + key + "/"
-    writer_points.save(directory + key + "_points")
-    if wrote_mpoly:
-        writer_polygons.save(directory + key + "_polygons")
-
-    with ZipFile(directory + key + ".zip", 'w') as zipped_shapefile:
-        for filename in listdir(directory):
-            if filename.split(".")[-1] in ("cpg","dbf","shp","shx","prj"):
-                path_to_file = directory + filename
-                zipped_shapefile.write(path_to_file, filename)
-                remove(path_to_file)
+        with ZipFile(directory + key + ".zip", 'w') as zipped_shapefile:
+            for filename in listdir(directory):
+                if filename.split(".")[-1] in ("cpg","dbf","shp","shx","prj"):
+                    path_to_file = directory + filename
+                    zipped_shapefile.write(path_to_file, filename)
+                    remove(path_to_file)
 
     print "finished creating shapefiles"
