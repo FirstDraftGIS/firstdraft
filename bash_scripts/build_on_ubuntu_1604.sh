@@ -93,7 +93,7 @@ echo "INSTALL SCIKIT LEARN"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install scikit-learn"
 
 echo "INSTALLING newspaper"
-sudo -H -u usrfd bash -c "cd /home/usrfd && git clone https://github.com/DanielJDufour/newspaper.git";
+sudo -H -u usrfd bash -c "cd /home/usrfd && git clone -b python-2-head https://github.com/DanielJDufour/newspaper.git";
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && pip install -e /home/usrfd/newspaper";
 
 echo "PRINTING PIP LIST"
