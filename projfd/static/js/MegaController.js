@@ -198,6 +198,11 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     map = L.map('map', {"fullscreenControl": true});
 
+    // add button to zoom out to globe
+    L.easyButton('<span class="glyphicon glyphicon-globe" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
+        map.setView([0,0], 1);
+    }).addTo(map);
+
     var showTableControl = L.Control.extend({
         options: {
             position: "topright",
