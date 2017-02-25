@@ -45,5 +45,5 @@ selenium==2.52.0
 social-auth-app-django
 stop-words
 super_python
-https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.10.0rc0-cp27-none-linux_x86_64.whl
+tensorflow
 titlecase
