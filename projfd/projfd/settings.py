@@ -28,9 +28,9 @@ TEMPLATES = [{
             "django.template.context_processors.media",
             "django.template.context_processors.static",
             "django.template.context_processors.tz",
-            "django.contrib.messages.context_processors.messages",
-            "social_django.context_processors.backends",
-            "social_django.context_processors.login_redirect"
+            "django.contrib.messages.context_processors.messages"
+            #"social_django.context_processors.backends",
+            #"social_django.context_processors.login_redirect"
         ]
     },
 },]
@@ -50,7 +50,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'django_extensions',
-    'social_django',
+    #'social_django',
     'mod_wsgi.server',
     'rest_framework',
     'appfd',
@@ -74,10 +74,10 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'projfd.urls'
 
 AUTHENTICATION_BACKENDS = (
-   'social_core.backends.facebook.FacebookOAuth2',
-   'social_core.backends.google.GoogleOAuth2',
-   'social_core.backends.twitter.TwitterOAuth',
-   'django.contrib.auth.backends.ModelBackend',
+   #'social_core.backends.facebook.FacebookOAuth2',
+   #'social_core.backends.google.GoogleOAuth2',
+   #'social_core.backends.twitter.TwitterOAuth',
+   'django.contrib.auth.backends.ModelBackend'
 )
 
 WSGI_APPLICATION = 'projfd.wsgi.application'
@@ -155,4 +155,4 @@ SENDFILE_URL = '/maps'
 ANONYMOUS_USER_ID = -1
 
 #http://python-social-auth.readthedocs.io/en/latest/configuration/django.html
-SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'email']
+#SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'email']
