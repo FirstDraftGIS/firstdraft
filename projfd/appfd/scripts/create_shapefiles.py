@@ -1,11 +1,23 @@
 from appfd.models import Feature
 from appfd.models import Order
+from django.contrib.gis.geos import MultiPolygon, Polygon
 import shapefile
+from shapefile import POLYGONM, POINT
 from os import listdir, mkdir, remove
 from os.path import basename, isdir
 from zipfile import ZipFile
 
-def run(key):
+def area(coords):
+    length = len(coords)
+    if length >= 1:
+        ext_coords = coords[0]
+    if length >= 2:
+        int_coords = coords[1]
+    return Polygon(ext_coords, int_coords).area
+
+def run(key, debug=False):
+
+  try:
     print "starting create_shapefiles with key " + key
 
     from django.db import connection
@@ -16,8 +28,8 @@ def run(key):
         mkdir(directory)
 
 
-    writer_points = shapefile.Writer(shapefile.POINT)
-    writer_polygons = shapefile.Writer(shapefile.POLYGONM)
+    writer_points = shapefile.Writer(POINT)
+    writer_polygons = shapefile.Writer(POLYGONM)
 
     # makes sure dbf and shapes are in sync
     writer_points.autoBalance = 1
@@ -26,9 +38,6 @@ def run(key):
     # set shape type to point
     #writer_points.shapeType = 1
     #writer_polygons.shapeType = 25
-
-    # turns to true if want to write mpoly
-    wrote_mpoly = False
 
     # create fields
     for writer in [writer_points, writer_polygons]:
@@ -40,7 +49,8 @@ def run(key):
         writer.field("start_time")
         writer.field("end_time")
 
-    features = []
+    number_of_points = 0
+    number_of_polygons = 0
     for feature in Feature.objects.filter(order__token=key):
 
         fp = feature.featureplace_set.filter(correct=True).first()
@@ -54,23 +64,20 @@ def run(key):
             # what happens to feature.confidence decimal??? need to convert to float?
             writer_points.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonameid, place.pcode, start, end)
             writer_points.point(float(place.point.x), float(place.point.y))
+            number_of_points += 1
 
             if place.mpoly:
-                wrote_mpoly = True 
-                writer_polygons.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonameid, place.pcode, start, end)
-                coords = place.mpoly.coords
-                if len(coords) == 1:
-                    coords = coords[0]
-                    writer_polygons.poly(parts=coords, shapeType=shapefile.POLYGONM)
-                else:
-                    print "Uh Uh we found an mpoly with more than one polygon, just take first one"
+                for c in place.mpoly.coords:
                     print "pyshp doesn't seem to be able to handle mpoly with original coords"
-                    coords = coords[0]
-                    writer_polygons.poly(parts=coords, shapeType=shapefile.POLYGONM)
-    if features:
-        directory = "/home/usrfd/maps/" + key + "/"
-        writer_points.save(directory + key + "_points")
-        if wrote_mpoly:
+                    writer_polygons.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonameid, place.pcode, start, end)
+                    writer_polygons.poly(parts=c, shapeType=POLYGONM)
+                    number_of_polygons += 1
+
+    directory = "/home/usrfd/maps/" + key + "/"
+    if number_of_points > 0 or number_of_polygons > 0:
+        if number_of_points > 0:
+            writer_points.save(directory + key + "_points")
+        if number_of_polygons > 0:
             writer_polygons.save(directory + key + "_polygons")
 
         with ZipFile(directory + key + ".zip", 'w') as zipped_shapefile:
@@ -81,3 +88,6 @@ def run(key):
                     remove(path_to_file)
 
     print "finished creating shapefiles"
+
+  except Exception as e:
+    print "CAUGHT EXCEPTION in create_shapefiles:", e
