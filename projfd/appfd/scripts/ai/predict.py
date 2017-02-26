@@ -231,52 +231,6 @@ def train():
         print "len(feauters_for_testing):", len(features_for_testing)
         df_test = get_df_from_features(features_for_testing)
 
-        for filename in listdir(PATH_TO_DIRECTORY_OF_INPUT_DATA):
-            print "filename for import :", filename
-            if filename.endswith(".csv"):
-                df = get_df_from_csv(PATH_TO_DIRECTORY_OF_INPUT_DATA + "/" + filename)
-                column_lengths = {"df_train": [], "df_test": []}
-                for column_name in df:
-                    column = df[column_name]
-                    if len(df_train[column_name]) > 0 and type(df_train[column_name][0]) != type(column[0]):
-                        print "mismatch type for ", column_name
-                        print "type(df_train[column_name][0]):", type(df_train[column_name][0])
-
-                    for_training, for_testing = halve(column)
-                    print column_name, "len(for_testing):", len(for_testing)
-                    column_lengths['df_train'].append(len(for_training))
-                    column_lengths['df_test'].append(len(for_testing))
-
-                    if column_name in df_train:
-                        df_train[column_name].extend(for_training)
-                    else:
-                        df_train[column_name] = for_training
-
-                    if column_name in df_test:
-                        df_test[column_name].extend(for_testing)
-                    else:
-                        df_test[column_name] = for_testing
-
-                # if a spare column has been added recently and isn't in the old exported data
-                # just fill in the testing and training frames with a bunch of "NONE"
-                # feature code and feature class are examples of this
-                for COLUMN in COLUMNS:
-                    if COLUMN not in df:
-                        column = globals()[COLUMN]
-                        if str(type(column)) == "<class 'tensorflow.contrib.layers.python.layers.feature_column._SparseColumnHashed'>":
-                            for_training = ["NONE"] * max(column_lengths['df_train'])
-                            if COLUMN in df_train:
-                                df_train[COLUMN].extend(for_training)
-                            else:
-                                df_train[COLUMN] = for_training
-
-                            for_testing = ["NONE"] * max(column_lengths['df_test'])
-                            if COLUMN in df_test:
-                                df_test[COLUMN].extend(for_testing)
-                            else:
-                                df_test[COLUMN] = for_testing
- 
-
         for column_name in COLUMNS:
             print column_name, "\t", [v for v in df_train[column_name] if isinstance(v, type(None)) or isinstance(v, list)]
 

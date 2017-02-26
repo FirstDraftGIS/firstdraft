@@ -192,7 +192,7 @@ class Source(Model):
     order = ForeignKey("order")
     source_text = CharField(max_length=2000, null=True)
     source_type = CharField(max_length=200)
-    source_url = URLField(null=True)
+    source_url = URLField(max_length=2000, null=True)
 
     def __str__(self):
         representation = "[" + str(self.order.token) + "]"

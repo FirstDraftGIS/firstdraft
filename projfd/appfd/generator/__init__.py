@@ -8,10 +8,10 @@ import validators
 
 
 def toFileName(text, max_length=1000):
-    return url.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_").replace(" ","_")[:max_length]
+    return text.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_").replace(" ","_")[:max_length]
 
 def save_text_to_file(text, filepath):
-    with open(filepath) as f:
+    with open(filepath, "wb") as f:
         f.write(text.encode("utf-8"))
 
 def generate_map_from_sources(job, data_sources, metadata_sources):
@@ -39,7 +39,7 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                 if source_type == "text":
                     print "source_data:", source_data
                     Source.objects.create(order_id=order_id, source_text=source_data, source_type="text")
-                    save_text_to_file(source_data, toFileName(source_data, max_length=20))
+                    #save_text_to_file(source_data, toFileName(source_data, max_length=20))
                     locations.extend(extract_locations_from_text(source_data))
                 elif validators.url(source_data):
                     # make head request to get content type
