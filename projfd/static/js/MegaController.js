@@ -51,9 +51,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     console.log("starting MegaController");
 
-    //$scope.sources = [];
-    //$scope.sources = [{type: 'text', text: '12234567890asdfghjkl'}, {type: 'file', file:null}, {type: 'link', link: 'https://bbc.com/news/world-middle-east-19744533'}];
-    $scope.sources = [{type: 'link', data: 'https://bbc.com/news/world-middle-east-19744533'}];
+    $scope.sources = [];
     $scope.show_advanced_options = false;
 
     $scope.patterns = {
@@ -75,6 +73,12 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.close_all_modals_and_open = function(id) {
         close_all_modals();
         $scope.open_modal(id);
+    };
+
+    $scope.create_a_map = function() {
+        $scope.sources = [];
+        $scope.close_all_modals_and_open("sources");
+        $scope.clear_everything();
     };
 
     $scope.getClassForTypeOfSource = function(type) {
@@ -248,6 +252,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.start_text = "";
         $scope.urls_to_files = "";
         $scope.urls_to_webpages = "";
+        window.location.hash = "";
     };
 
 
