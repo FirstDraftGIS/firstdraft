@@ -44,13 +44,20 @@ The quickest way to get First Draft GIS up and running is to launch the First Dr
 | apache2-mpm-prefork | unknown |
 | apt-file | useful for looking up which packages have which files |
 | autoconf | used by postgis autogen.sh |
-| build-essential | includes c++ compilier we need for sfcgal |
+| build-essential | need for phantomjs and includes c++ compilier we need for sfcgal |
+| chrpath | needed by PhantomJS |
 | curl | download files from internet |
 | git | download code from github repositories |
 | postgresql | database that stores the information |
 | libapache2-mod-wsgi | installed for wsgi |
+| libfontconfig1 | needed by PhantomJS |
+| libfontconfig1-dev | needed by PhantomJS |
+| libfreetype6 | needed by PhantomJS |
+| libfreetype6-dev | needed by PhantomJS |
 | libjson0... | for Json-C dependency for postgis |
 | libpq-dev | needed to install psycopg2 database adapater |
+| libssl-dev | needed by PhantomJS |
+| libxft-dev | needed by PhantomJS |
 | pkg-config | postgis dependency |
 | vim | edit files in terminal |
 
