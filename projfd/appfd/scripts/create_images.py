@@ -1,7 +1,7 @@
 from appfd.models import Feature, FeaturePlace
 from appfd.models import Order
 from os import environ, mkdir
-from os.path import isdir
+from os.path import devnull, isdir
 from selenium import webdriver
 
 def run(key):
@@ -15,7 +15,7 @@ def run(key):
         if not isdir(directory):
             mkdir(directory)
 
-        driver = webdriver.PhantomJS()
+        driver = webdriver.PhantomJS(service_log_path=devnull)
         driver.set_window_size(1024, 768)
 
         # this assumes that you are running some sort of webserver like Apache2

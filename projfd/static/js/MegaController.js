@@ -160,6 +160,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         share_url_element.textContent = $scope.share_url;
         $scope.check_downloadability_of_extension("csv");
         $scope.check_downloadability_of_extension("geojson");
+        $scope.check_downloadability_of_extension("gif");
+        $scope.check_downloadability_of_extension("jpg");
+        $scope.check_downloadability_of_extension("png");
         $scope.check_downloadability_of_extension("shp");
         $scope.check_downloadability_of_metadata("iso_19115_2");
     };

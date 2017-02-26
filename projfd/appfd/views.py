@@ -922,21 +922,17 @@ def generate_map_from_xl(job):
 def does_map_exist(request, job, extension):
     #print "starting does_map_exist"
     try:
-        if extension == "csv":
-            if isfile("/home/usrfd/maps/" + job + "/" + job + ".csv"):
-                return HttpResponse("yes")
-            else:
-                return HttpResponse("no")
-        elif extension == "geojson":
-            if isfile("/home/usrfd/maps/" + job + "/" + job + ".geojson"):
-                return HttpResponse("yes")
-            else:
-                return HttpResponse("no")
-        elif extension == "shp":
+        if extension == "shp":
             if isfile("/home/usrfd/maps/" + job + "/" + job + ".zip"):
                 return HttpResponse("yes")
             else:
                 return HttpResponse("no")
+        elif extension in ["csv", "geojson", "gif", "jpg", "png"]:
+            if isfile("/home/usrfd/maps/" + job + "/" + job + "." + extension):
+                return HttpResponse("yes")
+            else:
+                return HttpResponse("no")
+            
     except Exception as e:
         print e
         return HttpResponse("no")
@@ -976,7 +972,10 @@ def get_map(request, job, extension):
             response = HttpResponse(zip_file, content_type='application/force-download')
             response['Content-Disposition'] = 'attachment; filename="%s"' % filename
             return response
-
+    elif extension in ("jpeg", "gif", "jpg", "png"):
+        with open(path_to_directory + job + "." + extension) as f:
+            data = f.read()
+        return HttpResponse(data, content_type="image/" + extension)
     else:
         data = ""
         for filename in listdir(path_to_directory):

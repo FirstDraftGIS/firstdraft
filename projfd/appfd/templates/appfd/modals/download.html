@@ -6,10 +6,10 @@
         <h4 class="modal-title" id="downloadModalLabel">Download</h4>
       </div>
       <div class="modal-body">
-          <div ng-hide="ready_to_download_csv||ready_to_download_geojson||ready_to_download_shapefile">
+          <div ng-hide="ready_to_download_csv||ready_to_download_geojson||ready_to_download_gif||ready_to_download_jpg||ready_to_download_png||ready_to_download_shapefile">
               <p>You've reached the right spot to download your map, but you haven't created or loaded a map yet!  Once you have, come back here and download it as a CSV, GeoJSON or Shapefile.</p>
           </div>
-          <div ng-show="ready_to_download_csv||ready_to_download_geojson||ready_to_download_shapefile">
+          <div ng-show="ready_to_download_csv||ready_to_download_geojson||ready_to_download_gif||ready_to_download_jpg||ready_to_download_png||ready_to_download_shapefile">
               <div style="display: inline-block">
                   <span ng-hide="ready_to_download_csv">Generating CSV...</span>
                   <a class="btn btn-primary" ng-show="ready_to_download_csv" id='download_link_csv' target='_blank'>CSV</a>
@@ -17,6 +17,18 @@
               <div style="display: inline-block">
                   <span ng-hide="ready_to_download_geojson">Generating GeoJSON...</span>
                   <a class="btn btn-primary" ng-show="ready_to_download_geojson" id='download_link_geojson' target='_blank'>GeoJSON</a>
+              </div>
+              <div style="display: inline-block">
+                  <span ng-hide="ready_to_download_gif">Generating GIF...</span>
+                  <a class="btn btn-primary" ng-show="ready_to_download_gif" id='download_link_gif' target='_blank'>GIF</a>
+              </div>
+              <div style="display: inline-block">
+                  <span ng-hide="ready_to_download_jpg">Generating JPG...</span>
+                  <a class="btn btn-primary" ng-show="ready_to_download_jpg" id='download_link_jpg' target='_blank'>JPG</a>
+              </div>
+              <div style="display: inline-block">
+                  <span ng-hide="ready_to_download_png">Generating PNG...</span>
+                  <a class="btn btn-primary" ng-show="ready_to_download_png" id='download_link_png' target='_blank'>PNG</a>
               </div>
               <div style="display: inline-block">
                   <span ng-hide="ready_to_download_shp">Generating Shapefile...</span>
