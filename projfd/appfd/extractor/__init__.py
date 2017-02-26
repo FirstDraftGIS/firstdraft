@@ -1,5 +1,6 @@
 import location_extractor
 from re import findall
+from webpage import extract_locations_from_webpage
 
 
 # we're just casting a wide net and extracting 
@@ -33,4 +34,3 @@ def extract_locations_from_text(text):
 
     except Exception as e:
         print "EXCEPTION in extractor:", e
-

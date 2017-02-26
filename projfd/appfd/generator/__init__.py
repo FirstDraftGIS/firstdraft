@@ -1,7 +1,9 @@
-from appfd.extractor import extract_locations_from_text
+from appfd.extractor import extract_locations_from_text, extract_locations_from_webpage
 from appfd.finisher import finish_order
 from appfd.scripts.resolve import resolve_locations
 from os import mkdir
+from requests import head, get
+import validators
 
 def generate_map_from_sources(job, data_sources, metadata_sources):
 
@@ -20,13 +22,33 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
 
         locations = []
         for source in data_sources:
-            print "source:", source
-            source_type = source['type']
-            source_data = source['data']
-            if source_type == "text":
-                print "source_data:", source_data
-                # http://stackoverflow.com/questions/1306631/python-add-list-to-set
-                locations.extend(extract_locations_from_text(source_data))
+            try:
+                print "source:", source
+                source_type = source['type']
+                source_data = source['data'].strip()
+                if source_type == "text":
+                    print "source_data:", source_data
+                    # http://stackoverflow.com/questions/1306631/python-add-list-to-set
+                    locations.extend(extract_locations_from_text(source_data))
+                elif validators.url(source_data):
+                    # make head request to get content type
+                    if source_data.endswith(".doc"):
+                        pass
+                    elif source_data.endswith(".docx"):
+                        pass
+                    elif source_data.endswith(".pdf"):
+                        pass
+                    elif source_data.endswith(".zip"):
+                        pass
+                    else:
+                        contentType = head(source_data, allow_redirects=True).headers['Content-Type']
+                        if contentType.startswith("application/pdf"):
+                            pass
+                        elif contentType.startswith("text/html"):
+                            print "seems to be a normal webpage"
+                            locations.extend(extract_locations_from_webpage(source_data))
+            except Exception as e:
+                print "failed to get locations for source because", e
   
         print "locations:", len(locations) 
         resolve_locations(locations, order_id=job['order_id'], max_seconds=max_seconds, countries=countries)
