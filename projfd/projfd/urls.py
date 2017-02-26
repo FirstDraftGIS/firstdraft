@@ -38,6 +38,7 @@ urlpatterns += [
     url(r'^maps/(?P<job>[^/]+)$', views._map, name='_map'),
     url(r'^mission$', views.mission, name='mission'),
     #url(r'password_recovery$', views.password_recovery, name='password_recovery'),
+    url(r'preview_map/(?P<job>[^/]+)', views.preview_map, name='preview_map'),
     url(r'^register', views.register, name='register'),
     #url(r'request_translation/(?P<class_type>[^\./]+)/(?P<class_id>[^\./]+)', views.request_translation),
     #url(r'roadmap/', views.roadmap, name='roadmap'),

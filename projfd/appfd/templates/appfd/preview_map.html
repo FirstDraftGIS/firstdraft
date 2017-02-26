@@ -1,0 +1,97 @@
+{% load staticfiles %}
+{% block content %}
+<!DOCTYPE html>                                                                                                                                                 
+<html>
+
+<head>
+    <!--<link href="{% static 'node_modules/leaflet/dist/leaflet.css' %}" rel="stylesheet">-->
+    <script src="{% static 'js/external/jquery.min.js' %}"></script>
+    <!--<script src="{% static 'js/external/leaflet.min.js' %}"></script>-->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.0-rc.2/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.0.0-rc.2/dist/leaflet.js"></script>
+    <style>
+        .place-label {
+            display: block;
+        }
+
+        #map {
+            bottom: 0;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        
+    </style>
+</head>
+
+<body>
+<div id="map"></div>
+<script>
+
+    job = '{{job}}';
+
+    map = L.map('map', {
+        zoomControl: false
+    });
+
+    map.setView([0,0],2);
+
+    var features = [];
+
+    var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors.',
+        maxZoom: 18
+    }).addTo(map);
+
+   function getStyle(feature) {                                                                                                                                
+        //if (feature.confidence === 1) color = "green";                                                                                                        
+        //if (feature.confidence > .9) color = "yellow";                                                                                                        
+        //color = "red";                                                                                                                                        
+        color = "purple";                                                                                                                                       
+        var options = {
+            clickable: false,
+            color: color,
+            fillColor: color
+        };                                                                                                                                                      
+        return options;                                                                                                                                         
+    }    
+
+    function onEachFeature(feature, layer)
+    {
+        try
+        {
+            properties = feature.properties;
+            console.log("properties are", properties);
+        }
+        catch(err) { console.error("err is", err); }
+    }
+
+    var mainLayer = L.geoJson(undefined,{onEachFeature:onEachFeature, style:getStyle});
+    var featureGroup = L.featureGroup([mainLayer]);
+    featureGroup.addTo(map);
+   
+    function update() {                                                                                                                           
+        $.getJSON(window.location.origin + "/api/features/" + job).then(function(response) {                                                             
+            response.features.forEach(function(feature) {
+                if (feature.correct) {
+                    var marker = L.circleMarker([feature.latitude, feature.longitude], getStyle(feature));
+                    featureGroup.addLayer(marker);
+                    marker.bindTooltip(feature.name, {
+                        className: "place-label",
+                        permanent: true
+                    });
+ 
+                }
+            });
+            map.fitBounds(featureGroup.getBounds());
+        });   
+    }
+
+    update();
+
+</script>
+</body>
+
+</html>
+{% endblock %}

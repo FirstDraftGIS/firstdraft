@@ -1155,6 +1155,9 @@ def locations_from_text(text):
         names = [name for name in names if name not in location_extractor.nonlocations]
         return location_extractor.extract_locations_with_context(text, names)
 
+def preview_map(request, job):
+    return render(request, "appfd/preview_map.html", {'job': job})
+
 def request_map_from_sources(request):
 
     try:
