@@ -6,6 +6,7 @@ from scrp import getTextContentViaMarionette, getRandomUserAgentString
 from requests import get
 
 def extract_locations_from_webpage(url, html=None, max_seconds=5):
+  try:
     url = url.strip().strip('"').strip('"')
 
     # we want to respect Google, so we avoid adding an automated click through
@@ -54,3 +55,6 @@ def extract_locations_from_webpage(url, html=None, max_seconds=5):
  
 
     return locations
+
+  except Exception as e:
+    print "Caught Exception in extract_locations_from_webpage:", e
