@@ -5,7 +5,7 @@ from newspaper import Article
 from scrp import getTextContentViaMarionette, getRandomUserAgentString
 from requests import get
 
-def extract_locations_from_webpage(url, max_seconds=5):
+def extract_locations_from_webpage(url, html=None, max_seconds=5):
     url = url.strip().strip('"').strip('"')
 
     # we want to respect Google, so we avoid adding an automated click through
@@ -19,8 +19,10 @@ def extract_locations_from_webpage(url, max_seconds=5):
 
     filename = url.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
 
-    headers = {"User-Agent": getRandomUserAgentString()}
-    html = get(url, headers=headers).text
+    if not html:
+        headers = {"User-Agent": getRandomUserAgentString()}
+        html = get(url, headers=headers).text
+
     article = Article(url)
     article.download()
     article.parse()

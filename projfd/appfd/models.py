@@ -187,10 +187,21 @@ class ParentChild(Model):
     class Meta:
         unique_together = (("parent","child"))
 
-# or should I name it attribution??
-#class Source(Model):
-#    name = CharField(max_length=200)
-#    url
+# this is the source data, not the attribution
+class Source(Model):
+    order = ForeignKey("order")
+    source_text = CharField(max_length=2000, null=True)
+    source_type = CharField(max_length=200)
+    source_url = URLField(null=True)
+
+    def __str__(self):
+        representation = "[" + str(self.order.token) + "]"
+        if self.source_type == "url":
+            representation += " : " + self.source_url
+        elif self.source_type == "text":
+            representation += " : " + self.source_text
+        return representation 
+
 
 class TeamMember(Model):
     email = EmailField(null=True, blank=True)
