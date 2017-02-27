@@ -2,6 +2,8 @@ from appfd.models import Source
 from appfd.extractor import extract_locations_from_text, extract_locations_from_webpage
 from appfd.finisher import finish_order
 from appfd.scripts.resolve import resolve_locations
+from location_extractor import extract_locations_with_context_from_pdf
+from io import BytesIO
 from os import mkdir
 from requests import head, get
 import validators
@@ -42,27 +44,40 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                     #save_text_to_file(source_data, toFileName(source_data, max_length=20))
                     locations.extend(extract_locations_from_text(source_data))
                 elif validators.url(source_data):
+
+                    url = source_data.strip().strip('"').strip('"')
+
+                    # we want to respect Google, so we avoid adding an automated click through
+                    # by just directly getting the url
+                    if url.startswith("https://www.google.com/url?"):
+                        url = unquote(search("(?<=&url=)[^&]{10,}", url).group(0))
+
+                    if not url.startswith("http"):
+                        print "we assume that the user didn't include the protocol"
+                        url = "http://" + url
+
+                    Source.objects.create(order_id=order_id, source_url=url, source_type="url")
+
                     # make head request to get content type
-                    if source_data.endswith(".doc"):
+                    if url.endswith(".doc"):
                         pass
-                    elif source_data.endswith(".docx"):
+                    elif url.endswith(".docx"):
                         pass
-                    elif source_data.endswith(".pdf"):
-                        pass
-                    elif source_data.endswith(".zip"):
+                    elif url.endswith(".pdf"):
+                        locations.extend(extract_locations_with_context_from_pdf(BytesIO(get(url).content)))
+                    elif url.endswith(".zip"):
                         pass
                     else:
-                        contentType = head(source_data, allow_redirects=True).headers['Content-Type']
+                        contentType = head(url, allow_redirects=True).headers['Content-Type']
                         if contentType.startswith("application/pdf"):
-                            pass
+                            locations.extend(extract_locations_with_context_from_pdf(BytesIO(get(url).content)))
                         elif contentType.startswith("text/html"):
                             print "seems to be a normal webpage"
-                            Source.objects.create(order_id=order_id, source_url=source_data, source_type="url")
                             if "html" in source:
                                 # if passing in html along with url
-                                locations.extend(extract_locations_from_webpage(source_data, html=source['html']))
+                                locations.extend(extract_locations_from_webpage(url, html=source['html']))
                             else:
-                                locations.extend(extract_locations_from_webpage(source_data))
+                                locations.extend(extract_locations_from_webpage(url))
             except Exception as e:
                 print "failed to get locations for source because", e
   

@@ -7,16 +7,6 @@ from requests import get
 
 def extract_locations_from_webpage(url, html=None, max_seconds=5):
   try:
-    url = url.strip().strip('"').strip('"')
-
-    # we want to respect Google, so we avoid adding an automated click through
-    # by just directly getting the url
-    if url.startswith("https://www.google.com/url?"):
-        url = unquote(search("(?<=&url=)[^&]{10,}", url).group(0))
-
-    if not url.startswith("http"):
-        print "we assume that the user didn't include the protocol"
-        url = "http://" + url
 
     filename = url.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
 
