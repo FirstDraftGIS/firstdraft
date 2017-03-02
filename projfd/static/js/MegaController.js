@@ -255,6 +255,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.start_text = "";
         $scope.urls_to_files = "";
         $scope.urls_to_webpages = "";
+        $scope.verified = false;
         window.location.hash = "";
     };
 
@@ -309,6 +310,18 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             });
         }, 2000);
     }; 
+
+    $scope.verify_map = function() {
+        console.log("starting verify_map");
+        if (!$scope.verified) {
+            $http.get('/verify_map/' + $scope.job).then(function(response) {
+                console.log("verified map with response", response);
+                if (response.data === "success") {
+                    $scope.verified = true;
+                }
+            });
+        }
+    };
 
     $scope.check_downloadability_of_metadata = function(metadata) {
         return;

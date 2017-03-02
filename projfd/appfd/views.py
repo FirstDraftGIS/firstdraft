@@ -959,9 +959,6 @@ def get_map(request, job, extension):
     print "starting get_map with", job, extension
     path_to_directory = "/home/usrfd/maps/" + job + "/"
 
-    # auto-verify all features places, because assuming users mostly download when done
-    Feature.objects.filter(order__token=job).update(verified=True)
-
     # currently, loads zip file in memory and returns it
     # todo: use mod_xsendfile, so don't load into memory
     if extension in ("shp","zip"):
@@ -987,6 +984,18 @@ def get_map(request, job, extension):
         return HttpResponse(data, content_type='application/json') 
   except Exception as e:
     print e
+
+def verify_map(request, job):
+    try:
+        print "starting verify_map"
+
+        #verify all features in map
+        Feature.objects.filter(order__token=job).update(verified=True)
+
+        return HttpResponse("success", content_type='application/json') 
+
+    except Exception as e:
+        print e
 
 def get_metadata(request, job, metadata_type="iso_19115_2"):
     try:
@@ -1200,7 +1209,7 @@ def request_map_from_sources(request):
                 return HttpResponse(job['key'])
                 
     except Exception as e:
-        print e
+        print "CAUGHT ERROR in request_map_from_sources:", e
  
 
 def view_frequency_map(request, job):

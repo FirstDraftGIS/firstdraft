@@ -31,9 +31,8 @@ def change_featureplace(request):
             from django.db import connection 
             connection.close()
 
-            Process(target=create_csv.run, args=(token,)).start()
-            Process(target=create_geojson.run, args=(token,)).start()
-            Process(target=create_shapefiles.run, args=(token,)).start()
+            for _method in create_geojson.run, create_frequency_geojson, create_shapefiles.run, create_csv.run, create_images.run:
+                Process(target=_method, args=(token,)).start()
 
             return HttpResponse("done")
         else:

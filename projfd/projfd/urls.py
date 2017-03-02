@@ -46,6 +46,7 @@ urlpatterns += [
     url(r'team$', views.team, name='team'),
     #url(r'test/', views.test, name='test'),
     url(r'thanks/', views.thanks, name='thanks'),
+    url(r'^verify_map/(?P<job>[^/]+)$', views.verify_map, name='verify_map'),
     url(r'view_map/(?P<job>[^/]+)', views.view_map, name='view_map'),
     url(r'view_frequency_map/(?P<job>[^/]+)', views.view_frequency_map, name='view_frequency_map'),
     url('', include('social_django.urls', namespace='social')),
