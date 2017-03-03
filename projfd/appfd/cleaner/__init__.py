@@ -1,4 +1,5 @@
 from appfd.forms import FileForm, LinkForm, TextForm
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 def clean(POST, FILES):
     try:
@@ -10,14 +11,15 @@ def clean(POST, FILES):
             #print "post:", POST 
             if key in POST:
                 source_type = POST[key]
+                print "source_type:", source_type
                 data_key = "source_" + str(n) + "_data"
                 print data_key 
                 if source_type == "file":
                     if data_key in FILES:
                         print "FILES:", FILES
-                        data = FILES[data_key][0]
-                        print "data:", type(data)
-                        form = FileForm({"data": data})
+                        data = FILES[data_key]
+                        # post data goes 
+                        form = FileForm(files={"data": data})
                         if form.is_valid():
                             cleaned_data = form.cleaned_data['data']
                             if cleaned_data:
@@ -31,7 +33,7 @@ def clean(POST, FILES):
                         if form.is_valid():
                             cleaned_data = form.cleaned_data['data']
                             if cleaned_data:
-                                sources.append({"type": "link", "data": cleaned_data})
+                                sources.append({"type": "link", "data": cleaned_data.strip()})
                 elif source_type == "text":
                     if data_key in POST:
                         data = POST[data_key]
@@ -39,7 +41,7 @@ def clean(POST, FILES):
                         if form.is_valid():
                             cleaned_data = form.cleaned_data['data']
                             if cleaned_data:
-                                sources.append({"type": "text", "data": cleaned_data})
+                                sources.append({"type": "text", "data": cleaned_data.strip()})
 
         print "finishing clean"
         return {"sources": sources}

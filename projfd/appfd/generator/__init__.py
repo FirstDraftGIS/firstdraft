@@ -2,7 +2,7 @@ from appfd.models import Source
 from appfd.extractor import extract_locations_from_text, extract_locations_from_webpage
 from appfd.finisher import finish_order
 from appfd.scripts.resolve import resolve_locations
-from location_extractor import extract_locations_with_context_from_pdf
+from location_extractor import extract_locations_with_context_from_docx, extract_locations_with_context_from_pdf
 from io import BytesIO
 from os import mkdir
 from requests import head, get
@@ -37,13 +37,14 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
             try:
                 print "source:", source
                 source_type = source['type']
-                source_data = source['data'].strip()
+                source_data = source['data']
                 if source_type == "text":
                     print "source_data:", source_data
                     Source.objects.create(order_id=order_id, source_text=source_data, source_type="text")
                     #save_text_to_file(source_data, toFileName(source_data, max_length=20))
                     locations.extend(extract_locations_from_text(source_data))
-                elif validators.url(source_data):
+                elif (isinstance(source_data, unicode) or isinstance(source_data, str)) and validators.url(source_data):
+                    print "source is url"
 
                     url = source_data.strip().strip('"').strip('"')
 
@@ -78,6 +79,10 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                                 locations.extend(extract_locations_from_webpage(url, html=source['html']))
                             else:
                                 locations.extend(extract_locations_from_webpage(url))
+                elif source_type == "file":
+                    print "source_type is file"
+                    locations.extend(extract_locations_with_context_from_docx(source_data))
+ 
             except Exception as e:
                 print "failed to get locations for source because", e
   
