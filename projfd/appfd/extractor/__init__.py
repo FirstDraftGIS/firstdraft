@@ -1,5 +1,6 @@
 import location_extractor
 from re import findall
+from table import extract_locations_from_tables
 from webpage import extract_locations_from_webpage
 
 

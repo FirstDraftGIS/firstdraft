@@ -1,11 +1,12 @@
 from appfd.models import Source
-from appfd.extractor import extract_locations_from_text, extract_locations_from_webpage
+from appfd.extractor import extract_locations_from_tables, extract_locations_from_text, extract_locations_from_webpage
 from appfd.finisher import finish_order
 from appfd.scripts.resolve import resolve_locations
 from location_extractor import extract_locations_with_context_from_docx, extract_locations_with_context_from_pdf
 from io import BytesIO
 from os import mkdir
 from requests import head, get
+from table_extractor import extract_tables
 import validators
 
 
@@ -81,7 +82,15 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                                 locations.extend(extract_locations_from_webpage(url))
                 elif source_type == "file":
                     print "source_type is file"
-                    locations.extend(extract_locations_with_context_from_docx(source_data))
+                    print "source_data:", source_data, dir(source_data)
+                    print "source_data.name:", source_data.name
+                    source_data_name = source_data.name
+                    if source_data_name.endswith(".docx"):
+                        locations.extend(extract_locations_with_context_from_docx(source_data))
+                        locations.extend(extract_locations_from_tables(extract_tables(source_data)))
+                    elif source_data_name.split(".")[-1] in ("csv", "tsv", "xls", "xlsm", "xlsx"):
+                        locations.extend(extract_locations_from_tables(extract_tables(source_data)))
+                    
  
             except Exception as e:
                 print "failed to get locations for source because", e
