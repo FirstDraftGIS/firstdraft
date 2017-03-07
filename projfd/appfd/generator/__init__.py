@@ -60,13 +60,21 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
 
                     Source.objects.create(order_id=order_id, source_url=url, source_type="url")
 
+                    extension = url.split(".")[-1]
+                    print "extension:", extension
+                    
                     # make head request to get content type
-                    if url.endswith(".doc"):
+                    if extension in ("csv", "tsv", "xls", "xlsm", "xlsx"):
+                        locations.extend(extract_locations_from_tables(extract_tables(url)))
+                    elif url.endswith(".doc"):
                         pass
                     elif url.endswith(".docx"):
-                        pass
+                        locations.extend(extract_locations_with_context_from_docx(BytesIO(get(url).content)))
+                        locations.extend(extract_locations_from_tables(extract_tables(source_data)))
                     elif url.endswith(".pdf"):
                         locations.extend(extract_locations_with_context_from_pdf(BytesIO(get(url).content)))
+                    elif url.endswith(".txt"):
+                        locations.extend(extract_locations_from_text(get(url).content))
                     elif url.endswith(".zip"):
                         pass
                     else:
@@ -85,11 +93,14 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                     print "source_data:", source_data, dir(source_data)
                     print "source_data.name:", source_data.name
                     source_data_name = source_data.name
-                    if source_data_name.endswith(".docx"):
+                    source_extension = source_data_name.split(".")[-1]
+                    if source_extension == "docx":
                         locations.extend(extract_locations_with_context_from_docx(source_data))
                         locations.extend(extract_locations_from_tables(extract_tables(source_data)))
-                    elif source_data_name.split(".")[-1] in ("csv", "tsv", "xls", "xlsm", "xlsx"):
+                    elif source_extension in ("csv", "tsv", "xls", "xlsm", "xlsx"):
                         locations.extend(extract_locations_from_tables(extract_tables(source_data)))
+                    elif source_extension == "txt":
+                        locations.extend(extract_locations_from_text(source_data.read()))
                     
  
             except Exception as e:
