@@ -13,5 +13,12 @@ def run():
                 except Exception as e:
                     print "CAUGHT EXCEPTION trying to load " + line
                     print e
+                    
+    try:
+        place = Place.objects.get(name="Zihuatanejo de Azueta")
+        alias = Alias.objects.get(alias="Zihuatanejo")
+        AliasPlace.objects.create(alias=alias, place=place)
+    except Exception as e:
+        print e
 
     print "finishing loadDatasets"
