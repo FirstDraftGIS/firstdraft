@@ -48,3 +48,4 @@ super_python
 tensorflow
 titlecase
 validators
+wheel
