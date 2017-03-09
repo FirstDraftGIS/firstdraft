@@ -3,6 +3,7 @@ from appfd.models import Order
 from os import environ, mkdir
 from os.path import devnull, isdir
 from selenium import webdriver
+from time import sleep
 
 def run(key):
     try:
@@ -21,6 +22,9 @@ def run(key):
         # this assumes that you are running some sort of webserver like Apache2
         # if you're running FDGIS on another port, you will have to add in a port here
         driver.get("http://127.0.0.1/preview_map/" + key)
+
+        # sleep 2 seconds to let basemap load
+        sleep(2)
 
         for extension in ["gif", "jpg", "png"]:
             driver.save_screenshot(directory + key + "." + extension)

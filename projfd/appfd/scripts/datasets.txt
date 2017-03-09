@@ -1,6 +1,9 @@
 # Cameroon
 https://data.humdata.org/dataset/cameroon-administrative-boundaries
 
+# Mexico
+https://data.humdata.org/dataset/capas-mapa-mexico
+
 # Myanmar
 https://data.humdata.org/dataset/myanmar-adiministrative-boundaries
 https://data.humdata.org/dataset/myanmar-village-boundaries
