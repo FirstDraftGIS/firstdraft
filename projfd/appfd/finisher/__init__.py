@@ -1,5 +1,5 @@
 from appfd.models import Order
-from appfd.scripts import create_csv, create_geojson, create_images, create_shapefiles
+from appfd.scripts.create import create_csv, create_geojson, create_images, create_shapefiles, create_xypair
 from apifd.scripts.create.frequency_geojson import run as create_frequency_geojson
 from multiprocessing import Process
 
@@ -10,7 +10,7 @@ def finish_order(key):
 
         print "starting finish order with", key
 
-        for _method in create_geojson.run, create_frequency_geojson, create_shapefiles.run, create_csv.run, create_images.run:
+        for _method in create_geojson.run, create_frequency_geojson, create_shapefiles.run, create_csv.run, create_images.run, create_xypair.run:
             Process(target=_method, args=(key,)).start()
 
         from django.db import connection

@@ -5,9 +5,7 @@ from appfd.finisher import finish_order
 from appfd.forms import *
 from appfd.generator import generate_map_from_sources
 from appfd.models import *
-from appfd.scripts import excel, resolve, tables
-from appfd.scripts import create_csv, create_geojson, create_shapefiles
-from appfd.scripts.excel import *
+from appfd.scripts import resolve
 from bnlp import clean as bnlp_clean
 from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
 from bs4 import BeautifulSoup
@@ -927,7 +925,7 @@ def does_map_exist(request, job, extension):
                 return HttpResponse("yes")
             else:
                 return HttpResponse("no")
-        elif extension in ["csv", "geojson", "gif", "jpg", "png"]:
+        elif extension in ["csv", "geojson", "gif", "jpg", "json", "png", "tsv", "xy"]:
             if isfile("/home/usrfd/maps/" + job + "/" + job + "." + extension):
                 return HttpResponse("yes")
             else:
