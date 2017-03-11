@@ -932,7 +932,7 @@ def does_map_exist(request, job, extension):
                 return HttpResponse("no")
             
     except Exception as e:
-        print e
+        print "[does_map_exist]", e
         return HttpResponse("no")
 
 def does_metadata_exist(request, job, _type="iso_19115_2"):

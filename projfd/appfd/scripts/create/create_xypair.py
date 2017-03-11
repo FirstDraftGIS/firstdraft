@@ -27,7 +27,7 @@ def run(key):
     elif len(pairs) == 1:
         pair = pairs[0]
     else:
-        pair = []
+        pair = None
 
     # run something here so it chooses the most precise one
     with open(directory + key + ".xy", "wb") as f:
