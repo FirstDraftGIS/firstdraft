@@ -84,7 +84,7 @@
  
                 }
             });
-            map.fitBounds(featureGroup.getBounds());
+            map.fitBounds(featureGroup.getBounds().pad(0.01));
         });   
     }
 
