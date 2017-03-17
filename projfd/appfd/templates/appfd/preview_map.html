@@ -9,6 +9,7 @@
     <!--<script src="{% static 'js/external/leaflet.min.js' %}"></script>-->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.0-rc.2/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.0.0-rc.2/dist/leaflet.js"></script>
+    <script src="{% static 'gis/js/turf.min.js' %}"></script>
     <style>
         .place-label {
             display: block;
@@ -70,21 +71,52 @@
     var mainLayer = L.geoJson(undefined,{onEachFeature:onEachFeature, style:getStyle});
     var featureGroup = L.featureGroup([mainLayer]);
     featureGroup.addTo(map);
+
+    function push_polygons_back(){
+        _.values(map._layers).forEach(function(layer){
+            if (layer && layer._latlngs) {
+                layer.bringToBack();
+            }
+        });
+    }
    
     function update() {                                                                                                                           
         $.getJSON(window.location.origin + "/api/features/" + job).then(function(response) {                                                             
             response.features.forEach(function(feature) {
                 if (feature.correct) {
+
                     var marker = L.circleMarker([feature.latitude, feature.longitude], getStyle(feature));
                     featureGroup.addLayer(marker);
-                    marker.bindTooltip(feature.name, {
-                        className: "place-label",
-                        permanent: true
-                    });
- 
+                    if (feature.style.label) {
+                        marker.bindTooltip(feature.name, {
+                            className: "place-label",
+                            permanent: true
+                        });
+                    }
+
+                    var geom_used = feature.geometry_used.toLowerCase();
+
+                    if (!geom_used.includes("point")) {
+                        marker.setStyle({
+                            "fillOpacity": 0,
+                            "opacity": 0
+                        });
+                    }
+
+
+                    if (geom_used.includes("shape")) {
+                        if (feature.polygon) {
+                            var polygon = L.polygon(turf.flip(turf.polygon(feature.polygon)).geometry.coordinates, getStyle(feature)).addTo(map);
+                            featureGroup.addLayer(polygon);
+                        } else if (feature.multipolygon) {
+                            var multipolygon = L.polygon(turf.flip(turf.multiPolygon(feature.multipolygon)).geometry.coordinates, getStyle(feature)).addTo(map);
+                            featureGroup.addLayer(multipolygon);
+                        }
+                    }
                 }
             });
             map.fitBounds(featureGroup.getBounds().pad(0.01));
+            push_polygons_back();
         });   
     }
 

@@ -1,0 +1,21 @@
+{
+  "name": "FirstDraftGIS",
+  "description": "AI that Makes Maps",
+  "main": "",
+  "authors": [
+    "danieljdufour <daniel.j.dufour@gmail.com>"
+  ],
+  "license": "Apache 2",
+  "homepage": "https://github.com/FirstDraftGIS/firstdraft",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap-toggle": "^2.2.2"
+  }
+}

@@ -1,6 +1,7 @@
 from appfd.models import Source
 from appfd.extractor import extract_locations_from_tables, extract_locations_from_text, extract_locations_from_webpage
 from appfd.finisher import finish_order
+from appfd.styler import style_order
 from appfd.scripts.resolve import resolve_locations
 from location_extractor import extract_locations_with_context_from_docx, extract_locations_with_context_from_pdf
 from io import BytesIO
@@ -40,8 +41,10 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                 source_type = source['type']
                 source_data = source['data']
                 if source_type == "text":
-                    print "source_data:", source_data
-                    Source.objects.create(order_id=order_id, source_text=source_data, source_type="text")
+                    print "source_data:", source_data.encode("utf-8")
+                    print "[generator] creating source object"
+                    Source.objects.create(order_id=order_id, source_text=source_data.encode("utf-8"), source_type="text")
+                    print "[generator] created source object"
                     #save_text_to_file(source_data, toFileName(source_data, max_length=20))
                     locations.extend(extract_locations_from_text(source_data))
                 elif (isinstance(source_data, unicode) or isinstance(source_data, str)) and validators.url(source_data):
@@ -107,7 +110,9 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                 print "failed to get locations for source because", e
   
         print "locations:", len(locations) 
-        resolve_locations(locations, order_id=job['order_id'], max_seconds=max_seconds, countries=countries)
+        resolve_locations(locations, order_id=order_id, max_seconds=max_seconds, countries=countries)
+
+        style_order(order_id=order_id)
 
         print "finishing generate_map_from_sources"
         finish_order(job['key'])

@@ -33,6 +33,7 @@ psycopg2
 PyPDF2
 pyproj
 git+git://github.com/GeospatialPython/pyshp
+pydash
 python-dateutil
 python-docx
 python-magic

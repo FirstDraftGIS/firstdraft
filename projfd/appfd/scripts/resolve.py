@@ -13,6 +13,7 @@ import editdistance
 from multiprocessing import *
 from numpy import amin, argmin, mean, median, where
 from random import shuffle
+#from pydash.collections import pluck
 from pytz import UTC
 from scipy.cluster.vq import kmeans
 from scipy.spatial.distance import cdist
@@ -22,10 +23,13 @@ from sys import exit
 from timeit import default_timer
 from time import sleep
 
+trues = ("T", "t", "True", "true", True, "Yes", "y", "yes")
+
 class GeoEntity(object):
 
     def __init__(self, row):
         try:
+            print "row:", row
             self.place_id = row[0]
             self.admin_level = str(row[1])
             self.country_code = row[2]
@@ -39,8 +43,9 @@ class GeoEntity(object):
             self.point = GEOSGeometry(row[9])
             topic_id = row[10]
             self.topic_id = int(topic_id) if topic_id else None
-            self.has_mpoly = row[11] == "True"
-            self.has_pcode = row[12] == "True"
+            self.has_mpoly = row[11] in trues
+            print "row[11]:", row[11] in trues
+            self.has_pcode = row[12] in trues
             self.popularity = int(row[13])
             self.feature_class = row[14]
             self.feature_code = row[15]
@@ -106,7 +111,7 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
 
 
 
-    #print "statement:\n", statement
+    print "statement:\n", statement
     cursor.execute(statement)
     #print "executed"
 
@@ -217,7 +222,9 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
         l = name_location[target]
         topic_id = name_topic[target] if target in name_topic else None
         count = l['count'] if 'count' in l else 1
-        feature = Feature.objects.create(count=count, name=target, geometry_used="Point", order_id=order_id, topic_id=topic_id, verified=False) 
+        correct_option = next(option for option in options if option.correct)
+        geometry_used = "Shape" if correct_option.has_mpoly else "Point"
+        feature = Feature.objects.create(count=count, name=target, geometry_used=geometry_used, order_id=order_id, topic_id=topic_id, verified=False)
         need_to_save = False
         if "context" in l:
             feature.text = l['context']

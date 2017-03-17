@@ -99,21 +99,25 @@ def metadata(request, token):
     return HttpResponse(json.dumps({"metadata": list_of_metadata}), content_type='application/json')
 
 def features(request, token):
+  try:
     print "starting apifd.features with", token
 
     order = Order.objects.get(token=token)
 
     list_of_features = []
     for feature in Feature.objects.filter(order_id=order.id):
-
+        feature_id = feature.id
+        style = Style.objects.filter(feature_id=feature_id).values("fill", "fillOpacity", "label", "stroke", "strokeOpacity", "strokeWidth").first()
         for fp in feature.featureplace_set.all():
 
             place = fp.place
 
             d = {}
+            if style:
+                d['style'] = style
             if place.admin_level:
                 d['admin_level'] = place.admin_level
-            d['feature_id'] = feature.id
+            d['feature_id'] = feature_id
             d['featureplace_id'] = fp.id
             d['confidence'] = float(fp.confidence)
             if feature.end:
@@ -145,6 +149,8 @@ def features(request, token):
             list_of_features.append(d)
 
     return HttpResponse(json.dumps({"edited": order.edited, "features": list_of_features}), content_type='application/json')
+  except Exception as e:
+    print e
 
 def is_location_in_osm(request):
     try:

@@ -1133,7 +1133,12 @@ def request_map_from_file(request):
                     job['countries'] = countries
                 print "job is", job
                 ### will have to remove once separate metadata into own option
-                if is_metadata(request.FILES['file']):
+                try:
+                    source_is_metadata = is_metadata(request.FILES['file'])
+                except Exception as e:
+                    print e
+                    source_is_metadata = False
+                if source_is_metadata:
                     Process(target=generate_metadata_from_file, args=(job,)).start()
                 else:
                     Process(target=generate_map_from_file, args=(job,)).start()
@@ -1192,7 +1197,7 @@ def request_map_from_sources(request):
                 metadata = []
                 print "sources:", sources
                 for source in sources:
-                    if is_metadata(source['data']):
+                    if is_metadata(source['data'], debug=True):
                         print "is metadata"
                         metadata.append(source)
                     else:

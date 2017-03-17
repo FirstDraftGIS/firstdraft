@@ -1,0 +1,27 @@
+{% block content %}
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h2 class="modal-title" id="addModalLabel">Welcome</h2>
+      </div>
+      <div class="modal-body">
+          <p><b>What place would you like to add?</b></p>
+          <label for="place-name-to-add">Name of Place</label>
+          <input id="place-name-to-add" type="text" class="form-control" placeholder="Name of Place">
+
+          <div>
+              <button type='button' class='btn btn-warning btn-md' data-toggle='modal' ng-click="fixLocationUsingTheMap(selection)" style="margin: 10px;">
+                  Add It
+              </button>
+              <button type='button' class='btn btn-default btn-md pull-right' ng-click="displayEditModal()" style="margin: 10px;">
+                  Cancel
+              </button>
+          </div>
+         </table></tbody>
+      </div>
+   </div>
+  </div>
+</div>
+{% endblock %}

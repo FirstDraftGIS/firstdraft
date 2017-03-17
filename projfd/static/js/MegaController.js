@@ -197,10 +197,13 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.features = [];
     $scope.correct_features = [];
     $scope.features_that_appear_in_table = [];
+    $scope.addModal = $(document.getElementById("addModal"));
     $scope.downloadModal = $(document.getElementById("downloadModal"));
     $scope.editModal = $(document.getElementById("editModal"));
     $scope.fixModal = $(document.getElementById("fixModal"));
     $scope.loadModal = $(document.getElementById("loadModal"));
+    //$scope.searchModal = $(document.getElementById("searchModal"));
+    $scope.styleModal = $(document.getElementById("styleModal"));
     $scope.max_time = 10;
 
     map = L.map('map', {"fullscreenControl": true});
@@ -209,6 +212,18 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     L.easyButton('<span class="glyphicon glyphicon-globe" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
         map.setView([0,0], 1);
     }).addTo(map);
+
+    // add button to add place
+    L.easyButton('<span class="glyphicon glyphicon-map-marker" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
+        console.log("adding place");
+        $scope.close_all_modals_and_open("add");
+    }).addTo(map);
+
+    // add button to add place
+    L.easyButton('<span class="glyphicon glyphicon-search" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
+        console.log("searching");
+    }).addTo(map);
+
 
     var showTableControl = L.Control.extend({
         options: {
@@ -440,49 +455,73 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.correct_features.forEach(function(feature) {
 
             var popup_html = "<div style='text-align:center'><b>"+feature.name+"</b></div>" +
-                "<div><b>Latitude:</b> " + $scope.numberToString(feature.latitude) + "</div>" +
-                "<div><b>Longitude:</b> " + $scope.numberToString(feature.longitude) + "</div>" +
-                "<div style='text-align: center'><button type='button' class='btn btn-warning btn-xs' onclick='displayFixModalById(" + feature.featureplace_id + ")' style='margin: 5px;'>Fix Location</button></div>" +
-                "<button type='button' class='btn btn-primary btn-xs' onclick='displayEditModalById(" + feature.featureplace_id + ")' style='margin: 5px;'>More</button>" +
-                "<button type='button' class='btn btn-danger btn-xs pull-right' onclick='deleteByFeaturePlaceIdFromPopup(" + feature.featureplace_id + ")' style='margin: 5px;'>Delete</button>";
+                "<div><b>Latitude:</b> " + $scope.numberToString(feature.latitude) + "</div>"
+                + "<div><b>Longitude:</b> " + $scope.numberToString(feature.longitude) + "</div>"
+                + "<button type='button' class='btn btn-warning btn-xs' onclick='displayStyleModalById(" + feature.featureplace_id + ")' style='margin: 5px;     background-color: purple; border: hotpink;'>Style</button>"
+                + "<button type='button' class='btn btn-warning btn-xs' onclick='displayFixModalById(" + feature.featureplace_id + ")' style='margin: 5px;'> Fix </button>"
+                + "<button type='button' class='btn btn-primary btn-xs' onclick='displayEditModalById(" + feature.featureplace_id + ")' style='margin: 5px;'>More</button>"
+                + "<button type='button' class='btn btn-danger btn-xs pull-right' onclick='deleteByFeaturePlaceIdFromPopup(" + feature.featureplace_id + ")' style='margin: 5px;'>Delete</button>";
 
             var popup_options = {
                 'maxWidth': '500',
                 'className' : 'custom-popup'
             };
-                
+
+            var geom_used = feature.geometry_used.toLowerCase();
+              
             var marker = L.circleMarker([feature.latitude, feature.longitude], getStyle(feature));
             marker.feature_id = feature.feature_id;
             marker.featureplace_id = feature.featureplace_id;
             marker.bindPopup(popup_html, popup_options);
             marker.addTo(map);
+
+            if (feature.style.label) {
+                marker.bindTooltip(feature.name, {
+                    className: "place-label",
+                    permanent: true
+                });
+            }
             map_elements.push(marker);
 
-            if (feature.polygon) {
-                console.log("creating polygon for", feature);
-                var polygon = L.polygon(turf.flip(turf.polygon(feature.polygon)).geometry.coordinates, getStyle(feature)).addTo(map);
-                polygon.feature_id = feature.feature_id;
-                polygon.featureplace_id = feature.featureplace_id;
-                polygon.bindPopup(popup_html, popup_options);
-                polygon.addTo(map);
-                map_elements.push(polygon);
-                console.log("pushed", polygon);
+            // hide point if not supposed to show it, but still need it on the map in order to place the label correctly
+            // when you have multipolygon's the label sometimes is placed on the wrong polygon, like an island instead of the mainland
+            if (!geom_used.includes("point")) {
+                marker.setStyle({
+                    "fillOpacity": 0,
+                    "opacity": 0
+                });
             }
 
-            if (feature.multipolygon) {
-                console.log("creating multipolygon for", feature);
-                var multipolygon = L.polygon(turf.flip(turf.multiPolygon(feature.multipolygon)).geometry.coordinates, getStyle(feature)).addTo(map);
-                multipolygon.feature_id = feature.feature_id;
-                multipolygon.featureplace_id = feature.featureplace_id;
-                multipolygon.bindPopup(popup_html, popup_options);
-                multipolygon.addTo(map);
-                map_elements.push(multipolygon);
-                console.log("pushed", multipolygon);
+            if (geom_used.includes("shape")) {
+                if (feature.polygon) {
+                   console.log("creating polygon for", feature);
+                    var polygon = L.polygon(turf.flip(turf.polygon(feature.polygon)).geometry.coordinates, getStyle(feature)).addTo(map);
+                    polygon.feature_id = feature.feature_id;
+                    polygon.featureplace_id = feature.featureplace_id;
+                    polygon.bindPopup(popup_html, popup_options);
+                    polygon.addTo(map);
+                    map_elements.push(polygon);
+                    console.log("pushed", polygon);
+                } else if (feature.multipolygon) {
+                    console.log("creating multipolygon for", feature);
+                    var multipolygon = L.polygon(turf.flip(turf.multiPolygon(feature.multipolygon)).geometry.coordinates, getStyle(feature)).addTo(map);
+                    multipolygon.feature_id = feature.feature_id;
+                    multipolygon.featureplace_id = feature.featureplace_id;
+                    multipolygon.bindPopup(popup_html, popup_options);
+                    multipolygon.addTo(map);
+                    map_elements.push(multipolygon);
+                    console.log("pushed", multipolygon);
+                }
             }
+
         });
         $scope.push_polygons_back();
         $scope.features_that_appear_in_table = $scope.correct_features;
-        map.fitBounds(L.featureGroup(map_elements).getBounds().pad(0.01));
+        if (map_elements.length > 0) {
+            map.fitBounds(L.featureGroup(map_elements).getBounds().pad(0.01));
+        } else {
+            map.setView([0,0], 1);
+        }
         $scope.loadModal.modal("hide");
     };
 
@@ -542,22 +581,25 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.editModal.modal();
     };
 
-    $scope.displayEditModalById = displayEditModalById = function(featureplace_id) {
-        console.log("featureplace_id:", featureplace_id);
+    $scope.select = function(featureplace_id) {
         $scope.$apply(function(){
             $scope.selection = _.find($scope.features, function(feature) { return feature.featureplace_id === featureplace_id; });
         });
-        console.log("selection:", $scope.selection);
+    };
+
+    $scope.displayEditModalById = displayEditModalById = function(featureplace_id) {
+        $scope.select(featureplace_id);
         $scope.editModal.modal();
     };
 
     $scope.displayFixModalById = displayFixModalById = function(featureplace_id) {
-        console.log("featureplace_id:", featureplace_id);
-        $scope.$apply(function(){
-            $scope.selection = _.find($scope.features, function(feature) { return feature.featureplace_id === featureplace_id; });
-        });
-        console.log("selection:", $scope.selection);
+        $scope.select(featureplace_id);
         $scope.fixModal.modal();
+    };
+
+    $scope.displayStyleModalById = displayStyleModalById = function(featureplace_id) {
+        $scope.select(featureplace_id);
+        $scope.styleModal.modal();
     };
 
 

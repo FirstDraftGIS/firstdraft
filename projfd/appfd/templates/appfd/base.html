@@ -65,6 +65,7 @@ Warning! JavaScript is not enabled.
 {% block content %}
 {% endblock %}
 {% include "appfd/modals/start.html" %}
+{% include "appfd/modals/add.html" %}
 {% include "appfd/modals/paste.html" %}
 {% include "appfd/modals/upload.html" %}
 {% include "appfd/modals/link.html" %}
@@ -80,9 +81,14 @@ Warning! JavaScript is not enabled.
 {% include "appfd/modals/load.html" %}
 {% include "appfd/modals/metadata.html" %}
 {% include "appfd/modals/sources.html" %}
+{% include "appfd/modals/style.html" %}
 {% include "appfd/modals/uses.html" %}
 {% include "appfd/ga.html" %}
 </body>
 <script src="{% static 'js/external/ui-grid.min.js' %}"></script>
 <script src="{% static 'js/MegaController.js' %}"></script>
+
+<!-- only need bootstrap toggle for style popup, so can load last -->
+<link href="{% static 'bower_components/bootstrap-toggle/css/bootstrap-toggle.min.css' %}" rel="stylesheet">
+<script src="{% static 'bower_components/bootstrap-toggle/js/bootstrap-toggle.min.js' %}"></script>
 </html>

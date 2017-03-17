@@ -206,6 +206,8 @@ class Style(Model):
     feature = ForeignKey("feature")
     fill = CharField(max_length=30, null=True)
     fillOpacity = FloatField(null=True)
+    label = BooleanField(default=False)
+    #labelOpacity = FloatField(null=True)
     stroke = CharField(max_length=30, null=True)
     strokeOpacity = FloatField(null=True)
     strokeWidth = IntegerField(null=True)
