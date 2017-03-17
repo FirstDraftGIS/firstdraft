@@ -433,6 +433,8 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     };
 
     $scope.loadFeatures = function() {
+
+        var map_elements = [];
     
         $scope.correct_features = $scope.features.filter(function(feature){return feature.correct;});
         $scope.correct_features.forEach(function(feature) {
@@ -454,6 +456,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             marker.featureplace_id = feature.featureplace_id;
             marker.bindPopup(popup_html, popup_options);
             marker.addTo(map);
+            map_elements.push(marker);
 
             if (feature.polygon) {
                 console.log("creating polygon for", feature);
@@ -462,6 +465,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
                 polygon.featureplace_id = feature.featureplace_id;
                 polygon.bindPopup(popup_html, popup_options);
                 polygon.addTo(map);
+                map_elements.push(polygon);
                 console.log("pushed", polygon);
             }
 
@@ -472,11 +476,13 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
                 multipolygon.featureplace_id = feature.featureplace_id;
                 multipolygon.bindPopup(popup_html, popup_options);
                 multipolygon.addTo(map);
+                map_elements.push(multipolygon);
                 console.log("pushed", multipolygon);
             }
         });
         $scope.push_polygons_back();
         $scope.features_that_appear_in_table = $scope.correct_features;
+        map.fitBounds(L.featureGroup(map_elements).getBounds().pad(0.01));
         $scope.loadModal.modal("hide");
     };
 

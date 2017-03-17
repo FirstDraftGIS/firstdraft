@@ -202,6 +202,17 @@ class Source(Model):
             representation += " : " + self.source_text
         return representation 
 
+class Style(Model):
+    feature = ForeignKey("feature")
+    fill = CharField(max_length=30, null=True)
+    fillOpacity = FloatField(null=True)
+    stroke = CharField(max_length=30, null=True)
+    strokeOpacity = FloatField(null=True)
+    strokeWidth = IntegerField(null=True)
+
+    def __str__(self):
+        return "(" + str(self.id) + ") " + self.feature.name + "'s style"
+
 
 class TeamMember(Model):
     email = EmailField(null=True, blank=True)

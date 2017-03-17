@@ -1,7 +1,7 @@
 import appfd, json, geojson
 from .scripts.create.frequency_geojson import run as create_frequency_geojson
 from appfd.scripts.create import create_csv, create_geojson, create_images, create_shapefiles, create_xypair
-from appfd.models import Feature, FeaturePlace, MetaData, MetaDataEntry, Order, Place
+from appfd.models import Feature, FeaturePlace, MetaData, MetaDataEntry, Order, Place, Style
 from collections import Counter
 from django.http import HttpResponse
 from django.shortcuts import render
