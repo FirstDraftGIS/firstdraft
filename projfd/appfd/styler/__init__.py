@@ -1,10 +1,14 @@
-from appfd.models import Feature, FeaturePlace, Order, Place, Style
+from appfd.models import Basemap, Feature, FeaturePlace, Order, MapStyle, Place, Style
 
 def style_order(order_id):
 
     try:
 
         print "starting style with order_id:", order_id
+
+        basemap_id = Basemap.objects.get(name="OpenStreetMap.Mapnik").id
+        map_style_id = MapStyle.objects.create(basemap_id=basemap_id)
+        Order.objects.filter(id=order_id).update(style=map_style_id)
 
         features = Feature.objects.filter(order_id=order_id).values_list("id", flat=True)
         for index, feature_id in enumerate(features):

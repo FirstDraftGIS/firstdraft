@@ -3,14 +3,26 @@ modals = {};
 
 modals_as_jquery_elements = $(".modal");
 
-modals_as_jquery_elements
-.each(function(id, element) {
-    modals[element.id.replace("Modal","")] = $(element);
-})
-.on("shown.bs.modal", function() {
-    // had to do this hack because bootstrap doesn't enable scrolling on modal when activated by JavaScript
-    $("body").addClass("modal-open");
-});
+
+function initialize_modal(element) {
+     var jquery_element = $(element);
+     modals[element.id.replace("Modal","")] = jquery_element;
+     jquery_element.on("shown.bs.modal", function() {
+        // had to do this hack because bootstrap doesn't enable scrolling on modal when activated by JavaScript
+        $("body").addClass("modal-open");
+    });
+}
+
+function initialize_modal_by_id(id) {
+    initialize_modal(document.getElementById(id + 'Modal'));
+}
+
+function initialize_modals() {
+    modals_as_jquery_elements.each(function(id, element) {
+        initialize_modal($(element));
+    });
+}
+
 
 
 function close_all_modals () {
@@ -61,16 +73,19 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
 
     $scope.closeModal = function(id) {
+        if(!modals[id]) initialize_modal_by_id(id);
         modals[id].modal('hide');
     };
 
     navbar_collapse = $(".navbar-collapse");
     $scope.open_modal = function(id) {
+        if(!modals[id]) initialize_modal_by_id(id);
         modals[id].modal('show');
         navbar_collapse.collapse('hide');
     };
 
-    $scope.close_all_modals_and_open = function(id) {
+    $scope.close_all_modals_and_open = close_all_modals_and_open = function(id) {
+        if(!modals[id]) initialize_modal_by_id(id);
         close_all_modals();
         $scope.open_modal(id);
     };
@@ -153,8 +168,8 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     $scope.process_job = function() {
         console.log("starting process_job with $scope.share_url_element:", $scope.share_url_element);
-        window.location.hash = $scope.job;
-        $scope.share_url = window.location.origin + "/view_map/" + $scope.job;
+        location.hash = $scope.job;
+        $scope.share_url = location.origin + "/view_map/" + $scope.job;
         console.log("scope.share-Url:", $scope.share_url);
         share_url_element.href = $scope.share_url;
         share_url_element.textContent = $scope.share_url;
@@ -242,12 +257,22 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     centerControl = $("<div class='leaflet-top leaflet-center' style='display: none'><div class='leaflet-control leaflet-control-custom'><div id='map-alert' class='alert alert-warning fade in' style='padding-bottom: 5px; padding-top: 5px;'></div></div></div>");
     map._controlContainer.appendChild(centerControl[0]);
 
-    map.setView([0,0],2);
-    L.tileLayer(location.protocol + '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors.',
-        maxZoom: 18
-    }).addTo(map);
+    // basemaps button
+    var basemapsControl = L.Control.extend({
+        options: {
+            position: "bottomright",
+        },
+        onAdd: function(map) {
+            var basemapsButton = L.DomUtil.create("div", "leaflet-bar leaflet-control leaflet-control-custom");
+            basemapsButton.style.boxShadow = 'none';
+            basemapsButton.id = "showBasemapsModalControl";
+            basemapsButton.innerHTML = "<div><button type='button' id='basemapsButton' class='btn btn-primary btn-xs' onclick='close_all_modals_and_open(\"basemaps\")' style='width: 100px'>Basemaps</button></div>";
+            return basemapsButton;
+        }
+    });
+    map.addControl(new basemapsControl());
 
+    map.setView([0,0],2);
 
     $scope.clear_layers = function() {
         map.eachLayer(function(layer) {
@@ -313,7 +338,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
         var request = $interval( function(){
             console.log("checking if", $scope.job, extension, "is ready");
-            document.getElementById("download_link_" + extension).href = window.location.origin + "/get_map/" + $scope.job + "/" + extension;
+            document.getElementById("download_link_" + extension).href = location.origin + "/get_map/" + $scope.job + "/" + extension;
             $http.get('/does_map_exist/' + $scope.job + "/" + extension).then(function(response) {
                 console.log("got response", response);
                 if (response.data === "yes") {
@@ -344,7 +369,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
         var request = $interval( function(){
             console.log("checking downloadability of metadata", $scope.job, metadata);
-            document.getElementById("download_metadata_link_" + metadata).href = window.location.origin + "/get_metadata/" + $scope.job + "/" + metadata;
+            document.getElementById("download_metadata_link_" + metadata).href = location.origin + "/get_metadata/" + $scope.job + "/" + metadata;
             $http.get('/does_metadata_exist/' + $scope.job + "/" + metadata).then(function(response) {
                 console.log("got response", response);
                 if (response.data === "yes") {
@@ -398,7 +423,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             return function (event) {
                 console.log("starting onclick", event, feature);
                 if ($scope.selection.featureplace_id != feature.featureplace_id) {
-                    var url = window.location.origin + "/api/change_featureplace";
+                    var url = location.origin + "/api/change_featureplace";
                     $http.post(url, {featureplace_id: $scope.selection.featureplace_id, correct: false});
                     $http.post(url, {featureplace_id: feature.featureplace_id, correct: true});
                     _.find($scope.features, function(f) { return f.featureplace_id === $scope.selection.featureplace_id; }).correct = false;
@@ -526,14 +551,15 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     };
 
     $scope.getFeatures = function() {
-        $http.get(window.location.origin + "/api/features/" + $scope.job).then(function(response) {
+        $http.get(location.origin + "/api/features/" + $scope.job).then(function(response) {
+            $scope.basemap = L.tileLayer.provider(response.data.style.basemap_code).addTo(map);
             $scope.features = response.data.features;
             $scope.loadFeatures();
         });
     };
 
     $scope.getMetaData = function() {
-        $http.get(window.location.origin + "/api/metadata/" + $scope.job).then(function(response) {
+        $http.get(location.origin + "/api/metadata/" + $scope.job).then(function(response) {
             $scope.metadata = response.data.metadata;
         });
     };
@@ -546,7 +572,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     $scope.deleteByFeaturePlaceId = deleteByFeaturePlaceId = function(featureplace_id) {
         console.log("starting deleteByFeaturePlaceId with", featureplace_id);
-        $http.post(window.location.origin + "/api/change_featureplace", {featureplace_id: featureplace_id, correct: false}).then(function(response) {
+        $http.post(location.origin + "/api/change_featureplace", {featureplace_id: featureplace_id, correct: false}).then(function(response) {
             console.log("response to change_featureplace is", response);
         });
 
@@ -585,6 +611,22 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.$apply(function(){
             $scope.selection = _.find($scope.features, function(feature) { return feature.featureplace_id === featureplace_id; });
         });
+    };
+
+    $scope.select_basemap = function(basemap) {
+        console.log("starting select_map with", basemap);
+
+
+        var old_basemap = $scope.basemap;
+        var new_basemap = L.tileLayer.provider(basemap.code).addTo(map);
+
+        map.removeLayer(old_basemap);
+        $scope.basemap = new_basemap;
+
+        var url = location.origin + "/api/change_basemap";
+        $http.post(url, { id: basemap.id, token: $scope.job });
+
+        close_all_modals();
     };
 
     $scope.displayEditModalById = displayEditModalById = function(featureplace_id) {
@@ -682,16 +724,35 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         console.log("newValue:", newValue, "oldValue:", oldValue);
     });
 
+    $scope.changeStyle = function() {
+        console.log("selection is ", selection);
+        //var new_style = selection.style;
+        //var marker = _.find(_.values(map._layers), lyr => lyr._point && lyr.feature_id == 3358);
+        //if (new_style.label
+        
+    }
+
 
     console.log("finishing MegaController");
 
-    if (window.location.hash) {
-        $scope.job = window.location.hash.replace("#","");
+    if (location.hash) {
+        $scope.job = location.hash.replace("#","");
         $scope.process_job();
         $scope.get_map_when_ready();
     } else {
         modals.start.modal();
     }
+
+    $http.get(location.origin + "/api/basemaps/?format=json&limit=1000").then(function(response) {
+        $scope.basemaps = response.data.results.map(function(basemap) {
+            return {
+                code: basemap.name,
+                id: basemap.id,
+                name: basemap.name.replace(/\./g, " ").replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z])([a-z])/, '$1 $2$3').replace(/ ([a-z])/g, s => s.toUpperCase()).replace(" And ", " and ").replace("Open Street Map", "OpenStreetMap")
+            };
+        });
+    });
+
 
   } catch (err) { console.error(err); }
 

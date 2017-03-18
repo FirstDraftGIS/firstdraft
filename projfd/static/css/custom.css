@@ -503,3 +503,30 @@ background-size: 20px 20px;
 
 
 }
+
+.basemap-card {
+    display: inline-block;
+    height: 100px;
+    margin: 15px;
+    width: 150px;
+    vertical-align: bottom
+}
+
+.basemap-card:hover {
+    background-color: purple;
+    color: white;
+    cursor: pointer;
+}
+
+/* make basemap modal with larger */
+@media (min-width: 1000px) {
+    .modal-dialog {
+        width: 900px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .modal-dialog {
+        width: 1100px;
+    }
+}

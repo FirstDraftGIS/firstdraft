@@ -1,7 +1,7 @@
 from appfd.models import Feature, FeaturePlace
 from appfd.models import Order
-from os import environ, mkdir
-from os.path import devnull, isdir
+from os import environ, mkdir, remove
+from os.path import devnull, isdir, isfile
 from selenium import webdriver
 from time import sleep
 
@@ -17,16 +17,21 @@ def run(key):
             mkdir(directory)
 
         driver = webdriver.PhantomJS(service_log_path=devnull)
+        #driver = webdriver.PhantomJS(service_args=["--remote-debugger-port=9000"], service_log_path=devnull)
+        #driver = webdriver.PhantomJS(service_args=["--debug=True"], service_log_path=devnull)
         driver.set_window_size(1024, 768)
 
         # this assumes that you are running some sort of webserver like Apache2
         # if you're running FDGIS on another port, you will have to add in a port here
         driver.get("http://127.0.0.1/preview_map/" + key)
 
-        # sleep 2 seconds to let basemap load
-        sleep(2)
+        # sleep 5 seconds to let basemap load
+        sleep(5)
 
         for extension in ["gif", "jpg", "png"]:
+            path_to_screenshot = directory + key + "." + extension
+            print "path_to_screenshot:", path_to_screenshot
+            if isfile(path_to_screenshot): remove(path_to_screenshot) 
             driver.save_screenshot(directory + key + "." + extension)
 
         driver.quit()

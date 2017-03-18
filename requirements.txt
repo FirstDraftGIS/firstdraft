@@ -20,6 +20,7 @@ html5lib
 language-detector
 location-extractor
 lxml
+markdown
 marionette_client==3.2.0
 metadata-extractor
 mod_wsgi

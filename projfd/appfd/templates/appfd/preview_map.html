@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.0-rc.2/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.0.0-rc.2/dist/leaflet.js"></script>
     <script src="{% static 'gis/js/turf.min.js' %}"></script>
+    <script src="{% static 'node_modules/underscore/underscore-min.js' %}"></script>
+    <script src="{% static 'node_modules/leaflet-providers/leaflet-providers.js' %}"></script>
     <style>
         .place-label {
             display: block;
@@ -40,12 +42,7 @@
 
     var features = [];
 
-    var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors.',
-        maxZoom: 18
-    }).addTo(map);
-
-   function getStyle(feature) {                                                                                                                                
+    function getStyle(feature) {                                                                                                                                
         //if (feature.confidence === 1) color = "green";                                                                                                        
         //if (feature.confidence > .9) color = "yellow";                                                                                                        
         //color = "red";                                                                                                                                        
@@ -82,6 +79,11 @@
    
     function update() {                                                                                                                           
         $.getJSON(window.location.origin + "/api/features/" + job).then(function(response) {                                                             
+
+          try {
+
+            L.tileLayer.provider(response.style.basemap_code).addTo(map);
+
             response.features.forEach(function(feature) {
                 if (feature.correct) {
 
@@ -96,7 +98,7 @@
 
                     var geom_used = feature.geometry_used.toLowerCase();
 
-                    if (!geom_used.includes("point")) {
+                    if (!geom_used.indexOf("point") > -1) {
                         marker.setStyle({
                             "fillOpacity": 0,
                             "opacity": 0
@@ -104,7 +106,7 @@
                     }
 
 
-                    if (geom_used.includes("shape")) {
+                    if (geom_used.indexOf("shape") > -1) {
                         if (feature.polygon) {
                             var polygon = L.polygon(turf.flip(turf.polygon(feature.polygon)).geometry.coordinates, getStyle(feature)).addTo(map);
                             featureGroup.addLayer(polygon);
@@ -117,6 +119,12 @@
             });
             map.fitBounds(featureGroup.getBounds().pad(0.01));
             push_polygons_back();
+
+          } catch (error) {
+            document.body.innerHTML = error;
+            console.alert(error);
+          }
+
         });   
     }
 

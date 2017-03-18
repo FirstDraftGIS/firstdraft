@@ -1,17 +1,39 @@
 import appfd, json, geojson
 from .scripts.create.frequency_geojson import run as create_frequency_geojson
 from appfd.scripts.create import create_csv, create_geojson, create_images, create_shapefiles, create_xypair
-from appfd.models import Feature, FeaturePlace, MetaData, MetaDataEntry, Order, Place, Style
+from appfd.models import Feature, FeaturePlace, MapStyle, MetaData, MetaDataEntry, Order, Place, Style
 from collections import Counter
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.clickjacking import xframe_options_exempt
 from multiprocessing import Process
 from os import mkdir
 from os.path import isdir, isfile
 import json
 
+@require_POST
+def change_basemap(request):
+    try:
+        d = json.loads(request.body)
+        token = d['token']
+        MapStyle.objects.filter(order__token=token).update(basemap_id=d['id'])
 
+        from django.db import connection 
+        connection.close()
+
+        for _method in create_geojson.run, create_frequency_geojson, create_shapefiles.run, create_csv.run, create_images.run, create_xypair.run:
+            Process(target=_method, args=(token,)).start()
+
+        status = "success"
+    except Exception as e:
+        print "[exception in change_basemap]", e
+        status = "failure"
+
+        print "status:", status
+    return HttpResponse(json.dumps({"status": status}))
+
+@require_POST
 def change_featureplace(request):
     try:
         if request.method == "POST":
@@ -98,6 +120,7 @@ def metadata(request, token):
 
     return HttpResponse(json.dumps({"metadata": list_of_metadata}), content_type='application/json')
 
+@require_GET
 def features(request, token):
   try:
     print "starting apifd.features with", token
@@ -148,10 +171,15 @@ def features(request, token):
                     d['multipolygon'] = coords
             list_of_features.append(d)
 
-    return HttpResponse(json.dumps({"edited": order.edited, "features": list_of_features}), content_type='application/json')
+
+    basemap = order.style.basemap
+    style = {"basemap_id": basemap.id, "basemap_code": basemap.name}
+
+    return HttpResponse(json.dumps({ "edited": order.edited, "features": list_of_features, "style": style }), content_type='application/json')
   except Exception as e:
     print e
 
+@require_POST
 def is_location_in_osm(request):
     try:
         print "starting is_location_in_osm"
@@ -175,6 +203,7 @@ def is_location_in_osm(request):
     except Exception as e:
         print e
 
+@require_GET
 def ready(self, token): 
     try:
         complete = Order.objects.get(token=token).complete

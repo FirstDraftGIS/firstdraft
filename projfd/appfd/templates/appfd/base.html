@@ -24,7 +24,10 @@
 <script src="{% static 'js/app.js' %}"></script>
 <script src="{% static 'js/spinner.js' %}"></script>
 <script src="{% static 'gis/js/turf.min.js' %}"></script>
+<script src="{% static 'bower_components/angular-bootstrap-toggle/dist/angular-bootstrap-toggle.min.js' %}"></script>
+<script src="{% static 'node_modules/leaflet-providers/leaflet-providers.js' %}"></script>
 <link rel = "icon" type = "image/ico" href="logo.ico"/>
+<link rel="stylesheet" type="text/css" href="{% static 'bower_components/angular-bootstrap-toggle/dist/angular-bootstrap-toggle.min.css' %}"/>
 <link rel="stylesheet" type="text/css" href="{% static 'node_modules/leaflet-easybutton/src/easy-button.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'css/map.css' %}" />
@@ -84,11 +87,13 @@ Warning! JavaScript is not enabled.
 {% include "appfd/modals/style.html" %}
 {% include "appfd/modals/uses.html" %}
 {% include "appfd/ga.html" %}
-</body>
+{% include "appfd/modals/basemaps.html" %}
 <script src="{% static 'js/external/ui-grid.min.js' %}"></script>
 <script src="{% static 'js/MegaController.js' %}"></script>
 
-<!-- only need bootstrap toggle for style popup, so can load last -->
-<link href="{% static 'bower_components/bootstrap-toggle/css/bootstrap-toggle.min.css' %}" rel="stylesheet">
-<script src="{% static 'bower_components/bootstrap-toggle/js/bootstrap-toggle.min.js' %}"></script>
+<!-- We put basemap after the JavaScript because we can wait to load this and don't want to block the page loading -->
+
+</body>
+<!--<link href="{% static 'bower_components/bootstrap-toggle/css/bootstrap-toggle.min.css' %}" rel="stylesheet">-->
+<!--<script src="{% static 'bower_components/bootstrap-toggle/js/bootstrap-toggle.min.js' %}"></script>-->
 </html>

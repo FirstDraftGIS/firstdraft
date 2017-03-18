@@ -1,10 +1,11 @@
+import appfd, inspect
+from appfd.models import Basemap
+from appfd import views
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib.auth.models import User, Group
 from django.contrib.gis import admin
-from appfd import views
 from django.conf import settings
-import appfd, inspect
 
 #initialize urlpatterns
 urlpatterns = []

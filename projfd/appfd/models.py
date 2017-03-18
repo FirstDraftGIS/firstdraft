@@ -31,6 +31,11 @@ class AlternateName(Model):
     isColloquial = CharField(max_length=1, null=True, blank=True)
     isHistoric = CharField(max_length=1, null=True, blank=True)
 
+class Basemap(Model):
+    name = CharField(max_length=50)
+    def __str__(self):
+        return self.name
+
 class Calls(Model):
     date = DateField()
     total = IntegerField(default=0)
@@ -110,12 +115,17 @@ class FeaturePlace(Model):
     def __str__(self): 
         return str(self.feature.id) + "~" + str(self.place.id)
 
+# styles and info that apply to a map as a whole
+class MapStyle(Model):
+    basemap = ForeignKey("Basemap")
+
 class Order(Model):
     complete = BooleanField(default=False)
     duration = IntegerField(null=True) # how long it took to process the order
     edited = BooleanField(default=False) # tells you whether they opened it for editing... not whether any actual edits were made
     end = DateTimeField(null=True)
     start = DateTimeField(auto_now_add=True, null=True) # it will never be null, but have to do this because migration asks for default otherwise
+    style = ForeignKey("MapStyle", null=True)
     token = CharField(max_length=200, null=True, unique=True) # the random string that's used to find the order in the maps
     url = URLField(null=True, max_length=1000, unique=True) # URL if started from url or iframe embeded on a webpage
 
