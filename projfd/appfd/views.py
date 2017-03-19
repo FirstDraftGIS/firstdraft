@@ -925,7 +925,7 @@ def does_map_exist(request, job, extension):
                 return HttpResponse("yes")
             else:
                 return HttpResponse("no")
-        elif extension in ["csv", "geojson", "gif", "jpg", "json", "png", "tsv", "xy"]:
+        elif extension in ["csv", "geojson", "gif", "jpg", "json", "pdf", "png", "tsv", "xy"]:
             if isfile("/home/usrfd/maps/" + job + "/" + job + "." + extension):
                 return HttpResponse("yes")
             else:
@@ -971,6 +971,10 @@ def get_map(request, job, extension):
         with open(path_to_directory + job + "." + extension) as f:
             data = f.read()
         return HttpResponse(data, content_type="image/" + extension)
+    elif extension == "pdf":
+        with open(path_to_directory + job + "." + extension) as f:
+            data = f.read()
+        return HttpResponse(data, content_type='application/pdf')
     else:
         data = ""
         for filename in listdir(path_to_directory):

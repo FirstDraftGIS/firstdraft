@@ -35,8 +35,14 @@
                   </div>
               </div>
               <div style="display: inline-block">
+                  <span ng-hide="ready_to_download_pdf">Generating PDF...</span>
+                  <div ng-click="verify_map()" ng-show="ready_to_download_pdf">
+                      <a class="btn btn-primary" id='download_link_pdf' target='_blank'>PDF</a>
+                  </div>
+              </div>
+              <div style="display: inline-block">
                   <span ng-hide="ready_to_download_png">Generating PNG...</span>
-                  <div ng-click="verify_map()" ng-show="ready_to_download_jpg">
+                  <div ng-click="verify_map()" ng-show="ready_to_download_png">
                       <a class="btn btn-primary" id='download_link_png' target='_blank'>PNG</a>
                   </div>
               </div>

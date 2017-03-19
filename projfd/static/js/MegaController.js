@@ -163,6 +163,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.check_downloadability_of_extension("geojson");
         $scope.check_downloadability_of_extension("gif");
         $scope.check_downloadability_of_extension("jpg");
+        $scope.check_downloadability_of_extension("pdf");
         $scope.check_downloadability_of_extension("png");
         $scope.check_downloadability_of_extension("shp");
         $scope.check_downloadability_of_metadata("iso_19115_2");

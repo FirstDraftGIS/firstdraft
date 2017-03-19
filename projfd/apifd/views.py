@@ -1,6 +1,6 @@
 import appfd, json, geojson
 from .scripts.create.frequency_geojson import run as create_frequency_geojson
-from appfd.scripts.create import create_csv, create_geojson, create_images, create_shapefiles, create_xypair
+from appfd.scripts.create import create_csv, create_geojson, create_images, create_pdf, create_shapefiles, create_xypair
 from appfd.models import Feature, FeaturePlace, MapStyle, MetaData, MetaDataEntry, Order, Place, Style
 from collections import Counter
 from django.http import HttpResponse
@@ -22,7 +22,7 @@ def change_basemap(request):
         from django.db import connection 
         connection.close()
 
-        for _method in create_geojson.run, create_frequency_geojson, create_shapefiles.run, create_csv.run, create_images.run, create_xypair.run:
+        for _method in create_geojson.run, create_frequency_geojson, create_shapefiles.run, create_csv.run, create_images.run, create_xypair.run, create_pdf.run:
             Process(target=_method, args=(token,)).start()
 
         status = "success"
