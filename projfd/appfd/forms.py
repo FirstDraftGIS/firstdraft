@@ -1,5 +1,9 @@
 # In forms.py...
-from django.forms import CharField, FileField, Form, URLField
+from appfd.models import Basemap
+from django.forms import CharField, FileField, Form, ModelChoiceField, URLField
+
+class BasemapForm(Form):
+    basemap = ModelChoiceField(to_field_name="name", queryset=Basemap.objects.all())
 
 class LinkForm(Form):
     data = URLField()

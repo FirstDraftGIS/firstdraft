@@ -1030,6 +1030,10 @@ def request_map_from_text(request):
                 'key': key,
                 'order_id': order_id
             }
+            if "style" in data:
+                job['style'] = {}
+                if "basemap" in data['style']:
+                    job['style'] = data['style']['basemap']
             if "countries" in data:
                 job['countries'] = data['countries']
             Process(target=generate_map_from_text, args=(job,)).start()
@@ -1191,8 +1195,11 @@ def request_map_from_sources(request):
                 }
                 if "countries" in cleaned:
                     job['countries'] = cleaned['countries']
-
-               
+                if "style" in cleaned:
+                    job['style'] = {}
+                    if "basemap" in cleaned['style']:
+                        job['style']['basemap'] = cleaned['style']['basemap']
+ 
                 data = []
                 metadata = []
                 print "sources:", sources

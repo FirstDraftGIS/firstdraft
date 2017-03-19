@@ -1,9 +1,17 @@
-from appfd.forms import FileForm, LinkForm, TextForm
+from appfd.forms import BasemapForm, FileForm, LinkForm, TextForm
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 def clean(POST, FILES):
     try:
         print "starting clean"
+
+        style = {}
+        if "basemap" in POST:
+            basemapForm = BasemapForm({"basemap": POST['basemap']})
+            if basemapForm.is_valid():
+                style['basemap'] = basemapForm.cleaned_data['basemap']
+        print "style after cleaning:", style
+
         sources = []
         for n in range(1000):
             key = "source_" + str(n) + "_type"
@@ -44,7 +52,7 @@ def clean(POST, FILES):
                                 sources.append({"type": "text", "data": cleaned_data.strip()})
 
         print "finishing clean"
-        return {"sources": sources}
+        return {"sources": sources, "style": style}
     except Exception as e:
         print "EXCEPTION in cleaner.clean:", e
         raise e

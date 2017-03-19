@@ -117,7 +117,7 @@ class FeaturePlace(Model):
 
 # styles and info that apply to a map as a whole
 class MapStyle(Model):
-    basemap = ForeignKey("Basemap")
+    basemap = ForeignKey("Basemap", default=Basemap.objects.get(name="OpenStreetMap.Mapnik").id)
 
 class Order(Model):
     complete = BooleanField(default=False)

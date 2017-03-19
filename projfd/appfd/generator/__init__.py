@@ -112,7 +112,11 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
         print "locations:", len(locations) 
         resolve_locations(locations, order_id=order_id, max_seconds=max_seconds, countries=countries)
 
-        style_order(order_id=order_id)
+        print "job.keys():", job.keys()
+        if "style" in job:
+            style_order(order_id=order_id, style=job['style'])
+        else:
+            style_order(order_id=order_id)
 
         print "finishing generate_map_from_sources"
         finish_order(job['key'])
