@@ -990,7 +990,7 @@ def verify_map(request, job):
         #verify all features in map
         Feature.objects.filter(order__token=job).update(verified=True)
 
-        return HttpResponse("success", content_type='application/json') 
+        return HttpResponse(json.dumps({"status": "success"}), content_type='application/json') 
 
     except Exception as e:
         print e

@@ -504,7 +504,7 @@ background-size: 20px 20px;
 
 }
 
-.basemap-card {
+.basemap-card, .recent-card {
     display: inline-block;
     height: 100px;
     margin: 15px;
@@ -512,7 +512,7 @@ background-size: 20px 20px;
     vertical-align: bottom
 }
 
-.basemap-card:hover {
+.basemap-card:hover, .recent-card:hover {
     background-color: purple;
     color: white;
     cursor: pointer;

@@ -1,32 +1,18 @@
-//collect modals
-modals = {};
-
-modals_as_jquery_elements = $(".modal");
-
-
-function initialize_modal(element) {
-     var jquery_element = $(element);
-     modals[element.id.replace("Modal","")] = jquery_element;
-     jquery_element.on("shown.bs.modal", function() {
-        // had to do this hack because bootstrap doesn't enable scrolling on modal when activated by JavaScript
-        $("body").addClass("modal-open");
-    });
-}
-
-function initialize_modal_by_id(id) {
-    initialize_modal(document.getElementById(id + 'Modal'));
-}
-
-function initialize_modals() {
-    modals_as_jquery_elements.each(function(id, element) {
-        initialize_modal($(element));
-    });
-}
-
-
+Object.defineProperty(window, 'modals', {
+    get: function() {
+        return Array.prototype.slice.call(document.querySelectorAll(".modal"))
+        .reduce((acc, element) => {
+            $(element).on("shown.bs.modal", () => $("body").addClass("modal-open"));
+            acc[element.id.replace("Modal","")] = $(element);
+            return acc;
+        }, {});
+    }
+});
 
 function close_all_modals () {
-    modals_as_jquery_elements.modal("hide");
+    for (var id in modals) {
+        modals[id].modal('hide');
+    }
 }
 
 // has to be initiated by a user gesture
@@ -63,6 +49,8 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     console.log("starting MegaController");
 
+    $scope.previous_maps = [];
+
     $scope.sources = [];
     $scope.show_advanced_options = false;
 
@@ -73,19 +61,17 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
 
     $scope.closeModal = function(id) {
-        if(!modals[id]) initialize_modal_by_id(id);
         modals[id].modal('hide');
     };
 
     navbar_collapse = $(".navbar-collapse");
     $scope.open_modal = function(id) {
-        if(!modals[id]) initialize_modal_by_id(id);
         modals[id].modal('show');
         navbar_collapse.collapse('hide');
     };
 
     $scope.close_all_modals_and_open = close_all_modals_and_open = function(id) {
-        if(!modals[id]) initialize_modal_by_id(id);
+        console.log("starting close_all_modals_and_open with", id);
         close_all_modals();
         $scope.open_modal(id);
     };
@@ -203,6 +189,14 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
                 headers: {'Content-Type': undefined}
             }).then(function(response) {
                 $scope.job = response.data;
+
+                if (localStorage['maps']) {
+                    $scope.previous_maps = [$scope.job].concat(_.without(localStorage['maps'].split(","), $scope.job));
+                } else {
+                    $scope.previous_maps = [ $scope.job ];
+                }
+                localStorage['maps'] = $scope.previous_maps.join(",");
+
                 $scope.process_job();
                 $scope.get_map_when_ready();
             });
@@ -276,9 +270,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     $scope.clear_layers = function() {
         map.eachLayer(function(layer) {
-            if(!layer._url) { // skipping over basemaps
+            //if(!layer._url) { // skipping over basemaps
                 map.removeLayer(layer);
-            }
+            //}
         });
     };
 
@@ -352,11 +346,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     }; 
 
     $scope.verify_map = function() {
-        console.log("starting verify_map");
         if (!$scope.verified) {
             $http.get('/verify_map/' + $scope.job).then(function(response) {
-                console.log("verified map with response", response);
-                if (response.data === "success") {
+                if (response.data.status === "success") {
                     $scope.verified = true;
                 }
             });
@@ -735,11 +727,18 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     console.log("finishing MegaController");
 
-    if (location.hash) {
+    if (location.hash.length > 5) {
         $scope.job = location.hash.replace("#","");
         $scope.process_job();
         $scope.get_map_when_ready();
+        if (localStorage['maps']) {
+            $scope.previous_maps = [$scope.job].concat(_.without(localStorage['maps'].split(","), $scope.job));
+        } else {
+            $scope.previous_maps = [$scope.job];
+        }
+        localStorage['maps'] = $scope.previous_maps.join(",");
     } else {
+        $scope.previous_maps = localStorage['maps'] ? localStorage['maps'].split(",") : [];
         modals.start.modal();
     }
 
@@ -753,6 +752,14 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         });
     });
 
+    $scope.openMap = function (token) {
+        console.log("starting getRecentUrl with", token);
+        $scope.clear_everything();
+        $scope.job = token;
+        $scope.process_job();
+        $scope.get_map_when_ready();
+        close_all_modals();
+   };
 
   } catch (err) { console.error(err); }
 
