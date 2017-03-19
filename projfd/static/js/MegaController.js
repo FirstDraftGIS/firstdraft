@@ -544,7 +544,12 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     $scope.getFeatures = function() {
         $http.get(location.origin + "/api/features/" + $scope.job).then(function(response) {
-            $scope.basemap = L.tileLayer.provider(response.data.style.basemap_code).addTo(map);
+            var basemap_code = response.data.style.basemap_code;
+            if (basemap_code == "Blank") {
+                $scope.basemap = null;
+            } else {
+                $scope.basemap = L.tileLayer.provider(basemap_code).addTo(map);
+            }
             $scope.features = response.data.features;
             $scope.loadFeatures();
         });
@@ -610,9 +615,13 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
 
         var old_basemap = $scope.basemap;
-        var new_basemap = L.tileLayer.provider(basemap.code).addTo(map);
+        if (basemap.code == "Blank") {
+            var new_basemap = null;
+        } else {
+            var new_basemap = L.tileLayer.provider(basemap.code).addTo(map);
+        }
 
-        map.removeLayer(old_basemap);
+        if (old_basemap) map.removeLayer(old_basemap);
         $scope.basemap = new_basemap;
 
         var url = location.origin + "/api/change_basemap";
@@ -743,13 +752,13 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     }
 
     $http.get(location.origin + "/api/basemaps/?format=json&limit=1000").then(function(response) {
-        $scope.basemaps = response.data.results.map(function(basemap) {
+        $scope.basemaps = _.sortBy(response.data.results.map(function(basemap) {
             return {
                 code: basemap.name,
                 id: basemap.id,
                 name: basemap.name.replace(/\./g, " ").replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z])([a-z])/, '$1 $2$3').replace(/ ([a-z])/g, s => s.toUpperCase()).replace(" And ", " and ").replace("Open Street Map", "OpenStreetMap")
             };
-        });
+        }), basemap => basemap.name);
     });
 
     $scope.openMap = function (token) {

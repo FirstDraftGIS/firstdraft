@@ -26,6 +26,7 @@ def run():
 
         #print "providers:", providers
 
+        names = ["Blank"]
         for key in providers:
 
             if key not in ignore_these_keys:
@@ -35,12 +36,11 @@ def run():
                 if "variants" in value:
                     for variant in value['variants']:
                         #print "name: " + key +"."+ variant
-                        name = key + "." + variant
- 
-                        Basemap.objects.create(name=name)
+                        names.append(key + "." + variant)
 
-                #else:
-                #    print 'x:', value
+        for name in names:
+            Basemap.objects.get_or_create(name=name)
+
 
     except Exception as e:
         print e

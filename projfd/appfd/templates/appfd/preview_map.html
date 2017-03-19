@@ -82,7 +82,10 @@
 
           try {
 
-            L.tileLayer.provider(response.style.basemap_code).addTo(map);
+            var basemap_code = response.style.basemap_code;
+            if (basemap_code != "Blank") {
+                L.tileLayer.provider(response.style.basemap_code).addTo(map);
+            }
 
             response.features.forEach(function(feature) {
                 if (feature.correct) {
