@@ -70,6 +70,8 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         navbar_collapse.collapse('hide');
     };
 
+    $scope.close_all_modals = close_all_modals;
+
     $scope.close_all_modals_and_open = close_all_modals_and_open = function(id) {
         console.log("starting close_all_modals_and_open with", id);
         close_all_modals();
@@ -329,20 +331,25 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     };
 
     $scope.check_downloadability_of_extension = function(extension) {
+
+        var original_job = $scope.job;
+
         function stop() { $interval.cancel(request); };
 
         var request = $interval( function(){
-            console.log("checking if", $scope.job, extension, "is ready");
-            document.getElementById("download_link_" + extension).href = location.origin + "/get_map/" + $scope.job + "/" + extension;
-            $http.get('/does_map_exist/' + $scope.job + "/" + extension).then(function(response) {
-                console.log("got response", response);
-                if (response.data === "yes") {
-                    stop();
-                    $scope["ready_to_download_" + extension] = true;
-                } else {
-                    $scope["ready_to_download_" + extension] = false;
-                }
-            });
+            if ($scope.job == original_job) {
+                console.log("checking if", $scope.job, extension, "is ready");
+                document.getElementById("download_link_" + extension).href = location.origin + "/get_map/" + $scope.job + "/" + extension;
+                $http.get('/does_map_exist/' + $scope.job + "/" + extension).then(function(response) {
+                    console.log("got response", response);
+                    if (response.data === "yes") {
+                        stop();
+                        $scope["ready_to_download_" + extension] = true;
+                    } else {
+                        $scope["ready_to_download_" + extension] = false;
+                    }
+                });
+            }
         }, 2000);
     }; 
 
