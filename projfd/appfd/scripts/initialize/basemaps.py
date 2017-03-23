@@ -9,7 +9,7 @@ def run():
 
     try:
 
-        ignore_these_keys = ["CartoDB", "Esri", "HERE", "MapBox"]
+        ignore_these_keys = ["CartoDB", "Esri", "HERE", "MapBox", "Thunderforest"]
 
 
         driver = webdriver.PhantomJS(service_log_path=devnull)    
