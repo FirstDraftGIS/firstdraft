@@ -632,8 +632,14 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         if (old_basemap) map.removeLayer(old_basemap);
         $scope.basemap = new_basemap;
 
-        var url = location.origin + "/api/change_basemap";
-        $http.post(url, { id: basemap.id, token: $scope.job });
+
+        // only try to change if actually in a job
+        // could just try to change basemap in free view
+        // before start creating a map
+        if ($scope.job) {
+            var url = location.origin + "/api/change_basemap";
+            $http.post(url, { id: basemap.id, token: $scope.job });
+        }
 
         close_all_modals();
     };
