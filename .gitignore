@@ -81,4 +81,4 @@ projfd/appfd/scripts/ai/lsi/model.projection
 projfd/appfd/scripts/ai/lsi/dictionary
 projfd/appfd/scripts/ai/data/*
 projfd/static/bower_components/*
-projfd/static/node_modules/*
+node_modules/
