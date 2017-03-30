@@ -10,15 +10,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>First Draft</title>
 {% include "appfd/css.html" %}
-<script src="{% static 'js/external/underscore.min.js' %}"></script>
-<script src="{% static 'js/external/jquery.min.js' %}"></script>
+<script src="{% static 'dist/js/external.js' %}"></script>
 <script src="{% static 'js/external/jquery-ui.min.js' %}"></script>
 <script src="{% static 'js/external/angular.min.js' %}"></script>
-<script src="{% static 'js/external/bootstrap.min.js' %}"></script>
-<script src="{% static 'js/external/ui-bootstrap.min.js' %}"></script>
-<script src="{% static 'js/external/leaflet.min.js' %}"></script>
+<script src="{% static 'custom_builds/ui-bootstrap/ui-bootstrap-custom-tpls-2.5.0.min.js' %}"></script>
+<!--<script src="{% static 'js/external/bootstrap.min.js' %}"></script>-->
+<!--<script src="{% static 'js/external/leaflet.min.js' %}"></script>-->
 <script src="{% static 'js/leaflet.SliderControl.min.js' %}"></script>
-<script src="{% static 'js/external/Leaflet.fullscreen.min.js' %}"></script>
 <script src="{% static 'node_modules/leaflet-easybutton/src/easy-button.js' %}"></script>
 <script src="{% static 'js/external/angular-sanitize.min.js' %}"></script>
 <script src="{% static 'js/app.js' %}"></script>
@@ -26,11 +24,13 @@
 <script src="{% static 'gis/js/turf.min.js' %}"></script>
 <script src="{% static 'bower_components/angular-bootstrap-toggle/dist/angular-bootstrap-toggle.min.js' %}"></script>
 <script src="{% static 'node_modules/leaflet-providers/leaflet-providers.js' %}"></script>
+<script src="{% static 'js/leaflet-voice-commands.js' %}"></script>
 <link rel = "icon" type = "image/ico" href="logo.ico"/>
 <link rel="stylesheet" type="text/css" href="{% static 'bower_components/angular-bootstrap-toggle/dist/angular-bootstrap-toggle.min.css' %}"/>
 <link rel="stylesheet" type="text/css" href="{% static 'node_modules/leaflet-easybutton/src/easy-button.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'css/custom.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'css/map.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'node_modules/font-awesome/css/font-awesome.min.css' %}" />
 
 <link rel="apple-touch-icon" sizes="57x57" href="{% static 'img/logo.png' %}">
 <link rel="apple-touch-icon" sizes="60x60" href="{% static 'img/logo.png' %}">

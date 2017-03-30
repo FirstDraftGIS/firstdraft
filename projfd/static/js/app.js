@@ -1,4 +1,4 @@
-app = angular.module('app', ['ngSanitize','ui.bootstrap','ui.grid','ui.grid.edit','ui.grid.pagination','ui.grid.selection','ui.toggle']);
+app = angular.module('app', ['ngSanitize','ui.bootstrap.typeahead','ui.grid','ui.grid.edit','ui.grid.pagination','ui.grid.selection','ui.toggle']);
 
 //console.log("app is", app);
 app.directive('ngEnter', function () {

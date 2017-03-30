@@ -10,9 +10,7 @@ Object.defineProperty(window, 'modals', {
 });
 
 function close_all_modals () {
-    for (var id in modals) {
-        modals[id].modal('hide');
-    }
+    $(".modal").modal("hide");
 }
 
 // has to be initiated by a user gesture
@@ -218,7 +216,26 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.styleModal = $(document.getElementById("styleModal"));
     $scope.max_time = 10;
 
-    map = L.map('map', {"fullscreenControl": true});
+    map = L.map('map', {
+        "fullscreenControl": true,
+        "voiceControl": true
+    });
+
+    /*
+    L.Voice.commands.switch_basemap = {
+        pattern: L.Voice.commands.switch_basemap.pattern,
+        action: function() {
+            close_all_modals_and_open("basemaps");
+        }
+    };
+
+    L.Voice.commands.close = {
+        pattern: L.Voice.patterns.close,
+        action: function() {
+            close_all_modals();
+        }
+    };
+    */ 
 
     // add button to zoom out to globe
     L.easyButton('<span class="glyphicon glyphicon-globe" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
@@ -783,6 +800,16 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.get_map_when_ready();
         close_all_modals();
    };
+
+    $scope.getTypeAheadOptions = function(viewValue) {
+        return new Promise(function(resolve, reject) {
+            $http.get('/api/places/typeahead/?name=' + viewValue).then(function(response){
+                console.log("response:", response);
+                resolve(response);
+            })
+        });
+    };
+    $scope.getTypeAheadOptions = (viewValue) => $http.get('/api/places/typeahead/?name=' + viewValue).then(response => response.data);
 
   } catch (err) { console.error(err); }
 

@@ -9,8 +9,7 @@
       <div class="modal-body">
           <p><b>What place would you like to add?</b></p>
           <label for="place-name-to-add">Name of Place</label>
-          <input id="place-name-to-add" type="text" class="form-control" placeholder="Name of Place">
-
+          <input id="place-name-to-add" type="text" class="form-control" placeholder="Name of Place" ng-model="name_of_place_to_add" typeahead-min-length=3 typeahead-select-on-exact typeahead-focus-on-select='false' typeahead-template-url="static/custom_builds/ui-bootstrap/typeahead-match.html" typeahead-popup-template-url="static/custom_builds/ui-bootstrap/typeahead-popup.html" uib-typeahead='option for option in getTypeAheadOptions($viewValue)'>
           <div>
               <button type='button' class='btn btn-warning btn-md' data-toggle='modal' ng-click="fixLocationUsingTheMap(selection)" style="margin: 10px;">
                   Add It
