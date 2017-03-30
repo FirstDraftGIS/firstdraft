@@ -9,6 +9,7 @@ Cython
 date-extractor
 Django==1.9.9
 djangorestframework
+djangorestframework-gis
 django-extensions
 django-filter
 django-guardian

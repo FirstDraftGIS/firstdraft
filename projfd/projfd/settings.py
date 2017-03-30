@@ -53,6 +53,7 @@ INSTALLED_APPS = (
     #'social_django',
     'mod_wsgi.server',
     'rest_framework',
+    'rest_framework_gis',
     'appfd',
     'behave_django',
     'apifd'

@@ -10,4 +10,4 @@ class BasemapSerializer(HyperlinkedModelSerializer):
 class PlaceSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Place
-        fields = ["id", "name"]
+        fields = ["id", "country_code", "name", "point"]
