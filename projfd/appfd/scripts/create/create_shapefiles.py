@@ -67,8 +67,8 @@ def run(key, debug=False):
             number_of_points += 1
 
             if place.mpoly:
+                #print "pyshp doesn't seem to be able to handle mpoly with original coords"
                 for c in place.mpoly.coords:
-                    print "pyshp doesn't seem to be able to handle mpoly with original coords"
                     writer_polygons.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonameid, place.pcode, start, end)
                     writer_polygons.poly(parts=c, shapeType=POLYGONM)
                     number_of_polygons += 1
