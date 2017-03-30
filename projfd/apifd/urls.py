@@ -7,21 +7,12 @@ from django.conf import settings
 import appfd, inspect
 from . import views
 from rest_framework import routers, serializers, viewsets
-
-# Serializers define the API representation.
-class BasemapSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Basemap
-        fields = ["id", "name"]
-
-# ViewSets define the view behavior.
-class BasemapViewSet(viewsets.ModelViewSet):
-    queryset = Basemap.objects.all()
-    serializer_class = BasemapSerializer
+from apifd.viewsets import BasemapViewSet, PlaceViewSet
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
 router.register(r'basemaps', BasemapViewSet)
+router.register(r'places', PlaceViewSet)
 
 urlpatterns = [
     url(r'^', include(router.urls)),
