@@ -104,6 +104,9 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                         locations.extend(extract_locations_from_tables(extract_tables(source_data)))
                     elif source_extension == "txt":
                         locations.extend(extract_locations_from_text(source_data.read()))
+                    elif source_extension == "pdf":
+                        print "source_extension is pdf"
+                        locations.extend(extract_locations_with_context_from_pdf(source_data))
                     
  
             except Exception as e:
