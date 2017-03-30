@@ -1,6 +1,9 @@
 # Cameroon
 https://data.humdata.org/dataset/cameroon-administrative-boundaries
 
+#Ethiopia
+https://data.humdata.org/dataset/ethiopia-settlements
+
 # Mexico
 https://data.humdata.org/dataset/capas-mapa-mexico
 
