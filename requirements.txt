@@ -8,6 +8,7 @@ boto
 Cython
 date-extractor
 Django==1.9.9
+django-crispy-forms
 djangorestframework
 djangorestframework-gis
 django-extensions

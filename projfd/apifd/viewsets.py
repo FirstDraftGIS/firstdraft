@@ -11,3 +11,5 @@ class BasemapViewSet(ModelViewSet):
 class PlaceViewSet(ModelViewSet):
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
+    filter_fields = ('id','name')
+
