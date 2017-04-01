@@ -2,7 +2,7 @@ from appfd.models import Source
 from appfd.extractor import extract_locations_from_tables, extract_locations_from_text, extract_locations_from_webpage
 from appfd.finisher import finish_order
 from appfd.styler import style_order
-from appfd.scripts.resolve import resolve_locations
+from appfd.resolver import resolve_locations
 from location_extractor import extract_locations_with_context_from_docx, extract_locations_with_context_from_pdf
 from io import BytesIO
 from os import mkdir

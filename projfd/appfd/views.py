@@ -5,7 +5,6 @@ from appfd.finisher import finish_order
 from appfd.forms import *
 from appfd.generator import generate_map_from_sources
 from appfd.models import *
-from appfd.scripts import resolve
 from bnlp import clean as bnlp_clean
 from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
 from bs4 import BeautifulSoup
@@ -46,7 +45,7 @@ import geojson
 from json import dumps, loads
 from re import findall, search
 from requests import get
-from appfd.scripts.resolve import *
+from appfd.resolver import resolve_locations
 from sendfile import sendfile
 from scrp import getTextContentViaMarionette, getRandomUserAgentString
 from subprocess import call, check_output
