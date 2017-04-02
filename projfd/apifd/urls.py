@@ -7,11 +7,13 @@ from django.conf import settings
 import appfd, inspect
 from . import views
 from rest_framework import routers, serializers, viewsets
-from apifd.viewsets import BasemapViewSet, PlaceViewSet
+from apifd.viewsets import BasemapViewSet, FeatureViewSet, OrderViewSet, PlaceViewSet
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
 router.register(r'basemaps', BasemapViewSet)
+router.register(r'features', FeatureViewSet, "feature")
+router.register(r'orders', OrderViewSet, "order")
 router.register(r'places', PlaceViewSet)
 
 urlpatterns = [
@@ -22,7 +24,6 @@ urlpatterns = [
     url(r'^change_basemap$', views.change_basemap, name="change_basemap"),
     url(r'^change_featureplace$', views.change_featureplace, name="change_featureplace"),
     url(r'^is_location_in_osm$', views.is_location_in_osm, name='is_location_in_osm'),
-    url(r'^features/(?P<token>[^/]+)$', views.features, name='features'),
+    url(r'^feature_data/(?P<token>[^/]+)$', views.feature_data, name='feature_data'),
     url(r'^metadata/(?P<token>[^/]+)$', views.metadata, name='metadata'),
-    url(r'^ready/(?P<token>[^/]+)$', views.ready, name='ready')
 ]

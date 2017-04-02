@@ -46,7 +46,10 @@ class GeoEntity(object):
             self.has_mpoly = row[11] in trues
             print "row[11]:", row[11] in trues
             self.has_pcode = row[12] in trues
-            self.popularity = int(row[13])
+
+            # popularity will be None if not used yet
+            self.popularity = 0 if row[13] is None else int(row[13])
+
             self.feature_class = row[14]
             self.feature_code = row[15]
         except Exception as e:

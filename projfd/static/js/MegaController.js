@@ -1,3 +1,16 @@
+function load_script(path_to_script) {
+    return new Promise((resolve, reject) => {
+        var script = document.createElement("script");
+        document.body.appendChild(script);
+        script.onload = function () {
+            console.log("loaded " + path_to_script);
+            resolve("loaded " + path_to_script);
+        };
+        script.src = path_to_script;
+    });
+}
+
+
 Object.defineProperty(window, 'modals', {
     get: function() {
         return Array.prototype.slice.call(document.querySelectorAll(".modal"))
@@ -243,7 +256,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     }).addTo(map);
 
     // add button to add place
-    L.easyButton('<span class="glyphicon glyphicon-map-marker" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
+    L.easyButton('<span class="glyphicon glyphicon-map-marker" title="Add Place" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
         console.log("adding place");
         $scope.close_all_modals_and_open("add");
     }).addTo(map);
@@ -304,6 +317,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.admin1limits = "";
         $scope.features = [];
         $scope.features_that_appear_in_table = [];
+        $scope.name_of_place_to_add = null;
         $scope.show_advanced_options = false;
         $scope.start_file = null;
         $scope.start_text = "";
@@ -336,9 +350,8 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         function stop() { $interval.cancel(request);};
         var request = $interval( function(){
             console.log("checking if", $scope.job, "is ready"); 
-            $http.get('/api/ready/' + $scope.job).then(function(response) {
-                console.log("got response", response);
-                if (response.data === "ready") {
+            $http.get("/api/orders/" + $scope.job + "/?format=json&fields=complete").then(response => {
+                if (response.data.complete) {
                     stop();
                     $scope.getFeatures();
                     $scope.getMetaData();
@@ -372,7 +385,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     $scope.verify_map = function() {
         if (!$scope.verified) {
-            $http.get('/verify_map/' + $scope.job).then(function(response) {
+           $http.patch("/api/features/verify/?order__token=" + $scope.job).then(response => {
                 if (response.data.status === "success") {
                     $scope.verified = true;
                 }
@@ -568,7 +581,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     };
 
     $scope.getFeatures = function() {
-        $http.get(location.origin + "/api/features/" + $scope.job).then(function(response) {
+        $http.get(location.origin + "/api/feature_data/" + $scope.job).then(function(response) {
             var basemap_code = response.data.style.basemap_code;
             if (basemap_code == "Blank") {
                 $scope.basemap = null;
@@ -801,15 +814,96 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         close_all_modals();
    };
 
-    $scope.getTypeAheadOptions = function(viewValue) {
-        return new Promise(function(resolve, reject) {
-            $http.get('/api/places/typeahead/?name=' + viewValue).then(function(response){
-                console.log("response:", response);
-                resolve(response);
-            })
+    $scope.closeAddModal = function() {
+        close_all_modals();
+        $scope.name_of_place_to_add = null;
+    };
+
+    $scope.getTypeAheadOptions = (viewValue) => $http.get('/api/places/typeahead/?name=' + viewValue).then(response => response.data);
+
+    $scope.updateAddOptions = function($item, $model, $label, $event) {
+        console.log("starting updateAddOptions", $scope.name_of_place_to_add);
+        $http.get('/api/places/?limit=100&name=' + $scope.name_of_place_to_add).then(response => {
+            var data = response.data;
+            //$scope.max_slides = data.count;
+            var width_of_carousel = $("[uib-carousel]").width();
+            //var width_of_sides = $(".left.carousel-control").width() + $(".right.carousel-control").width();
+            var width_of_sides = width_of_carousel * 0.15 * 2;
+            var width_available = width_of_carousel - width_of_sides;
+            var number_per_group = Math.floor(width_available / 200);
+            console.log("number_per_group:", number_per_group);
+            $scope.groups = [];
+            data.results.forEach(result => {
+                var last_group = _.last($scope.groups);
+                if (last_group && last_group.length < number_per_group) {
+                    last_group.push(result);
+                } else {
+                    $scope.groups.push([result]);
+                }
+            });
         });
     };
-    $scope.getTypeAheadOptions = (viewValue) => $http.get('/api/places/typeahead/?name=' + viewValue).then(response => response.data);
+
+    $scope.activeSlide = 0;
+    //$scope.$watch("activeSlide", () => {console.log("activeSlide changed"); $scope.mini_maps[$scope.activeSlide]._onResize()});
+    $scope.$watch("activeSlide", function() {
+        if (!isNaN($scope.activeSlide)) {
+            var mini_map = $scope.mini_maps[$scope.activeSlide];
+            //console.log("mini_map:", mini_map);
+            if (mini_map) {
+                mini_map._onResize();
+            }
+        }
+    });
+
+    $scope.mini_maps = [];
+    $scope.create_mini_map = function (option) {
+        console.log("starting create_mini_map with", option);
+        console.log("el:", document.getElementById("mini-map-" + option.id));
+        var coordinates = option.point.coordinates;
+        var latlng = [coordinates[1], coordinates[0]];
+        var mini_map = L.map("mini-map-" + option.id, {
+            boxZoom: false,
+            center: latlng,
+            doubleClickZoom: false,
+            dragging: false,
+            scrollWheelZoom: false,
+            tap: false,
+            touchZoom: false,
+            zoom: 3,
+            zoomControl:false
+        });
+        $scope.mini_maps.push(mini_map); 
+
+        $scope.promise_to_create_leaflet_clone_layer.then(function() {
+            _.values(map._layers).forEach(function(layer) {
+                try {
+                    //skipping over tooltips because they would clog such a small map screen
+                    if (!(layer instanceof L.Tooltip)) {
+                        cloneLayer(layer).addTo(mini_map);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    console.error(layer);
+                }
+            });
+
+            var icon = L.ExtraMarkers.icon({
+                icon: 'glyphicon-star',
+                markerColor: 'red',
+                shape: 'square',
+                prefix: 'glyphicon'
+            });
+            L.marker(latlng, {icon: icon}).addTo(mini_map);
+        });
+    };
+
+
+    $scope.create_mini_maps = function() {
+        console.log("starting create_mini_maps");
+    };
+
+    $scope.promise_to_create_leaflet_clone_layer = load_script("static/node_modules/leaflet-clonelayer/index.js");
 
   } catch (err) { console.error(err); }
 

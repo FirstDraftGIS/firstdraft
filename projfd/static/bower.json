@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "bootstrap-toggle": "^2.2.2",
-    "angular-bootstrap-toggle": "^0.1.2"
+    "angular-bootstrap-toggle": "^0.1.2",
+    "Leaflet.extra-markers": "^1.0.6"
   }
 }

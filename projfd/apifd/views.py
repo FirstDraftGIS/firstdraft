@@ -121,9 +121,9 @@ def metadata(request, token):
     return HttpResponse(json.dumps({"metadata": list_of_metadata}), content_type='application/json')
 
 @require_GET
-def features(request, token):
+def feature_data(request, token):
   try:
-    print "starting apifd.features with", token
+    print "starting apifd.feature_data with", token
 
     order = Order.objects.get(token=token)
 
@@ -200,16 +200,5 @@ def is_location_in_osm(request):
         else:
             return HttpResponse("Use POST, please.", content_type='application/json')
  
-    except Exception as e:
-        print e
-
-@require_GET
-def ready(self, token): 
-    try:
-        complete = Order.objects.get(token=token).complete
-        if complete:
-            return HttpResponse("ready")
-        else:
-            return HttpResponse("nope")
     except Exception as e:
         print e

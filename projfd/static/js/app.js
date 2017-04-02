@@ -1,4 +1,4 @@
-app = angular.module('app', ['ngSanitize','ui.bootstrap.typeahead','ui.grid','ui.grid.edit','ui.grid.pagination','ui.grid.selection','ui.toggle']);
+app = angular.module('app', ['ngSanitize','ui.bootstrap.carousel','ui.bootstrap.typeahead','ui.grid','ui.grid.edit','ui.grid.pagination','ui.grid.selection','ui.toggle']);
 
 //console.log("app is", app);
 app.directive('ngEnter', function () {
@@ -152,3 +152,8 @@ app.directive('contenteditable', ['$sce', function($sce) {
   };
 }]);
 
+app.directive('ngAfterRender', function ($parse, $timeout) {
+    return function (scope, element, attr) {
+        $timeout(function(){$parse(attr.ngAfterRender)(scope)});
+    }
+});

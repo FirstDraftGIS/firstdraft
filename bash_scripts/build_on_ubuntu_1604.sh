@@ -115,6 +115,7 @@ sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public
 sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO "www-data";' dbfd;
 
 echo "CREATING INDEXES AND SQL FUNCTIONS"
+sudo -u postgres psql -f /home/usrfd/firstdraft/sql_scripts/calc_popularity.sql dbfd
 sudo -u postgres psql -f /home/usrfd/firstdraft/sql_scripts/resolve.sql dbfd
 
 echo "CREATING MAPS FOLDER"

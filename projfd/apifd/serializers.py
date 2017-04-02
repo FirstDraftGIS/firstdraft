@@ -1,4 +1,4 @@
-from appfd.models import Basemap, Place
+from appfd.models import Basemap, Feature, Order, Place
 from drf_queryfields import QueryFieldsMixin
 from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer, SerializerMethodField
 
@@ -8,7 +8,19 @@ class BasemapSerializer(QueryFieldsMixin, ModelSerializer):
         model = Basemap
         fields = ["id", "name"]
 
+class FeatureSerializer(QueryFieldsMixin, HyperlinkedModelSerializer):
+    class Meta:
+        model = Feature
+        fields = ["name", "order"]
+
+class OrderSerializer(QueryFieldsMixin, ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ["complete", "duration", "end", "start", "token"]
+
+
 class PlaceSerializer(QueryFieldsMixin, ModelSerializer):
+
     feature_type = SerializerMethodField()
 
     def get_feature_type(self, place):

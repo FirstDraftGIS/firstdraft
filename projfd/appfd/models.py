@@ -171,6 +171,10 @@ class Place(Model):
     objects = GeoManager()
     point = PointField(null=True, blank=True)
     population = BigIntegerField(null=True, blank=True)
+
+    # number of times name appeared and meant this place minus number of times didn't mean this place
+    popularity = BigIntegerField(null=True, blank=True)
+
     pcode = CharField(max_length=200, null=True, blank=True, db_index=True)
     skeleton = MultiLineStringField(null=True, blank=True)
     timezone = CharField(max_length=200, null=True, blank=True)
