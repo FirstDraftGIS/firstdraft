@@ -36,6 +36,14 @@ class Basemap(Model):
     def __str__(self):
         return self.name
 
+class CountryCodeRank(Model):
+    country_code = CharField(max_length=10)
+    rank = IntegerField(null=True)
+    order = ForeignKey("order", to_field="token")
+
+    class Meta:
+        unique_together = (("country_code","order"))
+
 class Calls(Model):
     date = DateField()
     total = IntegerField(default=0)
