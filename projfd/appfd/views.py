@@ -588,7 +588,7 @@ def request_map_from_sources(request):
                 metadata = []
                 print "sources:", sources
                 for source in sources:
-                    if is_metadata(source['data'], debug=True):
+                    if is_metadata(source['data'], debug=False):
                         print "is metadata"
                         metadata.append(source)
                     else:
