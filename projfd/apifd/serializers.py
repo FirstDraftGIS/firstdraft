@@ -25,8 +25,13 @@ class PlaceSerializer(QueryFieldsMixin, ModelSerializer):
 
     def get_feature_type(self, place):
         lookup = {
+            "FRM": "Farm",
+            "PCLI": "Independent Political Entity",
             "PPL": "Populated Place",
             "PPLA": "Admin 1",
+            "PPLA2": "Admin 2",
+            "PPLA3": "Admin 3",
+            "PPLA4": "Admin 4",
             "PPLL": "Populated Locality",
             "ST": "Street"
         }
