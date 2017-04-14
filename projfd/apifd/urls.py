@@ -19,6 +19,7 @@ router.register(r'places', PlaceViewSet)
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^geolocate_tweet$', views.geolocate_tweet, name="geolocate_tweet"),
     url(r'^frequency/(?P<token>[^/]+)/(?P<admin_level>[^/]+)$', views.frequency, name='frequency'),
     url(r'^data$', views.data, name='data'),
     url(r'^change_basemap$', views.change_basemap, name="change_basemap"),

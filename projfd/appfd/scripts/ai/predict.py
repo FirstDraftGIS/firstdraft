@@ -4,7 +4,6 @@ from collections import Counter
 from datetime import datetime
 from decimal import Decimal
 from django.db import connection
-from input_functions import input_function
 from numpy import array, float64, int64, ndarray, mean
 from numpy import bool as numpy_bool
 from os import listdir
@@ -67,7 +66,7 @@ def get_df_from_csv(path_to_csv):
             d[column_name] = values
     return d
 
-def run(geoentities):
+def run(geoentities, debug=True):
 
     try:
 
@@ -105,7 +104,12 @@ def run(geoentities):
 
             admin_level = geoentity.admin_level
             df['admin_level'].append(str(geoentity.admin_level or "None"))
-            df['cluster_frequency'].append(geoentity.cluster_frequency or 0)
+
+            if hasattr(geoentity, "cluster_frequency"):
+                df['cluster_frequency'].append(geoentity.cluster_frequency or 0)
+            else:
+                df['cluster_frequency'].append(0)
+
             df['country_code'].append(geoentity.country_code or "UNKNOWN")
             df['country_rank'].append(geoentity.country_rank or 999)
             df['edit_distance'].append(str(geoentity.edit_distance))
@@ -116,15 +120,34 @@ def run(geoentities):
             df['is_country'].append(str(admin_level == 0))
             df['is_lowest_admin_level'].append(str(lowest_admin_level == g.admin_level))
             df['is_highest_population'].append(str(is_highest_population))
-            df['median_distance'].append(geoentity.median_distance_from_all_other_points)
-            df['matches_topic'].append(str(geoentity.matches_topic or "False"))
+
+
+            if hasattr(geoentity, "median_distance"):
+                df['median_distance'].append(geoentity.median_distance_from_all_other_points)
+            else:
+                df['median_distance'].append(0)
+
+
+            if hasattr(geoentity, "matches_topic"):
+                df['matches_topic'].append(str(geoentity.matches_topic or "False"))
+            else:
+                df['matches_topic'].append("False")
             df['population'].append(geoentity.population)
             df['popularity'].append(geoentity.popularity)
 
-        print "populating df took", ((datetime.now() - start_df).total_seconds() / 60), "minutes"
+        duration = (datetime.now() - start_df).total_seconds()
+        if duration < 60:
+            print "populating df took", duration, "seconds"
+        else:
+            print "populating df took", float(duration) / 60, "minutes"
 
-        for index, row in enumerate(classifier.predict_proba(input_fn=lambda: stepper.step(df))):
+        def step():
+            return stepper.step(df)
+
+        for index, row in enumerate(classifier.predict_proba(input_fn=step)):
             geoentities[index].probability = row[1]
+
+        print "predict.run took", (datetime.now() - start).total_seconds(), "seconds"
 
     except Exception as e:
         fail("EXCPETION in scripts.ai.predict.run: " + str(e))

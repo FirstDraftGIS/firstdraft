@@ -38,7 +38,7 @@
                           <p>Country Code: {{option.country_code}}</p>
                           <p>Longitude: {{option.point.coordinates[0]}}</p>
                           <p>Latitude: {{option.point.coordinates[1]}}</p>
-                          <p>Population: {{option.population ? option.population : "Unknown"}}
+                          <p>Population: {{option.population ? Number(option.population).toLocaleString() : "Unknown"}}
                           <p>Type: {{option.feature_type ? option.feature_type : "Unknown"}}
                       </div>
                   </div>

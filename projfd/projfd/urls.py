@@ -23,6 +23,7 @@ urlpatterns += [
     #url(r'change_password$', views.change_password, name='change_password'),
     url(r'^contact$', views.contact, name='contact'),
     url(r'^request_map_from_sources$', views.request_map_from_sources, name="request_map_from_sources"),
+    url(r'^request_possible_additions$', views.request_possible_additions, name="request_possible_additions"),
     url(r'^does_map_exist/(?P<job>[^/]+)/(?P<extension>[^/]+)$', views.does_map_exist, name='does_map_exist'),
     url(r'^does_metadata_exist/(?P<job>[^/]+)/(?P<_type>[^/]+)$', views.does_metadata_exist, name='does_metadata_exist'),
     url(r'^disclaimers$', views.disclaimers, name='disclaimers'),

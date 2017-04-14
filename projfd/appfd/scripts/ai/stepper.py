@@ -1,9 +1,21 @@
+#import inspect
+from datetime import datetime
 from tensorflow import float32
 from tensorflow import constant, SparseTensor
 
 def step(d):
 
     try:
+
+        """
+        frame = inspect.currentframe()
+        args, _, _, values = inspect.getargvalues(frame)
+        print 'function name "%s"' % inspect.getframeinfo(frame)[2]
+        for i in args:
+            print "    %s = %s" % (i, values[i])
+        """
+
+        start = datetime.now()
 
         for column_name in COLUMNS:
             if column_name not in d:
@@ -25,8 +37,11 @@ def step(d):
                 shape=[num_rows, 1])
         print "CATEGORICAL COLUMNS:"
         label = constant(d[LABEL_COLUMN])
+        print "label:", label
 
-        return feature_cols, label
+        print "step took:", (datetime.now() - start).total_seconds(), "seconds"
+
+        return (feature_cols, label)
     except Exception as e:
         print "EXCEPTION in input_fn: " + str(e)
         print "Variables are:"

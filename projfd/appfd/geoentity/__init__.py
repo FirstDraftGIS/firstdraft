@@ -7,6 +7,7 @@ class GeoEntity(object):
     def __init__(self, row):
         try:
             print "row:", row
+            print "len(row):", len(row)
             self.place_id = row[0]
             self.admin_level = str(row[1])
             self.country_code = row[2]

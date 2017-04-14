@@ -1,9 +1,11 @@
 from apifd.scripts.create.frequency_geojson import run as create_frequency_geojson
+from apifd.serializers import PlaceSerializer
 from appfd import forms, models
 from appfd import cleaner
 from appfd.finisher import finish_order
 from appfd.forms import *
-from appfd.generator import generate_map_from_sources
+from appfd.generator import generate_map_from_sources 
+from appfd.generator.additions import generate_possible_additions
 from appfd.models import *
 from bnlp import clean as bnlp_clean
 from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
@@ -30,6 +32,7 @@ from django.template.defaultfilters import slugify
 from django.utils.crypto import get_random_string
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_GET, require_POST
 from itertools import groupby, islice
 import location_extractor
 from magic import from_file
@@ -43,6 +46,7 @@ import json, requests, StringIO, sys, zipfile
 from json import dumps, loads
 from re import findall, search
 from requests import get
+from rest_framework.response import Response
 from appfd.resolver import resolve_locations
 from sendfile import sendfile
 from scrp import getTextContentViaMarionette, getRandomUserAgentString
@@ -533,6 +537,23 @@ def thanks(request):
 
 def preview_map(request, job):
     return render(request, "appfd/preview_map.html", {'job': job})
+
+
+# takes in a name of a place
+# adds source
+# resolve_possible_locations
+# triggered when user selects place in add a place
+# used to sort possible locations
+@require_POST
+def request_possible_additions(request):
+
+    form = forms.RequestPossibleAdditionsForm(json.loads(request.body))
+    if form.is_valid():
+        name = form.cleaned_data['name']
+        token = form.cleaned_data['token']
+        return HttpResponse(json.dumps([PlaceSerializer(place).data for place in generate_possible_additions(name, token)]), "application/json")
+        #return HttpResponse(json.dumps([vars(place) for place in places]), "application/json")
+
 
 def request_map_from_sources(request):
 

@@ -13,3 +13,13 @@ class TextForm(Form):
 
 class FileForm(Form):
     data = FileField()
+
+class RequestPossibleAdditionsForm(Form):
+    name = CharField()
+
+    # not validating whether token is in correct tokens bc that would slow
+    # things down too much
+    token = CharField() 
+
+class TweetForm(Form):
+    text = CharField()

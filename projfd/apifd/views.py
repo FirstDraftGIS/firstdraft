@@ -1,10 +1,13 @@
 import appfd, json, geojson
+from appfd import cleaner
+from appfd.generator import generate_map_from_sources
 from .scripts.create.frequency_geojson import run as create_frequency_geojson
 from appfd.scripts.create import create_csv, create_geojson, create_images, create_pdf, create_shapefiles, create_xypair
 from appfd.models import Feature, FeaturePlace, MapStyle, MetaData, MetaDataEntry, Order, Place, Style
 from collections import Counter
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.clickjacking import xframe_options_exempt
 from multiprocessing import Process
@@ -110,6 +113,43 @@ def frequency(request, token, admin_level):
     with open(path_to_geojson) as f:
         text = f.read()
     return HttpResponse(text)
+
+def geolocate_tweet(request):
+    try:
+        print "starting geolocate_tweet"
+        print "method:", request.method
+        print "dir(request)", dir(request)
+        print "headers:", request.META
+        if request.method == "OPTIONS":
+            response = HttpResponse()
+            response["Access-Control-Allow-Origin"] = request.META['HTTP_ORIGIN']
+            response["Access-Control-Allow-Methods"] = "OPTIONS, POST"
+            response["Access-Control-Max-Age"] = "1000"
+            response["Access-Control-Allow-Headers"] = request.META["HTTP_ACCESS_CONTROL_REQUEST_HEADERS"]
+            return response
+        elif request.method == "POST":
+            print "starting POST"
+            tweet_dict = json.loads(request.body) if len(request.body) > 10 else request.POST
+            cleaned_tweet = cleaner.clean_tweet(tweet_dict)
+            print "cleaned_tweet:", cleaned_tweet
+            if cleaned_tweet:
+                key = get_random_string(25)
+                print "key:", key
+                order_id = Order.objects.create(token=key).id
+                print "order_id:", order_id
+                sources = [{"type": "text", "data": cleaned_tweet['text']}]
+                job = {
+                    "sources": sources,
+                    "key": key,
+                    "order_id": order_id
+                }
+                generate_map_from_sources(job, sources, [])
+                point = Place.objects.filter(featureplace__feature__order__token=key, featureplace__correct=True).first().point
+                response = HttpResponse(json.dumps({"latitude": point.y, "longitude": point.x}), "application/json")
+                response["Access-Control-Allow-Origin"] = request.META['HTTP_ORIGIN']
+                return response
+    except Exception as e:
+        print "EXCEPTION in geolocate_tweet:", e
 
 def metadata(request, token):
     print "starting apifd.metadata with", token

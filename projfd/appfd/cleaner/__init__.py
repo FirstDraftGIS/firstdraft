@@ -1,5 +1,19 @@
-from appfd.forms import BasemapForm, FileForm, LinkForm, TextForm
+from appfd.forms import BasemapForm, FileForm, LinkForm, TextForm, TweetForm
 from django.core.files.uploadedfile import SimpleUploadedFile
+
+def clean_tweet(POST, debug=True):
+    try:
+        if debug: print "starting clean_tweet with", POST
+        if "text" in POST:
+            form = TweetForm({"text": POST["text"]})
+            if form.is_valid():
+                if debug: print "form is valid"
+                result = {}
+                result['text'] = form.cleaned_data['text']
+                return result
+
+    except Exception as e:
+        print "CAUGHT EXCEPTION in clean_tweet:", e
 
 def clean(POST, FILES):
     try:

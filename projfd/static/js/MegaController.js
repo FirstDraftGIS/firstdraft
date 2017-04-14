@@ -823,7 +823,12 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     $scope.updateAddOptions = function($item, $model, $label, $event) {
         console.log("starting updateAddOptions", $scope.name_of_place_to_add);
-        $http.get('/api/places/?limit=100&name=' + $scope.name_of_place_to_add).then(response => {
+        //$http.get('/api/places/?limit=100&name=' + $scope.name_of_place_to_add).then(response => {
+        $http.post("/request_possible_additions", {
+            name: $scope.name_of_place_to_add,
+            token: $scope.job
+        }).then(response => {
+            console.log("response:", response);
             var data = response.data;
             //$scope.max_slides = data.count;
             var width_of_carousel = $("[uib-carousel]").width();
@@ -833,7 +838,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             var number_per_group = Math.floor(width_available / 200);
             console.log("number_per_group:", number_per_group);
             $scope.groups = [];
-            data.results.forEach(result => {
+            data.forEach(result => {
                 var last_group = _.last($scope.groups);
                 if (last_group && last_group.length < number_per_group) {
                     last_group.push(result);
