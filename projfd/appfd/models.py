@@ -18,9 +18,24 @@ class Alert(Model):
 
 #class Account(Model):
 #    max_orders = IntegerField() # the maximum number of order this account can make per month
-    
 
-    
+# abstraction of who authored the content
+# different than who provided the content
+# for example, John might ask to geocode a tweet by Maria.
+# Maria is the author in that case.
+# We're abstracting it from just Tweeter because we don't
+# know if Twitter will last forever and want Machine Learning
+# data that will be useful for a long time
+# For twitter, the Author will be the twitter username
+class Author(Model):
+    # twitter handle
+    short_name = CharField(max_length=20)
+
+    # verbose name
+    verbose_name = CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 class AlternateName(Model):
     geonameid = IntegerField(db_index=True)
