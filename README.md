@@ -48,6 +48,7 @@ The quickest way to get First Draft GIS up and running is to launch the First Dr
 | chrpath | needed by PhantomJS |
 | curl | download files from internet |
 | git | download code from github repositories |
+| mariadb-server | used to process Wikipedia geo_tags dump |
 | postgresql | database that stores the information |
 | libapache2-mod-wsgi | installed for wsgi |
 | libfontconfig1 | needed by PhantomJS |
