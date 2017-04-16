@@ -266,6 +266,10 @@ class Topic(Model):
 class Translator(Model):
     name = CharField(max_length=200, null=True, blank=True)
 
+class Wikipedia(Model):
+    place = OneToOneField("Place")
+    charcount = IntegerField(max_length=1000)
+
 #class UserOrder(Model):
 #    user = ForeignKey(User)
 #    order = ForeignKey("Order", unique)
