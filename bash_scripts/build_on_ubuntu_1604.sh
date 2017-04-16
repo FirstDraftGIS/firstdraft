@@ -33,6 +33,7 @@ echo "INSTALLING BOWER, GULP"
 sudo npm install gulp-cli -g
 sudo npm install bower -g
 
+
 echo "SETTING UP DATABASE"
 sudo service postgresql restart
 
@@ -51,6 +52,14 @@ sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO
 sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "www-data";' dbfd;
 sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO "www-data";' dbfd;
 sudo -u postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology; CREATE EXTENSION fuzzystrmatch; CREATE EXTENSION pg_trgm;" dbfd
+
+
+#echo "SETTING UP MARIADB"
+#sudo mysql -e "CREATE USER 'usrfd'@'localhost';"
+#sudo mysql -e "CREATE DATABASE dbfd;"
+#sudo mysql -e "GRANT ALL PRIVILEGES ON dbfd.* TO 'usrfd'@'localhost';"
+#sudo mysql -e "FLUSH PRIVILEGES;"
+
 
 echo "DELETE SYSTEM USER"
 
