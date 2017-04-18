@@ -11,6 +11,7 @@ from re import match, search
 from requests import get
 from subprocess import call
 from time import sleep
+from urllib import urlretrieve
 
 def run(debug=True):
 
@@ -20,39 +21,49 @@ def run(debug=True):
 
         if debug: print "starting to initialize wikipedia"
 
-        with open("/tmp/notability.tsv") as f:
+        path_to_tsv = "/tmp/notability.tsv"
+        if not isfile(path_to_tsv):
+            urlretrieve("https://raw.githubusercontent.com/DanielJDufour/geo_notability_assessor/master/notability.tsv", path_to_tsv)
+
+        with open(path_to_tsv) as f:
             count = 0
             for row in csv.reader(f, delimiter="\t", quotechar='"'):
                 try:
                     count += 1
                     if count != 1:
                         name, latitude, longitude, charcount = row
-                        places = Place.objects.filter(name=name)
-                        #print "places:", places
-                        point = Point([float(longitude), float(latitude)])
-                        found = places.filter(point__distance_lt=(point, Distance(mi=500)))
-                        if not found:
-                            found = places.filter(mpoly__contains=point)
-                        if found.count() > 1:
-                            filtered = found.exclude(population=0)
-                            if filtered:
-                                found = filtered
+                        if latitude and longitude:
+                            places = Place.objects.filter(name=name)
+                            #print "places:", places
+                            try:
+                                point = Point([float(longitude), float(latitude)])
+                            except Exception as e:
+                                print "e:", e
+                                print "\tlongitude:", longitude
+                                print "\tlatitude:", latitude
+                            found = places.filter(point__distance_lt=(point, Distance(mi=500)))
+                            if not found:
+                                found = places.filter(mpoly__contains=point)
                             if found.count() > 1:
-                                found = found.exclude(admin_level=None)
-                        #    print "found within:", found
-                        #print name, ":", found.values("admin_level","population").count(), ":", charcount
-                        place = found.first()
-                        if not place:
-                            place = Place.objects.create(name=name, point=point)
-                            #print "created:", place
-                        Wikipedia.objects.get_or_create(place_id=place.id, charcount=charcount)
-                        if count > 500:
-                            break
+                                filtered = found.exclude(population=0)
+                                if filtered:
+                                    found = filtered
+                                if found.count() > 1:
+                                    found = found.exclude(admin_level=None)
+                            #    print "found within:", found
+                            #print name, ":", found.values("admin_level","population").count(), ":", charcount
+                            place = found.first()
+                            if not place:
+                                place = Place.objects.create(name=name, point=point)
+                                #print "created:", place
+                            Wikipedia.objects.get_or_create(place_id=place.id, charcount=charcount)
+                            #if count > 500:
+                            #    break
                 except Exception as e:
                     print e
             
 
-        if debug: print "initializing wikipedia took " + str((datetime.now() - start).total_seconds()) + " seconds"
+        if debug: print "initializing wikipedia took " + str(str((datetime.now() - start).total_seconds()) / 60) + " seconds"
 
     except Exception as e:
 
