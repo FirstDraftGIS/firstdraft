@@ -24,7 +24,7 @@ def run():
 
         print "starting appbkto.scripts.predict.train"
         connection.close()
-        features = list(Feature.objects.filter(verified=True).values("id","featureplace__id","featureplace__place__admin_level","featureplace__correct","featureplace__place_id","featureplace__cluster_frequency","featureplace__place__country_code","featureplace__country_rank","featureplace__place__mpoly","featureplace__place__pcode","featureplace__popularity","featureplace__place__population","featureplace__median_distance","featureplace__place__topic_id","topic_id","featureplace__place__feature_code", "featureplace__place__feature_class"))
+        features = list(Feature.objects.filter(verified=True).values("id","featureplace__id","featureplace__place__admin_level","featureplace__correct","featureplace__place_id","featureplace__cluster_frequency","featureplace__place__country_code","featureplace__country_rank","featureplace__place__mpoly","featureplace__place__pcode","featureplace__popularity","featureplace__place__population","featureplace__median_distance","featureplace__place__topic_id","topic_id","featureplace__place__feature_code", "featureplace__place__feature_class", "featureplace__place__wikipedia__charcount"))
         print "features:", type(features), len(features)
 
         rmtree(MODEL_DIR, ignore_errors=True)
@@ -46,6 +46,7 @@ def run():
         shuffle(features)
 
         features_for_training, features_for_testing = halve(features)
+        print "cut the features in half for training and testing"
         df_train = get_df_from_features(features_for_training)
         print "len(feauters_for_training):", len(features_for_training)
         print "len(feauters_for_testing):", len(features_for_testing)
@@ -59,7 +60,7 @@ def run():
         try:
             classifier.fit(input_fn=lambda: stepper.step(df_train), steps=200)
         except Exception as e:
-            fail("EXCEPTION fitting model in scripts.ai.predict.train: " + str(e))
+            print("EXCEPTION fitting model in scripts.ai.predict.train: " + str(e))
         print "\nfitted"
         results = classifier.evaluate(input_fn=lambda: stepper.step(df_test), steps=10)
         for key in sorted(results):

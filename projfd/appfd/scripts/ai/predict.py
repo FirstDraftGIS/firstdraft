@@ -120,12 +120,18 @@ def run(geoentities, debug=True):
             df['is_country'].append(str(admin_level == 0))
             df['is_lowest_admin_level'].append(str(lowest_admin_level == g.admin_level))
             df['is_highest_population'].append(str(is_highest_population))
+            df['is_notable'].append(str(bool(geoentity.notability)))
 
 
             if hasattr(geoentity, "median_distance"):
                 df['median_distance'].append(geoentity.median_distance_from_all_other_points)
             else:
                 df['median_distance'].append(0)
+
+            if hasattr(geoentity, "notability"):
+                df['notability'].append(geoentity.notability or 0)
+            else:
+                df['notability'].append(0)
 
 
             if hasattr(geoentity, "matches_topic"):

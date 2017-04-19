@@ -30,6 +30,7 @@ class GeoEntity(object):
 
             self.feature_class = row[14]
             self.feature_code = row[15]
+            self.notability = int(row[16] or 0)
         except Exception as e:
             print "EXCEPTION in GeoEntity.__init__:", e
             raise e
