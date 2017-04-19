@@ -301,17 +301,17 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     map.setView([0,0],2);
 
-    $scope.clear_layers = function() {
+    $scope.clear_layers = function(skip_basemaps=false) {
         map.eachLayer(function(layer) {
-            //if(!layer._url) { // skipping over basemaps
+            if(!(skip_basemaps && layer._url)) { // skipping over basemaps
                 map.removeLayer(layer);
-            //}
+            }
         });
     };
 
     $scope.clear_everything = function() {
         console.log("starting clear_everything");
-        $scope.clear_layers();
+        $scope.clear_layers(skip_basemaps=false);
         $scope.correct_features = [];
         $scope.countries = "";
         $scope.admin1limits = "";
@@ -438,7 +438,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.features_that_appear_in_table = options;
 
         // clear map
-        $scope.clear_layers();
+        $scope.clear_layers(skip_basemaps=true);
 
 
         function onmouseover(event) {
