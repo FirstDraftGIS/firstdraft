@@ -52,7 +52,7 @@ function showTable() {
     element.onclick = hideTable;
 }
 
-app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$element', '$interval', function($scope, $http, $window, $compile, $element, $interval) {
+app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$element', '$interval', '$templateRequest', '$sce',  function($scope, $http, $window, $compile, $element, $interval, $templateRequest, $sce) {
 
   try {
 
@@ -68,6 +68,20 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.patterns = {
         //csv: "[^;].*"
         csv: "\d+"
+    };
+
+    $scope.load_modal = function(id) {
+        return new Promise(function(resolve, reject){
+             var templateUrl = $sce.getTrustedResourceUrl('static/modals/' + id +'.html');
+             console.log("templateUrl:", templateUrl);
+             $templateRequest(templateUrl).then(function(template) {
+                 console.log("template:", template);
+                 var div = document.createElement("div");
+                 document.body.appendChild(div);
+                 $compile($(div).html(template).contents())($scope);
+                 resolve();
+             });
+        });
     };
 
 
@@ -86,7 +100,11 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.close_all_modals_and_open = close_all_modals_and_open = function(id) {
         console.log("starting close_all_modals_and_open with", id);
         close_all_modals();
-        $scope.open_modal(id);
+        if(modals[id]) {
+            $scope.open_modal(id);
+        } else {
+            $scope.load_modal(id).then(() => $scope.open_modal(id));
+        }
     };
 
     $scope.create_a_map = function() {
@@ -215,6 +233,11 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
                 $scope.get_map_when_ready();
             });
         }
+    };
+
+    $scope.clear_recent_maps = () => {
+        $scope.previous_Maps = [];
+        localStorage.removeItem("maps");
     };
 
     $scope.features = [];
