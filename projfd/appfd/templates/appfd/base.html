@@ -21,7 +21,7 @@
 <script src="{% static 'js/external/angular-sanitize.min.js' %}"></script>
 <script src="{% static 'js/app.js' %}"></script>
 <script src="{% static 'js/spinner.js' %}"></script>
-<script src="{% static 'gis/js/turf.min.js' %}"></script>
+<script src="{% static 'custom_builds/turf/turf.min.js' %}"></script>
 <script src="{% static 'bower_components/angular-bootstrap-toggle/dist/angular-bootstrap-toggle.min.js' %}"></script>
 <script src="{% static 'node_modules/leaflet-providers/leaflet-providers.js' %}"></script>
 <script src="{% static 'js/leaflet-voice-commands.js' %}"></script>
@@ -70,26 +70,12 @@ Warning! JavaScript is not enabled.
 </noscript>
 {% block content %}
 {% endblock %}
-{% include "appfd/modals/add.html" %}
 {% include "appfd/modals/paste.html" %}
 {% include "appfd/modals/upload.html" %}
 {% include "appfd/modals/link.html" %}
-{% include "appfd/modals/contact.html" %}
-{% include "appfd/modals/disclaimers.html" %}
-{% include "appfd/modals/edit.html" %}
-{% include "appfd/modals/download.html" %}
-{% include "appfd/modals/help.html" %}
-{% include "appfd/modals/mission.html" %}
-{% include "appfd/modals/share.html" %}
-{% include "appfd/modals/team.html" %}
-{% include "appfd/modals/fix.html" %}
 {% include "appfd/modals/load.html" %}
-{% include "appfd/modals/metadata.html" %}
 {% include "appfd/modals/sources.html" %}
-{% include "appfd/modals/style.html" %}
-{% include "appfd/modals/uses.html" %}
 {% include "appfd/ga.html" %}
-{% include "appfd/modals/recent.html" %}
 <script src="{% static 'js/external/ui-grid.min.js' %}"></script>
 <script src="{% static 'js/MegaController.js' %}"></script>
 

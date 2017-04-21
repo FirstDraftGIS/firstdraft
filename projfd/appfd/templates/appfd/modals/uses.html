@@ -1,5 +1,3 @@
-{% load static %}
-{% block content %}
 <div class="modal fade" id="usesModal" tabindex="-1" role="dialog" aria-labelledby="usesModal">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -16,7 +14,7 @@
             <h3 class="panel-title">Map The News</h3>
           </div>
           <div class="panel-body">
-            <p><img src="{% static 'img/map_the_news.png' %}" width="100%"/></p>
+            <p><img src="/static/img/map_the_news.png" width="100%"/></p>
             <p>News organizations can use First Draft GIS to include a map with all of their news articles.  Just drop an iframe that points to <a href="https://firstdraftgis.com" target="_blank">https://firstdraftgis.com</a> and see a map magically appear on your page.  First Draft GIS creates the map by going to your web page, identifying places mentioned on the page and then dropping those points on a map.<p>
           </div>
         </div>
@@ -27,7 +25,7 @@
             <h3 class="panel-title">Visualizing Data Stores</h3>
           </div>
           <div class="panel-body">
-            <p><img src="{% static 'img/bkto.png' %}" width="100%"/></p>
+            <p><img src="static/img/bkto.png" width="100%"/></p>
             <p>Use First Draft GIS to visualize the contents of your large datastores.  <a href="//betterknowtheopposition.com" target="_blank">Better Know The Opposition</a> used First Draft GIS to map 25,584 press releases and public statements from opposition and rebel groups.  They were able to identify areas in which the groups have demonstrated interest and improve understanding of local actors in complex conflicts.</p>
           </div>
         </div>
@@ -38,7 +36,7 @@
             <h3 class="panel-title">Class Projects</h3>
           </div>
           <div class="panel-body">
-            <p><img src="{% static 'img/alaska.png' %}" width="100%"/></p>
+            <p><img src="static/img/alaska.png" width="100%"/></p>
             <p>Students use First Draft GIS to quickly put together maps before their due dates.  One student used First Draft GIS to make a map of supposed UFO sightings in all 50 states by inputing urls to tables of events for each state found on <a href="http://www.nuforc.org/webreports/ndxloc.html">http://www.nuforc.org/webreports/ndxloc.html</a>.</p>
           </div>
         </div>
@@ -49,7 +47,6 @@
             <h3 class="panel-title">Monitor Social Media</h3>
           </div>
           <div class="panel-body">
-            <!--<p><img src="{% static 'img/map_the_news.png' %}" width="100%"/></p>-->
             <p>First Draft GIS can locate tweets and social media posts and then put them on a map.  We have a robust API that will work with your data in whatever format you have it.  Get in touch and we will write integration code especially for you!</p>
           </div>
         </div>
@@ -60,7 +57,6 @@
             <h3 class="panel-title">More</h3>
           </div>
           <div class="panel-body">
-            <!--<p><img src="{% static 'img/map_the_news.png' %}" width="100%"/></p>-->
             <p>Know of a use case, but don't see it here.  Let us know and we will add it!  We are dedicated to sharing the power of AI and GIS with everyone!  Email us at support@firstdraftgis.com<p>
           </div>
         </div>
@@ -72,4 +68,3 @@
    </div>
   </div>
 </div>
-{% endblock %}

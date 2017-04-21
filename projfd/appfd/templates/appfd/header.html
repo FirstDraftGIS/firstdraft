@@ -23,25 +23,27 @@
         <ul class="nav navbar-nav">
              <li><a ng-click="open_modal('start')">Start</a></li>
              <li><a ng-click="open_modal('sources')">Sources</a></li>
-             <li><a ng-click="open_modal('metadata')">Metadata</a></li>
-             <li><a ng-click="open_modal('download')">Download</a></li>
-             <li><a ng-click="open_modal('share')">Share</a></li>
-             <li><a ng-click="open_modal('help')">Help</a></li>
+             <li><a ng-click="close_all_modals_and_open('metadata')">Metadata</a></li>
+             <li><a ng-click="close_all_modals_and_open('download')">Download</a></li>
+             <li><a ng-click="close_all_modals_and_open('share')">Share</a></li>
+             <li><a ng-click="close_all_modals_and_open('help')">Help</a></li>
              <li><a href="https://app.swaggerhub.com/api/FirstDraftGIS/request_map_from_sources/1.0.0" target="_blank">API</a></li>
-             <li><a ng-click="open_modal('uses')">Use Cases</a></li>
+             <li><a ng-click="close_all_modals_and_open('uses')">Use Cases</a></li>
+             <li><a ng-click="close_all_modals_and_open('settings')">Settings</a></li>
              <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">About <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
-                  <li><a ng-click="open_modal('contact')">Contact</a></li>
-                  <li><a ng-click="open_modal('mission')">Mission</a></li>
-                  <li><a ng-click="open_modal('team')">Team</a></li>
+                  <li><a ng-click="close_all_modals_and_open('contact')">Contact</a></li>
+                  <li><a ng-click="close_all_modals_and_open('mission')">Mission</a></li>
+                  <li><a ng-click="close_all_modals_and_open('stats')">Stats</a></li>
+                  <li><a ng-click="close_all_modals_and_open('team')">Team</a></li>
                </ul>
             </li>
  
             <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Legal <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
-                    <li><a ng-click="open_modal('disclaimers')">Disclaimers</a></li>
+                    <li><a ng-click="close_all_modals_and_open('disclaimers')">Disclaimers</a></li>
                </ul>
             </li>
             {% comment %}

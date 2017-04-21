@@ -530,3 +530,13 @@ background-size: 20px 20px;
         width: 1100px;
     }
 }
+
+table.settings {
+    border-collapse: separate; 
+    border-spacing: 15px;
+    width: 100%;
+}
+
+table.settings td:first-child {
+    width: 50%;
+}
