@@ -151,5 +151,7 @@ echo "alias c='clear'" >> ~/.bashrc
 sudo -u usrfd bash -c "echo \"alias a='cd ~/ && source venv/bin/activate && cd firstdraft/projfd'\" >> /home/usrfd/.bashrc"
 sudo -u usrfd bash -c "echo \"alias c='clear'\" >> /home/usrfd/.bashrc"
 
+echo "Run Train Every Night"
+sudo cp /home/usrfd/firstdraft/bash_scripts/train.sh /etc/cron.daily/.
 
 echo "FINISHING build.sh"
