@@ -1,3 +1,5 @@
+from appfd.models import Test
+from datetime import datetime
 import csv, fdgis
 from os import listdir, mkdir, remove
 from os.path import dirname, realpath
@@ -64,8 +66,12 @@ def run(debug=True):
                             else:
                                 number_of_incorrect_features += 1
 
-                if debug: print "number_of_correct_features:", number_of_correct_features
-                if debug: print "number_of_incorrect_features:", number_of_incorrect_features
+        if debug: print "number_of_correct_features:", number_of_correct_features
+        if debug: print "number_of_incorrect_features:", number_of_incorrect_features
+        accuracy = float(number_of_correct_features) / (number_of_correct_features + number_of_incorrect_features)
+        if debug: print "accuracy:", accuracy
+
+        Test.objects.create(datetime=datetime.now(), accuracy=accuracy)
 
         if debug: print "finishing test"
 
