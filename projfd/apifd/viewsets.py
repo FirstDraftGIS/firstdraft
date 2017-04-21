@@ -1,7 +1,7 @@
-from appfd.models import Basemap, Feature, Order, Place
+from appfd.models import Basemap, Feature, Order, Place, Test
 from appfd.scripts.ai import update_popularity_for_order
 from apifd.mixins import CsrfExemptSessionAuthentication
-from apifd.serializers import BasemapSerializer, FeatureSerializer, OrderSerializer, PlaceSerializer
+from apifd.serializers import BasemapSerializer, FeatureSerializer, OrderSerializer, PlaceSerializer, TestSerializer
 from braces.views import CsrfExemptMixin
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
@@ -100,3 +100,8 @@ class PlaceViewSet(ModelViewSet):
     def typeahead(self, request):
         return Response(Place.objects.filter(name__startswith=request.query_params['name']).distinct("name").values_list("name", flat=True)[:5])
 
+class TestViewSet(ModelViewSet):
+    http_method_names = ["get"]
+    queryset = Test.objects.all()
+    serializer_class = TestSerializer
+    filter_fields = ("accuracy", "datetime")

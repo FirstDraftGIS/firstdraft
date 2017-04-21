@@ -1,4 +1,4 @@
-from appfd.models import Basemap, Feature, Order, Place
+from appfd.models import Basemap, Feature, Order, Place, Test
 from drf_queryfields import QueryFieldsMixin
 from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer, SerializerMethodField
 
@@ -40,3 +40,8 @@ class PlaceSerializer(QueryFieldsMixin, ModelSerializer):
     class Meta:
         model = Place
         fields = ["id", "admin_level", "country_code", "feature_code", "feature_type", "name", "point", "population"]
+
+class TestSerializer(QueryFieldsMixin, ModelSerializer):
+    class Meta:
+        model = Test
+        fields = ["accuracy", "datetime"]

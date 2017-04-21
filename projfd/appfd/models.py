@@ -260,6 +260,13 @@ class TeamMember(Model):
     position = CharField(max_length=200, null=True, blank=True)
     twitter = CharField(max_length=200, null=True, blank=True)
 
+class Test(Model):
+    accuracy = FloatField()
+    datetime = DateTimeField()
+
+    def __str__(self):
+        return str(self.datetime) + " with accuracy of " + str(self.accuracy)
+
 class Topic(Model):
     name = TextField(max_length=50, null=True, blank=True)
 
