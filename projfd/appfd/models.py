@@ -275,7 +275,7 @@ class Translator(Model):
 
 class Wikipedia(Model):
     place = OneToOneField("Place")
-    charcount = IntegerField(max_length=1000)
+    charcount = IntegerField()
 
 #class UserOrder(Model):
 #    user = ForeignKey(User)
