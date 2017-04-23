@@ -36,8 +36,6 @@ function requestFullScreen() {
     if (html.msRequestFullscreen) html.msRequestFullscreen();
 }
 
-share_url_element = document.getElementById("share_url");
-
 function hideTable() {
     $(".container").removeClass("split");
     var element = document.getElementById("toggleTableButton")
@@ -61,6 +59,11 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     console.log("starting MegaController");
 
     $scope.previous_maps = [];
+    if (localStorage['settings']) {
+        $scope.settings = JSON.parse(localStorage['settings']);
+    } else {
+        $scope.settings = {}
+    }
 
     $scope.sources = [];
     $scope.show_advanced_options = false;
@@ -84,6 +87,16 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         });
     };
 
+    $scope.load_modal_if_necessary = function(id) {
+        return new Promise(function(resolve) {
+            if (modals[id]) {
+                resolve();
+            } else {
+                resolve($scope.load_modal(id));
+            }
+        });
+    };
+
 
     $scope.closeModal = function(id) {
         modals[id].modal('hide');
@@ -100,11 +113,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.close_all_modals_and_open = close_all_modals_and_open = function(id) {
         console.log("starting close_all_modals_and_open with", id);
         close_all_modals();
-        if(modals[id]) {
+        $scope.load_modal_if_necessary(id).then(function() {
             $scope.open_modal(id);
-        } else {
-            $scope.load_modal(id).then(() => $scope.open_modal(id));
-        }
+        });
     };
 
     $scope.create_a_map = function() {
@@ -188,8 +199,6 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         location.hash = $scope.job;
         $scope.share_url = location.origin + "/view_map/" + $scope.job;
         console.log("scope.share-Url:", $scope.share_url);
-        share_url_element.href = $scope.share_url;
-        share_url_element.textContent = $scope.share_url;
         $scope.check_downloadability_of_extension("csv");
         $scope.check_downloadability_of_extension("geojson");
         $scope.check_downloadability_of_extension("gif");
@@ -198,12 +207,21 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.check_downloadability_of_extension("png");
         $scope.check_downloadability_of_extension("shp");
         $scope.check_downloadability_of_metadata("iso_19115_2");
+        $scope.load_modal_if_necessary("share").then(function() {
+            $("#share_url").attr("href", $scope.share_url).text($scope.share_url);
+        });
     };
 
 
     $scope.generate = function() {
         if ($scope.sources.length > 0) {
-            $scope.close_all_modals_and_open("load");
+
+            // don't wait to load load modal before requesting a map
+            // assuming that loading the modal is quicker than generating the map
+            $scope.load_modal_if_necessary("load").then(function() {
+                $scope.close_all_modals_and_open("load");
+            });
+
             if($scope.countries) data.countries = $scope.countries.split(",").map(function(c){return c.trim();});
             if($scope.admin1limits) data.admin1limits = $scope.admin1limits.split(",").map(function(c){return c.trim();});
 
@@ -243,19 +261,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.features = [];
     $scope.correct_features = [];
     $scope.features_that_appear_in_table = [];
-    $scope.addModal = $(document.getElementById("addModal"));
-    $scope.downloadModal = $(document.getElementById("downloadModal"));
-    $scope.editModal = $(document.getElementById("editModal"));
-    $scope.fixModal = $(document.getElementById("fixModal"));
-    $scope.loadModal = $(document.getElementById("loadModal"));
-    //$scope.searchModal = $(document.getElementById("searchModal"));
-    $scope.styleModal = $(document.getElementById("styleModal"));
     $scope.max_time = 10;
 
-    map = L.map('map', {
-        "fullscreenControl": true,
-        "voiceControl": true
-    });
+    map = L.map('map');
 
     /*
     L.Voice.commands.switch_basemap = {
@@ -273,21 +281,22 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     };
     */ 
 
+    $scope.easy_buttons = {};
+
     // add button to zoom out to globe
     L.easyButton('<span class="glyphicon glyphicon-globe" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
         map.setView([0,0], 1);
     }).addTo(map);
 
     // add button to add place
-    L.easyButton('<span class="glyphicon glyphicon-map-marker" title="Add Place" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
+    $scope.easy_buttons.add = L.easyButton('<span class="glyphicon glyphicon-map-marker" title="Add Place" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
         console.log("adding place");
         $scope.close_all_modals_and_open("add");
-    }).addTo(map);
+    });
 
-    // add button to add place
-    L.easyButton('<span class="glyphicon glyphicon-search" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
+    /*L.easyButton('<span class="glyphicon glyphicon-search" style="font-size: 14pt; top: 4px;"></span>', function(btn, map){
         console.log("searching");
-    }).addTo(map);
+    }).addTo(map);*/
 
 
     var showTableControl = L.Control.extend({
@@ -308,7 +317,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     map._controlContainer.appendChild(centerControl[0]);
 
     // basemaps button
-    var basemapsControl = L.Control.extend({
+    var BasemapsControl = L.Control.extend({
         options: {
             position: "bottomright",
         },
@@ -320,7 +329,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             return basemapsButton;
         }
     });
-    map.addControl(new basemapsControl());
+    $scope.basemapsControl = new BasemapsControl();
 
     map.setView([0,0],2);
 
@@ -392,7 +401,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         var request = $interval( function(){
             if ($scope.job == original_job) {
                 console.log("checking if", $scope.job, extension, "is ready");
-                document.getElementById("download_link_" + extension).href = location.origin + "/get_map/" + $scope.job + "/" + extension;
+                $scope.load_modal_if_necessary("download").then(function() {
+                    document.getElementById("download_link_" + extension).href = location.origin + "/get_map/" + $scope.job + "/" + extension;
+                });
                 $http.get('/does_map_exist/' + $scope.job + "/" + extension).then(function(response) {
                     console.log("got response", response);
                     if (response.data === "yes") {
@@ -447,7 +458,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
         $scope.mode = "fixing";
 
-        $scope.fixModal.modal("hide");
+        modals.fix.modal("hide");
 
         var name = feature.name;
 
@@ -499,7 +510,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             $scope.featureGroup.addLayer(marker);
 
             if (feature.polygon) {
-                var polygon = L.polygon(turf.flip(turf.polygon(feature.polygon)).geometry.coordinates, getStyle(feature)).addTo(map);
+                var polygon = L.polygon(turf.flip(turf.helpers.polygon(feature.polygon)).geometry.coordinates, getStyle(feature)).addTo(map);
                 polygon.on("click", onclick(feature));
                 polygon.on("mouseover", onmouseover);
                 polygon.on("mouseout", onmouseout);
@@ -507,7 +518,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             }
 
             if (feature.multipolygon) {
-                var multipolygon = L.polygon(turf.flip(turf.multiPolygon(feature.multipolygon)).geometry.coordinates, getStyle(feature)).addTo(map);
+                var multipolygon = L.polygon(turf.flip(turf.helpers.multiPolygon(feature.multipolygon)).geometry.coordinates, getStyle(feature)).addTo(map);
                 multipolygon.on("click", onclick(feature));
                 multipolygon.on("mouseover", onmouseover);
                 multipolygon.on("mouseover", onmouseout);
@@ -573,7 +584,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             if (geom_used.includes("shape")) {
                 if (feature.polygon) {
                    console.log("creating polygon for", feature);
-                    var polygon = L.polygon(turf.flip(turf.polygon(feature.polygon)).geometry.coordinates, getStyle(feature)).addTo(map);
+                    var polygon = L.polygon(turf.flip(turf.helpers.polygon(feature.polygon)).geometry.coordinates, getStyle(feature)).addTo(map);
                     polygon.feature_id = feature.feature_id;
                     polygon.featureplace_id = feature.featureplace_id;
                     polygon.bindPopup(popup_html, popup_options);
@@ -582,7 +593,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
                     console.log("pushed", polygon);
                 } else if (feature.multipolygon) {
                     console.log("creating multipolygon for", feature);
-                    var multipolygon = L.polygon(turf.flip(turf.multiPolygon(feature.multipolygon)).geometry.coordinates, getStyle(feature)).addTo(map);
+                    var multipolygon = L.polygon(turf.flip(turf.helpers.multiPolygon(feature.multipolygon)).geometry.coordinates, getStyle(feature)).addTo(map);
                     multipolygon.feature_id = feature.feature_id;
                     multipolygon.featureplace_id = feature.featureplace_id;
                     multipolygon.bindPopup(popup_html, popup_options);
@@ -600,7 +611,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         } else {
             map.setView([0,0], 1);
         }
-        $scope.loadModal.modal("hide");
+        if (modals.load) modals.load.modal("hide");
     };
 
     $scope.getFeatures = function() {
@@ -648,7 +659,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             }
         });
         $scope.features_that_appear_in_table = $scope.correct_features;
-        $scope.editModal.modal("hide");
+        modals.edit.modal("hide");
         $scope.selection = {};
     };
 
@@ -662,7 +673,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         console.log("entity:", entity);
         close_all_modals();
         if (entity) $scope.selection = entity;
-        $scope.editModal.modal();
+        modals.edit.modal();
     };
 
     $scope.select = function(featureplace_id) {
@@ -699,17 +710,17 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     $scope.displayEditModalById = displayEditModalById = function(featureplace_id) {
         $scope.select(featureplace_id);
-        $scope.editModal.modal();
+        modals.edit.modal();
     };
 
     $scope.displayFixModalById = displayFixModalById = function(featureplace_id) {
         $scope.select(featureplace_id);
-        $scope.fixModal.modal();
+        modals.fix.modal();
     };
 
     $scope.displayStyleModalById = displayStyleModalById = function(featureplace_id) {
         $scope.select(featureplace_id);
-        $scope.styleModal.modal();
+        modals.style.modal();
     };
 
 
@@ -817,6 +828,69 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         $scope.previous_maps = localStorage['maps'] ? localStorage['maps'].split(",") : [];
         modals.start.modal();
     }
+
+
+    // AFTER START MODAL APPEARS
+
+    $scope.update_settings = function() {
+        try {
+            console.log("starting update_settings");
+
+            var settings = $scope.settings;
+
+            var basemapsButton = document.getElementById("basemapsButton");
+            if (settings.basemaps) {
+                if (!basemapsButton) {
+                    map.addControl($scope.basemapsControl);
+                }
+            } else {
+                if (basemapsButton) {
+                    $scope.basemapsControl.remove();
+                }
+            }
+
+
+            if (!$scope.fullscreen_control) {
+                $scope.fullscreen_control = new L.Control.Fullscreen();
+            }
+      
+            var fullscreen_element = map._controlContainer.querySelector(".leaflet-control-fullscreen");
+            if (settings.fullscreen) {
+                if (!fullscreen_element) {
+                    map.addControl($scope.fullscreen_control);
+                }
+            } else {
+                if (fullscreen_element) {
+                    $scope.fullscreen_control.remove();
+                }
+            }
+
+
+            if(!$scope.voice_control) {
+                $scope.voice_control = new L.Control.Voice();
+            }
+
+            var element = map._controlContainer.querySelector(".leaflet-control-voice-commands");
+            if(settings.voice) {
+                if (!element) {
+                    map.addControl($scope.voice_control);
+                }
+            } else {
+               if (element) {
+                   $scope.voice_control.remove();
+               }
+            }
+
+            localStorage['settings'] = JSON.stringify(settings);
+        } catch (error) {
+            console.error(error);
+        }
+
+    };
+    $scope.update_settings();
+
+
+
 
     $http.get(location.origin + "/api/basemaps/?format=json&limit=1000").then(function(response) {
         $scope.basemaps = _.sortBy(response.data.results.map(function(basemap) {

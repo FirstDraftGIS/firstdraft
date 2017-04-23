@@ -18,7 +18,7 @@ gulp.task("build", ["clean"], function() {
         gulp.src([
         "./node_modules/underscore/underscore-min.js",
         "./node_modules/jquery/dist/jquery.min.js",
-        "./node_modules/bootstrap/dist/js/bootstrap.min.js",
+        "./custom_builds/bootstrap/js/bootstrap.min.js",
         "./node_modules/leaflet/dist/leaflet.js"
         //"./node_modules/jquery-ui/build/release.js"
         //"./node_modules/angular/angular.min.js"
