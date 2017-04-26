@@ -1,0 +1,34 @@
+{% block content %}
+<div class="modal fade" id="startModal" tabindex="-1" role="dialog" aria-labelledby="startModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h2 class="modal-title" id="startModalLabel">Welcome</h2>
+      </div>
+      <div class="modal-body">
+          <p><b>First Draft GIS</b> is a completely <b>open source</b> website that automatically generates the first draft of a map for you.</p>
+          <p><b>How would you like to start?</b></p>
+          <table><tbody>
+              <tr>
+                  <td ng-click="create_a_map()">
+                      <p class="glyphicon glyphicon-plus-sign"></p>
+                      <p>Create a Map</p>
+                  </td>
+                  <td ng-click="close_all_modals_and_open('uses')">
+                      <p class="glyphicon glyphicon-star"></p>
+                      <p>View Examples</p>
+                  </td>
+             </tr>
+             <tr>
+                  <td ng-click="close_all_modals_and_open('recent')" ng-if="previous_maps.length > 0">
+                      <p class="glyphicon glyphicon-list"></p>
+                      <p>Recent Maps</p>
+                  </td>
+              </tr>
+          </table></tbody>
+      </div>
+   </div>
+  </div>
+</div>
+{% endblock %}

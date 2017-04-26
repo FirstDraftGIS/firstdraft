@@ -41,7 +41,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -57,10 +57,15 @@ INSTALLED_APPS = (
     'appfd',
     'behave_django',
     'apifd',
-    'crispy_forms'
-)
+    'crispy_forms',
+    'silk',
+    'controlcenter'
+]
 
-MIDDLEWARE_CLASSES = (
+if DEBUG:
+    INSTALLED_APPS.append('nplusone.ext.django')
+
+MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
 
@@ -71,7 +76,12 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-)
+    'silk.middleware.SilkyMiddleware'
+    #'reversion.middleware.RevisionMiddleware'
+]
+
+if DEBUG:
+    MIDDLEWARE_CLASSES.append("nplusone.ext.django.NPlusOneMiddleware")
 
 ROOT_URLCONF = 'projfd.urls'
 
@@ -159,3 +169,8 @@ ANONYMOUS_USER_ID = -1
 
 #http://python-social-auth.readthedocs.io/en/latest/configuration/django.html
 #SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'email']
+
+
+CONTROLCENTER_DASHBOARDS = (
+    'projfd.dashboards.MyDashboard',
+)

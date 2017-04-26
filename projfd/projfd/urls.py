@@ -1,24 +1,29 @@
 import appfd, inspect
 from appfd.models import Basemap
 from appfd import views
+from controlcenter.views import controlcenter
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib.auth.models import User, Group
 from django.contrib.gis import admin
 from django.conf import settings
 
+
 #initialize urlpatterns
 urlpatterns = []
+
 
 # add most urls
 urlpatterns += [
     #url(r'^appfd/', include('appfd.urls')),
     url(r'^api/', include('apifd.urls')),
+    url(r'^silk/', include('silk.urls', namespace='silk')),
     #url(r'^help/', include('help.urls')),
     url(r'^$', views.index, name="index"),
     #url(r'about$', views.about, name='about'),
     #url(r'activate/(?P<key>[^\./]+)$', views.activate, name='activate'),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/dashboard/', controlcenter.urls),
     #url(r'change_email$', views.change_email, name='change_email'),
     #url(r'change_password$', views.change_password, name='change_password'),
     url(r'^contact$', views.contact, name='contact'),

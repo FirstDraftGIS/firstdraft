@@ -1,0 +1,29 @@
+<div class="modal fade" id="recentModal" tabindex="-1" role="dialog" aria-labelledby="recent maps">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Choose a Recent Map</span>
+                <button type="button" class="btn btn-default btn-md" data-dismiss="modal" aria-label="Close" style="float: right; margin-right: -5px; margin-top: -5px;">Close</button>
+            </div>
+            <div class="modal-body" style="text-align: center">
+                <div class="recent-card panel panel-default" ng-if="previous_maps" ng-repeat="token in previous_maps">
+                    <!--<div class="panel-heading">Panel Heading</div>-->
+                    <div class="panel-body" style="padding: 0">
+                        <a ng-click="openMap(token)" ng-href="/#{{token}}">
+                            <img ng-src="/get_map/{{token}}/png" style="height: 100%; width: 100%" />
+                        </a>
+                    </div>
+                    <!--<div class="panel-footer">Panel Footer</div>-->
+                </div><!-- end of card -->
+           </div>
+           <div class="modal-footer">
+               <button type='button' class='btn btn-danger btn-md pull-left' aria-label="clear" style="margin: 10px;" ng-click="clear_recent_maps()">
+                    Clear
+                </button>
+               <button type='button' class='btn btn-default btn-md pull-right' data-dismiss="modal" aria-label="Close" style="margin: 10px;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

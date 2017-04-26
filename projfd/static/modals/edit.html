@@ -1,0 +1,68 @@
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="editModalLabel" ng-model="selection.name" contenteditable>Name Here</h4>&nbsp;<span class="glyphicon glyphicon-pencil" style="display: none"></span>
+                <button type="button" class="btn btn-default btn-md" data-dismiss="modal" aria-label="Close" style="float: right; margin-right: -5px; margin-top: -5px;">Close</button>
+            </div>
+            <div class="modal-body">
+
+                <div ng-if="selection.aliases">
+                    <b>Aliases:</b>&nbsp;<span ng-bind="selection.aliases"></span>
+                </div>
+
+                <!-- removing confidence until a time when it makes sense to users
+                <div>
+                    <b>Confidence:</b>&nbsp;<span ng-bind="selection.confidence"></span>
+                </div>-->
+
+                <div>
+                    <b>Country Code:</b>&nbsp;<span ng-model="selection.country_code" contenteditable></span>&nbsp;<span class="glyphicon glyphicon-pencil" style="display: none"></span></span>
+                </div>
+
+                <div>
+                    <b>End Time:</b>&nbsp;<span ng-model="selection.end_time" contenteditable></span>&nbsp;<span class="glyphicon glyphicon-pencil" style="display: none"></span>
+                </div>
+
+                <div>
+                    <b>Geoname Id:</b>&nbsp;<span ng-model="selection.geonameid" contenteditable></span>&nbsp;<span class="glyphicon glyphicon-pencil" style="display: none"></span>
+                </div>
+
+                <div>
+                    <b>Latitude:</b>&nbsp;<span ng-model="selection.latitude" contenteditable></span>&nbsp;<span class="glyphicon glyphicon-pencil" style="display: none"></span>
+                </div>
+
+                <div>
+                    <b>Longitude:</b>&nbsp;<span ng-model="selection.longitude" contenteditable></span>&nbsp;<span class="glyphicon glyphicon-pencil" style="display: none"></span>
+                </div>
+
+                <div>
+                    <b>Start Time:</b>&nbsp;<span ng-model="selection.start_time" contenteditable></span>&nbsp;<span class="glyphicon glyphicon-pencil" style="display: none"></span>
+                </div>
+
+                <div>
+                    <b>Quote:</b>&nbsp;<span class="glyphicon glyphicon-pencil" style="display: none"></span>
+                    <div class="well" ng-model="selection.text" contenteditable></div>
+                </div>
+
+                <div>
+                    <button type='button' class='btn btn-warning btn-md' data-toggle='modal' ng-click="undo()" style="margin: 10px; display:none;">
+                        Undo
+                    </button>
+                    <button type='button' class='btn btn-danger btn-md pull-right' ng-click="deleteSelection()" style="margin: 10px;">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // makes it so when you click the pencil to the left of a content editable span/h5 then it focuses on the editable
+    _.toArray(document.querySelectorAll("#editModal .glyphicon-pencil")).forEach(function(element) {
+        element.addEventListener('click', function(event) { 
+            event.target.parentElement.querySelector("[contenteditable]").focus();
+        });
+    });
+</script>
