@@ -104,4 +104,4 @@ class TestViewSet(ModelViewSet):
     http_method_names = ["get"]
     queryset = Test.objects.all()
     serializer_class = TestSerializer
-    filter_fields = ("accuracy", "datetime")
+    filter_fields = ("accuracy", "created")

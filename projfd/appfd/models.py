@@ -7,7 +7,15 @@ from django.contrib.gis.db.models import *
 from pytz import utc
 from shutil import rmtree
 
-class Alert(Model):
+
+class Base(Model):
+    created = DateTimeField(auto_now_add=True, null=True)
+    modified = DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        abstract = True
+
+class Alert(Base):
     colors = (("danger", "danger"),("info", "info"),("success", "success"),("warning","warning"))
     color = CharField(choices=colors, max_length=200)
     permanent = BooleanField()
@@ -27,7 +35,7 @@ class Alert(Model):
 # know if Twitter will last forever and want Machine Learning
 # data that will be useful for a long time
 # For twitter, the Author will be the twitter username
-class Author(Model):
+class Author(Base):
     # twitter handle
     short_name = CharField(max_length=20)
 
@@ -46,12 +54,12 @@ class AlternateName(Model):
     isColloquial = CharField(max_length=1, null=True, blank=True)
     isHistoric = CharField(max_length=1, null=True, blank=True)
 
-class Basemap(Model):
+class Basemap(Base):
     name = CharField(max_length=50)
     def __str__(self):
         return self.name
 
-class CountryCodeRank(Model):
+class CountryCodeRank(Base):
     country_code = CharField(max_length=10)
     rank = IntegerField(null=True)
     order = ForeignKey("order", to_field="token")
@@ -59,14 +67,13 @@ class CountryCodeRank(Model):
     class Meta:
         unique_together = (("country_code","order"))
 
-class Calls(Model):
+class Calls(Base):
     date = DateField()
     total = IntegerField(default=0)
     CHOICES = [('gt', "Google Translate API")]
     service = CharField(max_length=200, choices=CHOICES)
 
-class Activation(Model):
-    created = DateTimeField(auto_now_add=True)
+class Activation(Base):
     expired = BooleanField(default=False)
     key = CharField(max_length=200)
     notified_success = BooleanField(default=False)
@@ -75,7 +82,7 @@ class Activation(Model):
     def __str__(self):
         return str(self.key[:10]) + "..."
 
-class Alias(Model):
+class Alias(Base):
     alias = CharField(max_length=200, null=True, blank=True, db_index=True, unique=True)
     language = CharField(max_length=7, null=True, blank=True, db_index=True)
     class Meta:
@@ -87,7 +94,7 @@ class Alias(Model):
             setattr(self,k,v)
         self.save()
 
-class AliasPlace(Model):
+class AliasPlace(Base):
     alias = ForeignKey('Alias')
     place = ForeignKey('Place')
 
@@ -95,14 +102,14 @@ class AliasPlace(Model):
         unique_together = (("alias","place"))
 
 
-class Email(Model):
+class Email(Base):
     address = EmailField(null=True, blank=True)
     entered = DateTimeField(auto_now_add=True)
 
-class MetaData(Model):
+class MetaData(Base):
     order = ForeignKey("Order")
 
-class MetaDataEntry(Model):
+class MetaDataEntry(Base):
     metadata = ForeignKey("Metadata")
     key = CharField(max_length=255)
     value = TextField(max_length=2000)
@@ -111,7 +118,7 @@ class MetaDataEntry(Model):
         return "[" + str(self.metadata.id) + "] " + str(self.key)
 
 ### this is what consitutes the FeatureCollection of the map
-class Feature(Model):
+class Feature(Base):
     order = ForeignKey("Order")
     count = IntegerField(null=True) # number of times the thing was mentioned in the text
     end = DateTimeField(null=True)
@@ -126,7 +133,7 @@ class Feature(Model):
     def __str__(self):
         return str([self.order.token + "|" + self.name])
 
-class FeaturePlace(Model):
+class FeaturePlace(Base):
     feature = ForeignKey("Feature")
     place = ForeignKey("Place")
     cluster_frequency = FloatField(null=True)
@@ -139,10 +146,10 @@ class FeaturePlace(Model):
         return str(self.feature.id) + "~" + str(self.place.id)
 
 # styles and info that apply to a map as a whole
-class MapStyle(Model):
+class MapStyle(Base):
     basemap = ForeignKey("Basemap", default=Basemap.objects.get(name="OpenStreetMap.Mapnik").id)
 
-class Order(Model):
+class Order(Base):
     complete = BooleanField(default=False)
     duration = IntegerField(null=True) # how long it took to process the order
     edited = BooleanField(default=False) # tells you whether they opened it for editing... not whether any actual edits were made
@@ -175,7 +182,7 @@ class Order(Model):
 
 # should add in org and person model at some point, so can cross locate story based on people or orgs if no location names given
 
-class Place(Model):
+class Place(Base):
     admin_level = IntegerField(null=True, blank=True, db_index=True)
     admin1_code = CharField(max_length=100, null=True, blank=True, db_index=True)
     admin2_code = CharField(max_length=100, null=True, blank=True, db_index=True)
@@ -216,7 +223,7 @@ class Place(Model):
                 setattr(self,k,v)
         self.save()
 
-class ParentChild(Model):
+class ParentChild(Base):
     parent = ForeignKey('Place', related_name="parentplace")
     child = ForeignKey('Place', related_name="subplace")
 
@@ -225,7 +232,7 @@ class ParentChild(Model):
         unique_together = (("parent","child"))
 
 # this is the source data, not the attribution
-class Source(Model):
+class Source(Base):
     order = ForeignKey("order")
     source_text = CharField(max_length=2000, null=True)
     source_type = CharField(max_length=200)
@@ -239,7 +246,7 @@ class Source(Model):
             representation += " : " + self.source_text
         return representation 
 
-class Style(Model):
+class Style(Base):
     feature = ForeignKey("feature")
     fill = CharField(max_length=30, null=True)
     fillOpacity = FloatField(null=True)
@@ -253,27 +260,26 @@ class Style(Model):
         return "(" + str(self.id) + ") " + self.feature.name + "'s style"
 
 
-class TeamMember(Model):
+class TeamMember(Base):
     email = EmailField(null=True, blank=True)
     name = CharField(max_length=200, null=True, blank=True)
     pic = ImageField(upload_to="images/topicareas", null=True, blank=True)
     position = CharField(max_length=200, null=True, blank=True)
     twitter = CharField(max_length=200, null=True, blank=True)
 
-class Test(Model):
+class Test(Base):
     accuracy = FloatField()
-    datetime = DateTimeField()
 
     def __str__(self):
-        return str(self.datetime) + " with accuracy of " + str(self.accuracy)
+        return str(self.created) + " with accuracy of " + str(self.accuracy)
 
-class Topic(Model):
+class Topic(Base):
     name = TextField(max_length=50, null=True, blank=True)
 
-class Translator(Model):
+class Translator(Base):
     name = CharField(max_length=200, null=True, blank=True)
 
-class Wikipedia(Model):
+class Wikipedia(Base):
     place = OneToOneField("Place")
     charcount = IntegerField()
 

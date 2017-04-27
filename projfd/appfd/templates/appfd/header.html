@@ -27,7 +27,13 @@
              <li><a ng-click="close_all_modals_and_open('download')">Download</a></li>
              <li><a ng-click="close_all_modals_and_open('share')">Share</a></li>
              <li><a ng-click="close_all_modals_and_open('help')">Help</a></li>
-             <li><a href="https://app.swaggerhub.com/api/FirstDraftGIS/request_map_from_sources/1.0.0" target="_blank">API</a></li>
+             <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">API<span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                  <li><a href="/api/" target="_blank">Django Rest Framework</a></li>
+                  <li><a href="/swagger/" target="_blank">Swagger</a></li>
+               </ul>
+             </li>
              <li><a ng-click="close_all_modals_and_open('uses')">Use Cases</a></li>
              <li><a ng-click="close_all_modals_and_open('settings')">Settings</a></li>
              <li class="dropdown">

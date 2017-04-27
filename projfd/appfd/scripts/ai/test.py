@@ -71,7 +71,7 @@ def run(debug=True):
         accuracy = float(number_of_correct_features) / (number_of_correct_features + number_of_incorrect_features)
         if debug: print "accuracy:", accuracy
 
-        Test.objects.create(datetime=datetime.now(), accuracy=accuracy)
+        Test.objects.create(accuracy=accuracy)
 
         if debug: print "finishing test"
 

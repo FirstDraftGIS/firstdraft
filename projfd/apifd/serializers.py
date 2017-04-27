@@ -41,7 +41,14 @@ class PlaceSerializer(QueryFieldsMixin, ModelSerializer):
         model = Place
         fields = ["id", "admin_level", "country_code", "feature_code", "feature_type", "name", "point", "population"]
 
+class VerbosePlaceSerializer(PlaceSerializer):
+    class Meta:
+        model = Place
+        fields = ["id", "admin_level", "country_code", "feature_code", "feature_type", "geonameid", "name", "point", "population"]
+
+
+
 class TestSerializer(QueryFieldsMixin, ModelSerializer):
     class Meta:
         model = Test
-        fields = ["accuracy", "datetime"]
+        fields = ["accuracy", "created"]

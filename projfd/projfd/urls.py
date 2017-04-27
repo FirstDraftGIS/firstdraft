@@ -7,16 +7,12 @@ from django.conf.urls.static import static
 from django.contrib.auth.models import User, Group
 from django.contrib.gis import admin
 from django.conf import settings
+from rest_framework_swagger.views import get_swagger_view
 
-
-#initialize urlpatterns
-urlpatterns = []
-
-
-# add most urls
-urlpatterns += [
+urlpatterns = [
     #url(r'^appfd/', include('appfd.urls')),
     url(r'^api/', include('apifd.urls')),
+    url(r'^swagger/', get_swagger_view(title='First Draft GIS API')),
     url(r'^silk/', include('silk.urls', namespace='silk')),
     #url(r'^help/', include('help.urls')),
     url(r'^$', views.index, name="index"),

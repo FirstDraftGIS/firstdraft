@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     'mod_wsgi.server',
     'rest_framework',
     'rest_framework_gis',
+    'rest_framework_swagger',
+    #'reversion',
     'appfd',
     'behave_django',
     'apifd',

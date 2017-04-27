@@ -1,5 +1,5 @@
 try:
-    from appfd.models import Order, Place
+    from appfd.models import Order, Place, Topic
     from controlcenter import Dashboard, widgets
     from django.db.models import Count 
 
@@ -41,6 +41,9 @@ try:
         queryset = Order.objects.extra({'day': "date_trunc('day', start)"}).extra({'epoch': "cast(extract(epoch from date_trunc('day', start)) as integer)"}).values('day', 'epoch').annotate(Count('id')).order_by("-epoch")[:30]
         width = widgets.LARGEST
 
+    class Topics(widgets.ItemList):
+        model = Topic
+        values_list = ("name")
 
     class MyDashboard(Dashboard):
         widgets = [
@@ -48,7 +51,8 @@ try:
             NumberOfOrdersPerDayInLast30Days,
             MostPopularPlaces,
             LeastPopularPlaces,
-            MostNotablePlaces
+            MostNotablePlaces,
+            Topics
         ]
 
 except Exception as e:
