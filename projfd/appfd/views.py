@@ -568,7 +568,7 @@ def request_map_from_sources(request):
             print "cleaned:", cleaned
             if cleaned:
                 key = get_random_string(25)
-                order_id = Order.objects.create(token=key).id
+                order_id = Order.objects.create(token=key, map_format=cleaned['map_format']).id
                 from django.db import connection 
                 connection.close()
                 sources = cleaned['sources']

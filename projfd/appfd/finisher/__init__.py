@@ -12,8 +12,24 @@ def finish_order(key):
 
         print "starting finish order with", key
 
-        for _method in (create_geojson.run, create_frequency_geojson, create_shapefiles.run, create_csv.run, create_images.run, create_xypair.run, create_pdf.run):
-            Process(target=_method, args=(key,)).start()
+        map_format = Order.objects.get(token=key).map_format
+
+        if map_format == "all":
+            for _method in (create_geojson.run, create_frequency_geojson, create_shapefiles.run, create_csv.run, create_images.run, create_xypair.run, create_pdf.run):
+                Process(target=_method, args=(key,)).start()
+        elif map_format == "geojson":
+            Process(target=create_geojson.run, args=(key,)).start()
+        elif map_format == "csv":
+            Process(target=create_csv.run, args=(key,)).start()
+        elif map_format in ['gif', 'jpg', 'png']:
+            Process(target=create_images.run, args=(key,)).start()
+        elif map_format == 'pdf':
+            Process(target=create_pdf.run, args=(key,)).start()
+        elif map_format == 'shp':
+            Process(target=create_shapefiles.run, args=(key,)).start()
+        elif map_format == "xy":
+            Process(target=create_xypair.run, args=(key,)).start()
+
 
         # update country code ranks sometime
         Process(target=update_country_code_ranks_for_order.run, args=(key,)).start()

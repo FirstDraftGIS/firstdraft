@@ -26,6 +26,8 @@ def clean(POST, FILES):
                 style['basemap'] = basemapForm.cleaned_data['basemap']
         print "style after cleaning:", style
 
+        map_format = POST['map_format'] if POST.get("map_format", None) in ["geojson", "gif", "jpg", "png", "xy"] else "all"
+
         sources = []
         for n in range(1000):
             key = "source_" + str(n) + "_type"
@@ -66,7 +68,7 @@ def clean(POST, FILES):
                                 sources.append({"type": "text", "data": cleaned_data.strip()})
 
         print "finishing clean"
-        return {"sources": sources, "style": style}
+        return {"sources": sources, "style": style, "map_format": map_format}
     except Exception as e:
         print "EXCEPTION in cleaner.clean:", e
         raise e

@@ -154,6 +154,7 @@ class Order(Base):
     duration = IntegerField(null=True) # how long it took to process the order
     edited = BooleanField(default=False) # tells you whether they opened it for editing... not whether any actual edits were made
     end = DateTimeField(null=True)
+    map_format = CharField(max_length=20, null=True)
     start = DateTimeField(auto_now_add=True, null=True) # it will never be null, but have to do this because migration asks for default otherwise
     style = ForeignKey("MapStyle", null=True)
     token = CharField(max_length=200, null=True, unique=True) # the random string that's used to find the order in the maps
