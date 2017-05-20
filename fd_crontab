@@ -1,1 +1,2 @@
 30 4 * * * bash -c "source /home/usrfd/venv/bin/activate && python /home/usrfd/firstdraft/projfd/manage.py runscript ai.train"
+* * * * * sudo killall --older-than 1m -s SIGKILL phantomjs
