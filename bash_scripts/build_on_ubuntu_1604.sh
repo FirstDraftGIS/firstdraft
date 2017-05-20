@@ -154,4 +154,7 @@ sudo -u usrfd bash -c "echo \"alias c='clear'\" >> /home/usrfd/.bashrc"
 echo "Run Train Every Night at 5am UTC 0000"
 sudo -u usrfd bash -c "(crontab -l ; echo '0 5 * * * /bin/sh /home/usrfd/firstdraft/bash_scripts/train_then_test.sh') | crontab -"
 
+echo "Kill Old PhantomJS Processes Every Minute" 
+sudo -u usrfd bash -c "(crontab -l ; echo '* * * * * sudo killall --older-than 1m -s SIGKILL phantomjs') | crontab -"
+
 echo "FINISHING build.sh"
