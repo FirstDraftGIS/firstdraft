@@ -141,6 +141,7 @@ class FeaturePlace(Base):
     country_rank = IntegerField(null=True)
     correct = NullBooleanField(null=True)
     median_distance = FloatField()
+    sort_order = IntegerField()
     popularity = IntegerField()
     def __str__(self): 
         return str(self.feature.id) + "~" + str(self.place.id)
