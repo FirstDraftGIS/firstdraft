@@ -24,7 +24,7 @@ from timeit import default_timer
 from time import sleep
 
 # takes in a list of locations and resovles them to features in the database
-def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1codes=[]):
+def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1codes=[], debug=True):
   try:
     print "starting resolve_locations with", type(locations)
     print "locations = ", len(locations), locations[:5]
@@ -36,6 +36,8 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
   
     order = Order.objects.get(id=order_id)
 
+    name_country = {}
+    name_country_code = {}
     name_location = {}
     name_topic = {}
     names = []
@@ -46,6 +48,10 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
         if name and not any(char in name for char in [',', ')', '(', '?', "'", '"', "}", "{"]): 
             names.append(name)
             name_location[name] = location
+            if location.get('country', None):
+                name_country[name] = location['country']
+            if location.get('country_code', None):
+                name_country_code[name] = location['country_code']
             if "context" in location:
                 topic_id = get_topic(location['context'])
                 location['topic_id'] = topic_id
@@ -177,10 +183,22 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
 
     # need to choose one for each target based on highest probability
     for target, options in target_geoentities.items():
-        max_probability = max([o.probability for o in options])
+
+        country_code = name_country_code.get(target, None)
+        if country_code:
+            matches_country_code = [o for o in options if o.country_code == country_code]
+            if debug: print "matches_country_code:", matches_country_code
+        else:
+            matches_country_code = []
+
+        if country_code and matches_country_code:
+            max_probability = max([o.probability for o in matches_country_code])
+        else:
+            max_probability = max([o.probability for o in options])
+
         found_correct = False
         for option in options:
-            if not found_correct and option.probability == max_probability:
+            if not found_correct and option.probability == max_probability and (not matches_country_code or option in matches_country_code):
                 option.correct = True
                 found_correct = True
             else:
@@ -206,7 +224,8 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
         if need_to_save:
             feature.save()
         for option in options:
-            featureplaces.append(FeaturePlace(confidence=float(option.probability), correct=option.correct, country_rank=option.country_rank, feature=feature, median_distance=option.median_distance_from_all_other_points, place_id=option.place_id, popularity=option.popularity))
+            featureplaces.append(FeaturePlace(confidence=float(option.probability), correct=option.correct, country_rank=option.country_rank, feature=feature, median_distance=option.median_distance_from_all_other_points, place_id=option.place_id, popularity=option.popularity, sort_order=-1))
+
 
     FeaturePlace.objects.bulk_create(featureplaces)
 
