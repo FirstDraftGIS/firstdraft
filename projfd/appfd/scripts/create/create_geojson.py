@@ -1,5 +1,4 @@
-from appfd.models import Feature as mFeature
-from appfd.models import Order
+from appfd.models import FeaturePlace, Order
 from geojson import Feature as gFeature
 from geojson import dumps, FeatureCollection, MultiPolygon, Point, Polygon, GeometryCollection
 from os import mkdir
@@ -12,12 +11,11 @@ def run(key):
     connection.close()
 
     features = []
-    for feature in mFeature.objects.filter(order__token=key):
-
-        fp = feature.featureplace_set.filter(correct=True).first()
-        if fp:
+    for fp in FeaturePlace.objects.filter(feature__order__token=key, correct=True).order_by("-place__admin_level"):
 
             properties = {}
+
+            feature = fp.feature
 
             if feature.end:
                 properties['end_time'] = feature.end.strftime('%y-%m-%d')
