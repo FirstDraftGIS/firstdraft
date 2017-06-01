@@ -112,7 +112,7 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
             except Exception as e:
                 print "failed to get locations for source because", e
   
-        print "locations:", len(locations) 
+        print "[generate_map_from_sources] locations before resolving:", len(locations) 
         resolve_locations(locations, order_id=order_id, max_seconds=max_seconds, countries=countries)
 
         print "job.keys():", job.keys()
