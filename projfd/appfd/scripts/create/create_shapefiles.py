@@ -7,6 +7,8 @@ from os import listdir, mkdir, remove
 from os.path import basename, isdir
 from zipfile import ZipFile
 
+CRS = 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]'
+
 def area(coords):
     length = len(coords)
     if length >= 1:
@@ -77,8 +79,13 @@ def run(key, debug=False):
     if number_of_points > 0 or number_of_polygons > 0:
         if number_of_points > 0:
             writer_points.save(directory + key + "_points")
+            with open(directory + key + "_points.prj", "wb") as f:
+                f.write(CRS)
+            print "WROTE PRJ"
         if number_of_polygons > 0:
             writer_polygons.save(directory + key + "_polygons")
+            with open(directory + key + "_polygons.prj", "wb") as f:
+                f.write(CRS)
 
         with ZipFile(directory + key + ".zip", 'w') as zipped_shapefile:
             for filename in listdir(directory):
