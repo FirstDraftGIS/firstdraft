@@ -61,7 +61,8 @@ INSTALLED_APPS = [
     'apifd',
     'crispy_forms',
     'silk',
-    'controlcenter'
+    'controlcenter',
+    'timezone_field'
 ]
 
 if DEBUG:

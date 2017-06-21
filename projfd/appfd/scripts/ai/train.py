@@ -24,7 +24,7 @@ def run():
 
         print "starting appbkto.scripts.predict.train"
         connection.close()
-        features = list(Feature.objects.filter(verified=True).values("id","featureplace__id","featureplace__place__admin_level","featureplace__correct","featureplace__place_id","featureplace__cluster_frequency","featureplace__place__country_code","featureplace__country_rank","featureplace__place__mpoly","featureplace__place__pcode","featureplace__popularity","featureplace__place__population","featureplace__median_distance","featureplace__place__topic_id","topic_id","featureplace__place__feature_code", "featureplace__place__feature_class", "featureplace__place__wikipedia__charcount"))
+        features = list(Feature.objects.filter(verified=True).values("id","featureplace__id","featureplace__place__admin_level","featureplace__correct","featureplace__place_id","featureplace__cluster_frequency","featureplace__place__country_code","featureplace__country_rank","featureplace__place__mpoly","featureplace__place__pcode","featureplace__popularity","featureplace__place__population","featureplace__median_distance","featureplace__place__topic_id","topic_id","featureplace__place__feature_code", "featureplace__place__feature_class", "featureplace__place__wikipedia__charcount", "featureplace__place__timezone", "order__end_user_timezone")
         print "features:", type(features), len(features)
 
         rmtree(MODEL_DIR, ignore_errors=True)

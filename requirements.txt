@@ -20,6 +20,7 @@ django-filter
 django-guardian
 django-sendfile
 django-silk
+django-timezone-field
 editdistance
 gensim
 geojson

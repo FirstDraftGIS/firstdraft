@@ -28,7 +28,8 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
         countries = job.get('countries', [])
         admin1limits = job.get('admin1limits', [])
         order_id = job['order_id']
-
+        extra_context = job.get("extra_context", {})
+        end_user_timezone = extra_context.get("end_user_timezone", None)
 
         # make directory to store input sources and final maps
         directory = "/home/usrfd/maps/" + key + "/"
@@ -113,7 +114,7 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                 print "failed to get locations for source because", e
   
         print "[generate_map_from_sources] locations before resolving:", len(locations) 
-        resolve_locations(locations, order_id=order_id, max_seconds=max_seconds, countries=countries)
+        resolve_locations(locations, order_id=order_id, max_seconds=max_seconds, countries=countries, end_user_timezone=end_user_timezone)
 
         print "job.keys():", job.keys()
         if "style" in job:

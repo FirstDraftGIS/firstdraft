@@ -25,10 +25,12 @@ def run(key):
 
             properties['confidence'] = float(fp.confidence)
             place = fp.place
+            properties['admin1_code'] = place.admin1_code
             properties['country_code'] = place.country_code
             properties['name'] = place.name
             properties['geonameid'] = place.geonameid
             properties['pcode'] = place.pcode
+            properties['timezone'] = place.timezone
             point = Point((place.point.x, place.point.y))
             geometries = [point]
             if place.mpoly:

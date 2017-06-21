@@ -1,6 +1,6 @@
 from tensorflow.contrib.layers import bucketized_column, crossed_column, embedding_column, sparse_column_with_keys, sparse_column_with_hash_bucket, real_valued_column
 
-CATEGORICAL_COLUMNS = ["admin_level", "country_code", "edit_distance", "feature_class", "feature_code", "has_mpoly", "has_pcode", "is_country", "is_highest_population", "is_lowest_admin_level", "matches_topic", "is_notable"]
+CATEGORICAL_COLUMNS = ["admin_level", "country_code", "edit_distance", "feature_class", "feature_code", "has_mpoly", "has_pcode", "is_country", "is_highest_population", "is_lowest_admin_level", "matches_end_user_timezone", "matches_topic", "is_notable"]
 CONTINUOUS_COLUMNS = ["cluster_frequency", "country_rank", "median_distance", "notability", "population", "popularity"]
 LABEL_COLUMN = "correct"
 COLUMNS = sorted(CATEGORICAL_COLUMNS + CONTINUOUS_COLUMNS) + [LABEL_COLUMN]
@@ -26,6 +26,8 @@ is_lowest_admin_level = sparse_column_with_keys(column_name="is_lowest_admin_lev
 is_highest_population = sparse_column_with_keys(column_name="is_highest_population", keys=["True", "False"])
 is_notable = sparse_column_with_keys(column_name="is_notable", keys=["True", "False"]) # does it appear in Wikipedia and have coordinates mentioned in article
 matches_topic = sparse_column_with_keys(column_name="matches_topic", keys=["True", "False"])
+matches_end_user_timezone = sparse_column_with_keys(column_name="matches_end_user_timezone", keys=["True", "False", "Unknown"])
+# probably need a cross column here with timezone and user
 median_distance = real_valued_column("median_distance")
 median_distance_buckets = bucketized_column(median_distance, boundaries=[10,50,100,200,300])
 notability = real_valued_column("notability") #char count of Wikipedia article
@@ -87,6 +89,12 @@ def add_features_to_df(df, features):
         else:
             lowest_admin_level = -99
 
+        if feature['end_user_timezone']:
+            matches_end_user_timezone = str(feature['featureplace__place__timezone'] == feature['order__end_user_timezone'])
+        else:
+            matches_end_user_timezone = "Unknown"
+
+
         population = feature['featureplace__place__population']
         is_highest_population = population and population == max([f['featureplace__place__population'] for f in features if f['id'] == fid]) or False
 
@@ -107,6 +115,7 @@ def add_features_to_df(df, features):
         df['is_notable'].append(str(bool(notability)))
         df['edit_distance'].append("0")
         df['median_distance'].append(feature['featureplace__median_distance'] or 9999 )
+        df['matches_end_user_timezone'].append(matches_end_user_timezone)
         df['matches_topic'].append(str(feature['topic_id'] == feature["featureplace__place__topic_id"]) if feature['topic_id'] else "False")
         df['notability'].append(notability or 0)
         df['population'].append(int(population or 0))

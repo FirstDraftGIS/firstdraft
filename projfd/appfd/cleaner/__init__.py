@@ -1,4 +1,4 @@
-from appfd.forms import BasemapForm, FileForm, LinkForm, TextForm, TweetForm
+from appfd.forms import BasemapForm, FileForm, LinkForm, TextForm, TimezoneForm, TweetForm
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 def clean_tweet(POST, debug=True):
@@ -15,7 +15,7 @@ def clean_tweet(POST, debug=True):
     except Exception as e:
         print "CAUGHT EXCEPTION in clean_tweet:", e
 
-def clean(POST, FILES):
+def clean(POST, FILES, debug=False):
     try:
         print "starting clean"
 
@@ -24,7 +24,18 @@ def clean(POST, FILES):
             basemapForm = BasemapForm({"basemap": POST['basemap']})
             if basemapForm.is_valid():
                 style['basemap'] = basemapForm.cleaned_data['basemap']
-        print "style after cleaning:", style
+        if debug: print "style after cleaning:", style
+
+        extra_context = {}
+        if "end_user_timezone" in POST:
+            if debug: print "end_user_timezone before cleaning:", POST['end_user_timezone']
+            timezoneForm = TimezoneForm({"timezone": POST['end_user_timezone']})
+            timezoneForm.full_clean()
+            if debug: print "cleaned_data after clean:", timezoneForm.cleaned_data
+            end_user_timezone = timezoneForm.cleaned_data.get("timezone", None)
+            if end_user_timezone:
+                if debug: print "zone:", end_user_timezone.zone
+                extra_context["end_user_timezone"] = end_user_timezone.zone
 
         map_format = POST['map_format'] if POST.get("map_format", None) in ["geojson", "gif", "jpg", "png", "xy"] else "all"
 
@@ -68,7 +79,7 @@ def clean(POST, FILES):
                                 sources.append({"type": "text", "data": cleaned_data.strip()})
 
         print "finishing clean"
-        return {"sources": sources, "style": style, "map_format": map_format}
+        return {"sources": sources, "style": style, "map_format": map_format, "extra_context": extra_context}
     except Exception as e:
         print "EXCEPTION in cleaner.clean:", e
         raise e

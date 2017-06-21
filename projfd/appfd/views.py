@@ -555,7 +555,7 @@ def request_possible_additions(request):
         #return HttpResponse(json.dumps([vars(place) for place in places]), "application/json")
 
 
-def request_map_from_sources(request):
+def request_map_from_sources(request, debug=True):
 
     try:
         print "starting upload_file"
@@ -565,24 +565,33 @@ def request_map_from_sources(request):
             #print "request.FILES:", request.FILES
             #print "request.POST:", request.POST
             cleaned = cleaner.clean(request.POST, request.FILES)
-            print "cleaned:", cleaned
+            if debug: print "cleaned:", cleaned
             if cleaned:
                 key = get_random_string(25)
-                order_id = Order.objects.create(token=key, map_format=cleaned['map_format']).id
+
+                job = {
+                    'key': key
+                }
+
+                end_user_timezone = None
+                if "extra_context" in cleaned:
+                    job['extra_context'] = {}
+                    if "end_user_timezone" in cleaned['extra_context']:
+                        job['extra_context']['end_user_timezone'] = end_user_timezone = cleaned['extra_context']['end_user_timezone']
+
+                order_id = Order.objects.create(token=key, end_user_timezone=end_user_timezone, map_format=cleaned['map_format']).id
                 from django.db import connection 
                 connection.close()
                 sources = cleaned['sources']
-                job = {
-                    'sources': sources,
-                    'key': key,
-                    'order_id': order_id
-                }
+                job['sources'] = sources
+                job['order_id'] = order_id
                 if "countries" in cleaned:
                     job['countries'] = cleaned['countries']
                 if "style" in cleaned:
                     job['style'] = {}
                     if "basemap" in cleaned['style']:
                         job['style']['basemap'] = cleaned['style']['basemap']
+                if debug: print "job:", job
  
                 data = []
                 metadata = []

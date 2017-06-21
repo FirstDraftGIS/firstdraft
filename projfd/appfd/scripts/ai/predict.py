@@ -123,6 +123,14 @@ def run(geoentities, debug=True):
             df['is_notable'].append(str(bool(geoentity.notability)))
 
 
+            if hasattr(geoentity, "matches_end_user_timezone"):
+                #print "geoentity.matches_end_user_timezone:", geoentity.matches_end_user_timezone
+                df['matches_end_user_timezone'].append(geoentity.matches_end_user_timezone)
+            else:
+                df['matches_end_user_timezone'].append("Unknown")
+
+
+
             if hasattr(geoentity, "median_distance"):
                 df['median_distance'].append(geoentity.median_distance_from_all_other_points)
             else:

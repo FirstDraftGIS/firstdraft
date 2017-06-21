@@ -24,12 +24,13 @@ from timeit import default_timer
 from time import sleep
 
 # takes in a list of locations and resovles them to features in the database
-def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1codes=[], debug=True):
+def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1codes=[], debug=True, end_user_timezone=None):
   try:
     print "starting resolve_locations with", type(locations)
     print "locations = ", len(locations), locations[:5]
     print "countries:", countries
     print "admin1codes:", admin1codes
+    print "end_user_timezone:", end_user_timezone
 
     start = datetime.now()
 
@@ -86,7 +87,6 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
             statement = "SELECT * FROM fdgis_resolve('{" + ", ".join(names) + "}'::TEXT[], false);"
 
 
-
     print "statement:\n", statement
     cursor.execute(statement)
     #print "executed"
@@ -99,6 +99,13 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
             print "exception creating geoentity... skipping"
     
     print "created " + str(len(geoentities)) + " geoentities"
+
+    if end_user_timezone:
+        for g in geoentities:
+            g.matches_end_user_timezone = str(g.timezone == end_user_timezone)
+    else:
+        for g in geoentities:
+            g.matches_end_user_timezone = g.timezone == "Unknown"
 
     if admin1codes:
         print "admin1codes:", admin1codes
