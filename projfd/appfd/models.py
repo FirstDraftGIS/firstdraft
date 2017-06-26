@@ -193,8 +193,8 @@ class Place(Base):
     area_sqkm = IntegerField(null=True, blank=True)
     country_code = CharField(max_length=10, null=True, blank=True, db_index=True)
     district_num = IntegerField(null=True, blank=True)
-    feature_class = CharField(max_length=5, null=True, blank=True)
-    feature_code = CharField(max_length=5, null=True, blank=True)
+    feature_class = CharField(max_length=50, null=True, blank=True)
+    feature_code = CharField(max_length=50, null=True, blank=True)
     fips = IntegerField(null=True, blank=True, db_index=True)
     geonameid = IntegerField(null=True, blank=True, db_index=True)
     mls = MultiLineStringField(null=True, blank=True)
@@ -284,7 +284,8 @@ class Translator(Base):
 
 class Wikipedia(Base):
     place = OneToOneField("Place")
-    charcount = IntegerField()
+    charcount = IntegerField(null=True)
+    importance = FloatField(null=True)
 
 #class UserOrder(Model):
 #    user = ForeignKey(User)
