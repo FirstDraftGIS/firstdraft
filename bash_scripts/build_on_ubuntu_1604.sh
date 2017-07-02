@@ -126,6 +126,7 @@ sudo -u postgres psql -c 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public
 echo "CREATING INDEXES AND SQL FUNCTIONS"
 sudo -u postgres psql -f /home/usrfd/firstdraft/sql_scripts/calc_popularity.sql dbfd
 sudo -u postgres psql -f /home/usrfd/firstdraft/sql_scripts/resolve.sql dbfd
+sudo -u postgres psql -f /home/usrfd/firstdraft/sql_scripts/load_osmnames.sql dbfd
 
 echo "CREATING MAPS FOLDER"
 sudo -u usrfd bash -c "mkdir /home/usrfd/maps"
