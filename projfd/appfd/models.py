@@ -8,6 +8,11 @@ from pytz import utc
 from shutil import rmtree
 
 
+try:
+    default_basemap_id = Basemap.objects.get(name="OpenStreetMap.Mapnik").id
+except:
+    default_basemap_id = -1
+
 class Base(Model):
     created = DateTimeField(auto_now_add=True, null=True)
     modified = DateTimeField(auto_now=True, null=True)
@@ -148,7 +153,7 @@ class FeaturePlace(Base):
 
 # styles and info that apply to a map as a whole
 class MapStyle(Base):
-    basemap = ForeignKey("Basemap", default=Basemap.objects.get(name="OpenStreetMap.Mapnik").id)
+    basemap = ForeignKey("Basemap", default=default_basemap_id)
 
 class Order(Base):
     complete = BooleanField(default=False)
