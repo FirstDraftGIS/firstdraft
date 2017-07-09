@@ -31,13 +31,8 @@ COLUMNS = sorted(CATEGORICAL_COLUMNS + CONTINUOUS_COLUMNS) + [LABEL_COLUMN]
 #cluster_frequency = real_valued_column("cluster_frequency")
 #cluster_frequency_buckets = bucketized_column(cluster_frequency, boundaries=[0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1])
 
-#country_codes = list(Place.objects.values_list("country_code", flat=True).distinct())
 cursor.execute(loose_index_scan.format("country_code"))
 country_codes = sorted(list(set([_tup[0].upper() for _tup in cursor.fetchall() if _tup[0]])))
-print "country_codes:", country_codes
-#country_codes = [_tup[0].lower() for _tup in cursor.fetchall() if _tup[0]]
-#country_codes = [_tup[0] for _tup in cursor.fetchall() if _tup[0]]
-#country_codes += [cc.upper() for cc in country_codes]
 country_code = sparse_column_with_keys("country_code", keys=country_codes)
 
 country_rank = real_valued_column("country_rank")
