@@ -20,7 +20,7 @@ stepper.CONTINUOUS_COLUMNS = CONTINUOUS_COLUMNS
 stepper.LABEL_COLUMN = LABEL_COLUMN
 stepper.COLUMNS = COLUMNS
 
-def run(fake_importance_data=False):
+def run(fake_importance_data=True):
     try:
 
         start = datetime.now()
@@ -38,14 +38,20 @@ def run(fake_importance_data=False):
             fps = FeaturePlace.objects.exclude(country_rank=None).values_list("country_rank", flat=True)
             avg_country_rank_correct = median(list(fps.filter(correct=True)))
             avg_country_rank_incorrect = median(list(fps.filter(correct=False)))
+            print "avg_country_rank_correct:", avg_country_rank_correct
+            print "avg_country_rank_incorrect:", avg_country_rank_incorrect
 
             fps = FeaturePlace.objects.values_list("popularity", flat=True)
             avg_popularity_correct = median(list(fps.filter(correct=True)))
             avg_popularity_incorrect = median(list(fps.filter(correct=False)))
+            print "avg_popularity_correct:", avg_popularity_correct
+            print "avg_popularity_incorrect:", avg_popularity_incorrect
 
             median_distances = FeaturePlace.objects.values_list("median_distance", flat=True)
             avg_median_distance_correct = median(list(median_distances.filter(correct=True)))
             avg_median_distance_incorrect = median(list(median_distances.filter(correct=False)))
+            print "avg_median_distance_correct:", avg_median_distance_correct
+            print "avg_median_distance_incorrect:", avg_median_distance_incorrect
 
             for w in Wikipedia.objects.exclude(importance=None).exclude(place__admin_level=None).order_by("-importance")[:10].values("place_id", "place__name"):
                 correct_place_id = w["place_id"]
@@ -66,7 +72,7 @@ def run(fake_importance_data=False):
                         "featureplace__place__pcode": d['pcode'],
                         "featureplace__popularity": avg_popularity_correct if correct else avg_popularity_incorrect,
                         "featureplace__place__population": d['population'],
-                        "featureplace__median_distance": avg_median_distance_correct if correct else avg_median_distance_incorrect,
+                        "featureplace__median_distance": 50 if correct else 75,
                         "featureplace__place__topic_id": d['topic_id'],
                         "topic_id": None,
                         "featureplace__place__feature_code": str(d['feature_code']).upper(),
@@ -151,17 +157,24 @@ def run(fake_importance_data=False):
         for variable_name in variable_names:
             #if "weights" in variable_name:
             print "variable_name:", variable_name
-            if variable_name.endswith("/weights") and any(n in variable_name for n in print_these_variables) and "embedding" not in variable_name and "BUCKETIZED" not in variable_name and "_X_" not in variable_name:
-                print "variable_name:", variable_name
-                weights = classifier.get_variable_value(variable_name)
+            #if variable_name.endswith("/weights") and any(n in variable_name for n in print_these_variables) and "embedding" not in variable_name and "BUCKETIZED" not in variable_name and "_X_" not in variable_name:
+            if variable_name.endswith("weight") or variable_name.endswith("weights"):
+                print "\t- passes test"
                 column_name = variable_name.split("/")[-2]
-                weights_to_pickle[column_name] = {}
-                print "\n\n", column_name, ":"
-                keys = globals()[column_name].lookup_config.keys
-                for index, key in enumerate(keys):
-                    #matched[key] = weights[index]
-                    print key, ":", weights[index]
-                    weights_to_pickle[column_name][key] = float(weights[index][0])
+                if column_name in globals():
+                    weights = classifier.get_variable_value(variable_name)
+                    weights_to_pickle[column_name] = {}
+                    print "\n\n", column_name, ":"
+                    column = globals()[column_name]
+                    if hasattr(column, "lookup_config"):
+                        keys = column.lookup_config.keys
+                        for index, key in enumerate(keys):
+                            #matched[key] = weights[index]
+                            print key, ":", weights[index]
+                            weights_to_pickle[column_name][key] = float(weights[index][0])
+                    else:
+                        print "\t weights:", weights
+                        weights_to_pickle[column_name] = float(weights[0])
 
         print "weights to pickle:", weights_to_pickle
         path_to_pickled_weights = join(PATH_TO_DIRECTORY_OF_THIS_FILE, "weights.pickle")
