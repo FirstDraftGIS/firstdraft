@@ -1,7 +1,8 @@
+from appfd.models import Place
 from datetime import datetime
 from django.db import connection
 
-def conflate(name, latitude, longitude, population=None, aliases=None, debug_level=False, cursor=None):
+def conflate(name, latitude, longitude, population=None, aliases=None, debug_level=False, cursor=None, return_id_only=True):
 
     try:
 
@@ -23,18 +24,21 @@ def conflate(name, latitude, longitude, population=None, aliases=None, debug_lev
         if latitude and longitude:
             country_code = "NULL"
             population = str(population) if population else "NULL"
-        
-            statement = "SELECT conflate('" + name + "'," + str(latitude) + "," + str(longitude) + "," + country_code + "," + population + ")"
-            if debug_level: print "statement:", statement
-            if cursor:
+       
+            statement = "SELECT id FROM conflate_and_return_place('" + name + "'," + str(latitude) + "," + str(longitude) + "," + country_code + "," + population + ")"
+            print "statement:", statement
+            if cursor: 
                 cursor.execute(statement)
-            else:
-                with connection.cursor() as cursor:
-                    cursor.execute(statement)
+                place_id = cursor.fetchall()[0][0]
+            #else:
+            #    place = list(Place.objects.raw(statement))[0]
             
         if debug_level:
             print "conflation took " + str((datetime.now() - start).total_seconds()) + " seconds"
+            print "place:", place
             raw_input("press any key to continue")
+
+        return place_id
 
     except Exception as e:
         print e
