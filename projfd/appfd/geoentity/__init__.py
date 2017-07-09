@@ -6,11 +6,11 @@ class GeoEntity(object):
 
     def __init__(self, row):
         try:
-            print "row:", row
-            print "len(row):", len(row)
+            #print "row:", row
+            #print "len(row):", len(row)
             self.place_id = row[0]
             self.admin_level = str(row[1])
-            self.country_code = row[2]
+            self.country_code = str(row[2]).upper()
             self.admin1code = row[3] or None
             self.country_rank = row[4] or 999
             self.target, self.edit_distance = row[5].split("--")
@@ -22,16 +22,17 @@ class GeoEntity(object):
             topic_id = row[10]
             self.topic_id = int(topic_id) if topic_id else None
             self.has_mpoly = row[11] in trues
-            print "row[11]:", row[11] in trues
+            #print "row[11]:", row[11] in trues
             self.has_pcode = row[12] in trues
 
             # popularity will be None if not used yet
             self.popularity = 0 if row[13] is None else int(row[13])
 
-            self.feature_class = row[14]
-            self.feature_code = row[15]
+            self.feature_class = str(row[14]).upper()
+            self.feature_code = str(row[15]).upper()
             self.notability = int(row[16] or 0)
             self.timezone = row[17]
+            self.importance = float(row[18] or 0)
         except Exception as e:
             print "EXCEPTION in GeoEntity.__init__:", e
             raise e
