@@ -7,6 +7,8 @@ def step(d):
 
     try:
 
+        print "starting step"
+
         """
         frame = inspect.currentframe()
         args, _, _, values = inspect.getargvalues(frame)
@@ -21,7 +23,7 @@ def step(d):
             if column_name not in d:
                 raise Exception(column_name + " not in d")
 
-        num_rows = len(d['admin_level'])
+        num_rows = len(d['importance'])
         feature_cols = {}
         for k in CONTINUOUS_COLUMNS:
             print "k:", k
@@ -34,7 +36,7 @@ def step(d):
             feature_cols[k] = SparseTensor(
                 indices=[[i, 0] for i in range(num_rows)],
                 values=d[k],
-                shape=[num_rows, 1])
+                dense_shape=[num_rows, 1])
         print "CATEGORICAL COLUMNS:"
         label = constant(d[LABEL_COLUMN])
         print "label:", label
