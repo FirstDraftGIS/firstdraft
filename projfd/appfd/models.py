@@ -8,11 +8,6 @@ from pytz import utc
 from shutil import rmtree
 
 
-try:
-    default_basemap_id = Basemap.objects.get(name="OpenStreetMap.Mapnik").id
-except:
-    default_basemap_id = -1
-
 class Base(Model):
     created = DateTimeField(auto_now_add=True, null=True)
     modified = DateTimeField(auto_now=True, null=True)
@@ -152,6 +147,10 @@ class FeaturePlace(Base):
         return str(self.feature.id) + "~" + str(self.place.id)
 
 # styles and info that apply to a map as a whole
+try:
+    default_basemap_id = Basemap.objects.get(name="OpenStreetMap.Mapnik").id
+except:
+    default_basemap_id = -1
 class MapStyle(Base):
     basemap = ForeignKey("Basemap", default=default_basemap_id)
 
@@ -198,8 +197,8 @@ class Place(Base):
     area_sqkm = IntegerField(null=True, blank=True)
     country_code = CharField(max_length=10, null=True, blank=True, db_index=True)
     district_num = IntegerField(null=True, blank=True)
-    feature_class = CharField(max_length=50, null=True, blank=True)
-    feature_code = CharField(max_length=50, null=True, blank=True)
+    feature_class = CharField(max_length=50, null=True, blank=True, db_index=True)
+    feature_code = CharField(max_length=50, null=True, blank=True, db_index=True)
     fips = IntegerField(null=True, blank=True, db_index=True)
     geonameid = IntegerField(null=True, blank=True, db_index=True)
     mls = MultiLineStringField(null=True, blank=True)
@@ -277,6 +276,7 @@ class TeamMember(Base):
 
 class Test(Base):
     accuracy = FloatField()
+    duration = IntegerField()
 
     def __str__(self):
         return str(self.created) + " with accuracy of " + str(self.accuracy)
@@ -290,7 +290,7 @@ class Translator(Base):
 class Wikipedia(Base):
     place = OneToOneField("Place")
     charcount = IntegerField(null=True)
-    importance = FloatField(null=True)
+    importance = FloatField(db_index=True, null=True)
 
 #class UserOrder(Model):
 #    user = ForeignKey(User)
