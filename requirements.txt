@@ -5,6 +5,7 @@ bscrp
 beautifulsoup4
 beryl
 boto
+broth
 Cython
 date-extractor
 Django==1.9.9
