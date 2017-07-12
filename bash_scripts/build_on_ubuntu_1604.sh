@@ -15,8 +15,10 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confn
 echo "INSTALLING PHANTOMJS"
 cd ~
 export PHANTOM_JS="phantomjs-2.1.1-linux-x86_64"
+if [ -f ~/$PHANTOM_JS.tar.bz2 ]; then rm ~/$PHANTOM_JS.tar.bz2; fi
 wget https://bitbucket.org/ariya/phantomjs/downloads/$PHANTOM_JS.tar.bz2
 sudo tar xvjf $PHANTOM_JS.tar.bz2
+if [ -d /usr/local/share/$PHANTOM_JS ]; then sudo rm -r /usr/local/share/$PHANTOM_JS; fi
 sudo mv $PHANTOM_JS /usr/local/share
 sudo ln -sf /usr/local/share/$PHANTOM_JS/bin/phantomjs /usr/local/bin
 
