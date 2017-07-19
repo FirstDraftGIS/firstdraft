@@ -1,9 +1,11 @@
 from appfd.models import Place
 from django.db import connection
 from django.db.migrations.loader import MigrationLoader
+from os.path import dirname, join, realpath
 from tensorflow.contrib.layers import bucketized_column, crossed_column, embedding_column, sparse_column_with_keys, sparse_column_with_hash_bucket, real_valued_column
 
-
+PATH_TO_DIRECTORY_OF_THIS_FILE = dirname(realpath(__file__))
+MODELS_DIR = PATH_TO_DIRECTORY_OF_THIS_FILE + "/classifiers/"
 
 if len(MigrationLoader(connection, ignore_no_migrations=True).applied_migrations) > 0:
 
@@ -22,7 +24,7 @@ SELECT NULL WHERE EXISTS(SELECT 1 FROM appfd_place WHERE {0} IS NULL);
 """
 
 
-    CATEGORICAL_COLUMNS = ["country_code", "edit_distance", "favor_local", "feature_class", "feature_code", "has_mpoly", "has_pcode", "is_highest_population", "is_lowest_admin_level", "matches_end_user_timezone", "matches_topic", "is_important", "is_notable"]
+    CATEGORICAL_COLUMNS = ["country_code", "edit_distance", "favor_local", "feature_class", "feature_code", "has_mpoly", "has_pcode", "is_highest_population", "is_lowest_admin_level", "matches_end_user_timezone", "matches_topic", "is_important", "is_notable", "matches_end_user_timezone_X_is_most_important_in_timezone", "is_most_important_in_timezone"]
     CONTINUOUS_COLUMNS = ["country_rank", "median_distance", "notability", "popularity", "importance"]
     LABEL_COLUMN = "correct"
     COLUMNS = sorted(CATEGORICAL_COLUMNS + CONTINUOUS_COLUMNS) + [LABEL_COLUMN]
@@ -63,6 +65,7 @@ SELECT NULL WHERE EXISTS(SELECT 1 FROM appfd_place WHERE {0} IS NULL);
     is_highest_population = sparse_column_with_keys(column_name="is_highest_population", keys=["True", "False"])
     is_notable = sparse_column_with_keys(column_name="is_notable", keys=["True", "False"]) # does it appear in Wikipedia and have coordinates mentioned in article
     is_important = sparse_column_with_keys(column_name="is_important", keys=["True", "False"]) # defined as OSM names importance of greater than 0.5
+    is_most_important_in_timezone = sparse_column_with_keys(column_name="is_most_important_in_timezone", keys=["True", "False"])
     matches_topic = sparse_column_with_keys(column_name="matches_topic", keys=["True", "False"])
 
     #cursor.execute(loose_index_scan.format("timezone"))
@@ -81,12 +84,13 @@ SELECT NULL WHERE EXISTS(SELECT 1 FROM appfd_place WHERE {0} IS NULL);
     #admin_level_X_country_code = crossed_column([admin_level, country_code], hash_bucket_size=int(1e4))
 
 
-    wide_columns = [country_code, country_rank, edit_distance, feature_code, feature_class, importance, is_highest_population, is_important, is_lowest_admin_level, has_mpoly, has_pcode, matches_end_user_timezone, matches_topic, median_distance, popularity]
+    wide_columns = [country_code, country_rank, edit_distance, feature_code, feature_class, importance, is_highest_population, is_important, is_lowest_admin_level, has_mpoly, has_pcode, is_most_important_in_timezone, matches_end_user_timezone, matches_topic, median_distance, popularity]
 
     crossed_columns = []
     # cross columns
     #pairs = [("favor_local", col.name) for col in wide_columns]
-    pairs = [("favor_local", "matches_end_user_timezone")]
+    #pairs = [("favor_local", "matches_end_user_timezone")]
+    pairs = [("matches_end_user_timezone", "is_most_important_in_timezone")]
     print "pairs:", pairs
     for name1, name2 in pairs:
         col1 = locals()[name1]
@@ -94,10 +98,12 @@ SELECT NULL WHERE EXISTS(SELECT 1 FROM appfd_place WHERE {0} IS NULL);
         col2 = locals()[name2]
         print "col2:", type(col2)
         if hasattr(col1, "lookup_config") and hasattr(col2, "lookup_config"):
-            hash_bucket_size = (len(col1.lookup_config.keys) + 1) * (len(col2.lookup_config.keys) + 1)
-            print "hash_bucket_size:", hash_bucket_size
-            new_column = crossed_column([col1, col2], hash_bucket_size=hash_bucket_size)
-            #new_column = crossed_column([col1, col2], hash_bucket_size=1e4)
+            column_name = col1.name + "_X_" + col2.name
+            keys = []
+            for key1 in col1.lookup_config.keys:
+                for key2 in col2.lookup_config.keys:
+                    keys.append(key1 + "_X_" + key2)
+            new_column = sparse_column_with_keys(column_name=column_name, keys=keys)
             print "new_column:", new_column
             crossed_columns.append(new_column)
 
@@ -126,6 +132,11 @@ deep_columns = [
     """
     deep_columns = []
 
+
+    include_these_columns_in_local = ['edit_distance', 'feature_class', 'matches_end_user_timezone_X_is_most_important_in_timezone', 'is_most_important_in_timezone']
+    exclude_these_columns_in_global = ['matches_end_user_timezone', 'is_most_important_in_timezone', 'matches_end_user_timezone_X_is_most_important_in_timezone']
+
+
 def get_df_from_features(features):
 
     try:
@@ -150,33 +161,73 @@ def add_features_to_df(df, features):
 
   try:
 
+
+    # clean / preprocess
+    for feature in features:
+        for old_key in feature.keys():
+            if old_key.startswith('featureplace__place__'):
+                new_key = old_key.replace('featureplace__place__','')
+                if len(new_key) > 5: #skip id
+                    feature[new_key] = feature[old_key]
+
     # data frame for training
+
+
+    if len(features) > 0:
+        print "end_user_tz:", features[0]['order__end_user_timezone']
+
     for index, feature in enumerate(features):
 
         fid = feature['id']
-        fpid = feature['featureplace__id']
 
-        feature_admin_levels = set([f['featureplace__place__admin_level'] for f in features if f['featureplace__place__admin_level'] and f['id'] == fid])
+        end_user_tz = feature['order__end_user_timezone']
+        tz = feature['timezone']
+
+        # don't really use feature place id
+        #fpid = feature['featureplace__id']
+
+        alternatives = [f for f in features if f['id'] == fid and not feature]
+        number_of_alternatives = len(alternatives)
+        #print "number_of_alternatives:", number_of_alternatives
+
+        feature_admin_levels = set([f['admin_level'] for f in features if f['admin_level'] and f['id'] == fid])
         if feature_admin_levels:
             lowest_admin_level = min(feature_admin_levels)
         else:
             lowest_admin_level = -99
 
-        if feature['order__end_user_timezone']:
+        if end_user_tz:
             favor_local = True
-            matches_end_user_timezone = str(feature['featureplace__place__timezone'] == feature['order__end_user_timezone'])
+            matches_end_user_timezone = str(tz == end_user_tz)
         else:
             favor_local = False
             matches_end_user_timezone = "Unknown"
 
 
         population = feature['featureplace__place__population']
-        is_highest_population = population and population == max([f['featureplace__place__population'] for f in features if f['id'] == fid]) or False
+        is_highest_population = population and population == max([f['population'] for f in features if f['id'] == fid]) or False
 
         place_id = feature['featureplace__place_id']
-        admin_level = feature['featureplace__place__admin_level']
-        importance = feature["featureplace__place__wikipedia__importance"] or 0
-        is_important = str(importance > 0.5)
+        admin_level = feature['admin_level']
+        importance = feature["wikipedia__importance"] or 0
+        #print "importance:", importance
+        is_important = str(importance > 0.75)
+
+        alternatives_in_same_timezone = [alt for alt in alternatives if alt['timezone'] and alt['timezone'] == end_user_tz]
+        #print "len(alternatives_in_same_timezone):", len(alternatives_in_same_timezone) 
+        alternative_importances = [alt['wikipedia_importance'] for alt in alternatives_in_same_timezone]
+        if len(alternative_importances) > 0:
+            print "alternative_importances:", alternative_importances
+            max_alternative_importance = max(alternative_importances) or 0
+            print "max_alternative_importance:", max_alternative_importance
+            is_most_important_in_timezone = importance >= max_alternative_importance
+        else:
+            is_most_important_in_timezone = True
+
+        is_most_important_in_timezone = str(is_most_important_in_timezone)
+        #print "is_most_important_in_timezone:", is_most_important_in_timezone
+        df['is_most_important_in_timezone'].append(is_most_important_in_timezone)
+
         notability = feature["featureplace__place__wikipedia__charcount"] or 0
         #df['admin_level'].append(str(admin_level or "None"))
         #df['cluster_frequency'].append(feature['featureplace__cluster_frequency'] or 0)
@@ -192,13 +243,26 @@ def add_features_to_df(df, features):
         df['is_notable'].append(str(bool(notability)))
         df['edit_distance'].append("0")
         df['median_distance'].append(feature['featureplace__median_distance'] or 9999 )
+        df['favor_local'].append(str(favor_local))
         df['matches_end_user_timezone'].append(matches_end_user_timezone)
         df['matches_topic'].append(str(feature['topic_id'] == feature["featureplace__place__topic_id"]) if feature['topic_id'] else "False")
         df['notability'].append(notability or 0)
         df['importance'].append(importance or 0)
+        df['is_important'].append(is_important)
         #df['population'].append(int(population or 0))
         df['popularity'].append(int(feature['featureplace__popularity'] or 0))
         df['correct'].append(1 if feature['featureplace__correct'] else 0)
+
+        # add crossed column values
+        # there should be a more efficient way of doing this 
+        for name_of_column in df.keys():
+            try:
+                if "_X_" in name_of_column:
+                    name_of_first_column, name_of_second_column = name_of_column.split("_X_")
+                    crossed_value = df[name_of_first_column][-1] + "_X_" + df[name_of_second_column][-1]
+                    df[name_of_column].append(crossed_value)
+            except Exception as e:
+                print "CAUGHT EXCEPTION creating cross column for ", name_of_column, ":", e
 
   except Exception as e:
     print "CAUGHT EXCEPTION IN add_features_to_df:", e

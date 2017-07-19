@@ -186,7 +186,8 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
             option.matches_topic = option.topic_id == topic_id
 
     print "add probability to each geoentity"
-    predict.run(geoentities)
+    mode = "local" if order.end_user_timezone else "global"
+    predict.run(geoentities, mode=mode)
 
     # need to choose one for each target based on highest probability
     for target, options in target_geoentities.items():

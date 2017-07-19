@@ -13,6 +13,8 @@ def run(debug=True):
 
     try:
 
+        start = datetime.now()
+
         if debug: print "starting test"
 
 
@@ -50,16 +52,21 @@ def run(debug=True):
                             print "y:", [y]
                  
                 if debug: print "correct:", correct 
+                if len(geojson['features']) == 0:
+                    raise Exception("no features!")
                 for feature in geojson['features']:
                     name = feature['properties']['name']
+                    try: print "name:", [name]
+                    except: pass
                     x, y = feature['geometry']['geometries'][0]['coordinates']
                     if debug: print "x:", x
                     if debug: print "y:", y
                     correct_props = correct.get(name, None)
+                    print "\tcorrect_props:", correct_props
                     if correct_props:
                         correct_x = correct_props['x']
                         correct_y = correct_props['y']
-                        if debug: print "correct_props:", correct_props
+                        if debug: print "\tcorrect_props:", correct_props
                         if correct_x and correct_y and correct_x != "NONE" and correct_y != "NONE":
                             if correct_x == x and correct_y == y:
                                 number_of_correct_features += 1
@@ -71,7 +78,10 @@ def run(debug=True):
         accuracy = float(number_of_correct_features) / (number_of_correct_features + number_of_incorrect_features)
         if debug: print "accuracy:", accuracy
 
-        Test.objects.create(accuracy=accuracy)
+        total_seconds = (datetime.now() - start).total_seconds()
+        if debug: print "total_seconds:", total_seconds
+
+        Test.objects.create(accuracy=accuracy, duration=total_seconds)
 
         if debug: print "finishing test"
 

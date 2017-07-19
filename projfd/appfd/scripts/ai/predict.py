@@ -23,7 +23,6 @@ from tempfile import mkdtemp
 
 PATH_TO_DIRECTORY_OF_THIS_FILE = dirname(realpath(__file__))
 PATH_TO_DIRECTORY_OF_INPUT_DATA = PATH_TO_DIRECTORY_OF_THIS_FILE + "/data/input"
-MODEL_DIR = PATH_TO_DIRECTORY_OF_THIS_FILE + "/classifier"
 
 # pass column names into stepper
 stepper.CATEGORICAL_COLUMNS = CATEGORICAL_COLUMNS
@@ -69,7 +68,7 @@ def get_df_from_csv(path_to_csv):
             d[column_name] = values
     return d
 
-def run(geoentities, debug=True):
+def run(geoentities, mode, debug=True):
 
     try:
 
@@ -78,9 +77,18 @@ def run(geoentities, debug=True):
 
         start = datetime.now()        
 
+        if mode == "local":
+            linear_feature_columns = [ column for column in wide_columns if column.name in include_these_columns_in_local ]
+            path_to_model = MODELS_DIR + "local"
+        elif mode == "global":
+            linear_feature_columns = [ column for column in wide_columns if column.name not in exclude_these_columns_in_global ]
+
+        path_to_model = MODELS_DIR + mode
+
         classifier = DNNLinearCombinedClassifier(
-            model_dir=MODEL_DIR,
-            linear_feature_columns=wide_columns,
+            fix_global_step_increment_bug=True,
+            model_dir=path_to_model,
+            linear_feature_columns=linear_feature_columns,
             dnn_feature_columns=deep_columns,
             dnn_hidden_units=[100,50]
         )
@@ -91,13 +99,26 @@ def run(geoentities, debug=True):
         df = get_fake_df()
         print "about to populate data frame for prediction"
         start_df = datetime.now()
+
+
+        max_importances_in_timezone = {}
+        for geoentity in geoentities:
+            timezone = geoentity.timezone
+            if timezone in max_importances_in_timezone:
+                if geoentity.importance > max_importances_in_timezone[timezone]:
+                    max_importances_in_timezone[timezone] = geoentity.importance
+            else:
+                max_importances_in_timezone[timezone] = geoentity.importance
+
+        print "max_importances_in_timezone:", max_importances_in_timezone
         
         for index, geoentity in enumerate(geoentities):
             place_id = geoentity.place_id
             name = geoentity.target
+            timezone = geoentity.timezone
 
 	    feature_admin_levels = set([g.admin_level for g in geoentities if g.admin_level and g.target == name])
-            print "feature_admin_levels:", feature_admin_levels
+            #print "feature_admin_levels:", feature_admin_levels
             if feature_admin_levels:
                 lowest_admin_level = min(feature_admin_levels)
             else:
@@ -122,8 +143,12 @@ def run(geoentities, debug=True):
 
             df['country_code'].append(geoentity.country_code or "UNKNOWN")
             df['country_rank'].append(geoentity.country_rank or 999)
-            df['edit_distance'].append(str(geoentity.edit_distance))
-            df['feature_class'].append(str(geoentity.feature_class or "None"))
+
+            if 'edit_distance' in df:
+                df['edit_distance'].append(str(geoentity.edit_distance))
+
+            if 'feature_class' in df:
+                df['feature_class'].append(str(geoentity.feature_class or "None"))
             df['feature_code'].append(str(geoentity.feature_code or "None"))
             df['has_mpoly'].append(str(geoentity.has_mpoly or False))
             df['has_pcode'].append(str(geoentity.has_pcode or False))
@@ -133,11 +158,17 @@ def run(geoentities, debug=True):
             df['is_notable'].append(str(bool(geoentity.notability)))
 
 
+            matches_end_user_timezone = str(geoentity.matches_end_user_timezone) if hasattr(geoentity, "matches_end_user_timezone") else "Unknown"
+            df['matches_end_user_timezone'].append(matches_end_user_timezone)
+            is_most_important_in_timezone = str(geoentity.importance == max_importances_in_timezone)
+            df['is_most_important_in_timezone'].append(is_most_important_in_timezone)
+            df['matches_end_user_timezone_X_is_most_important_in_timezone'].append(matches_end_user_timezone + "_X_" + is_most_important_in_timezone)
+
+
             if hasattr(geoentity, "matches_end_user_timezone"):
-                #print "geoentity.matches_end_user_timezone:", geoentity.matches_end_user_timezone
-                df['matches_end_user_timezone'].append(geoentity.matches_end_user_timezone)
+                df['favor_local'].append("True")
             else:
-                df['matches_end_user_timezone'].append("Unknown")
+                df['favor_local'].append("False")
 
 
 
@@ -152,9 +183,12 @@ def run(geoentities, debug=True):
                 df['notability'].append(0)
 
             if hasattr(geoentity, "importance"):
-                df['importance'].append(geoentity.importance or 0)
+                importance = geoentity.importance or 0 
+                df['importance'].append(importance)
             else:
-                df['importance'].append(0)
+                importance = 0
+                df['importance'].append(importance)
+            df['is_important'].append(str(importance > 0.5))
 
 
             if hasattr(geoentity, "matches_topic"):
@@ -177,6 +211,9 @@ def run(geoentities, debug=True):
             geoentities[index].probability = row[1]
 
         if debug:
+
+            max_probability = max([g.probability for g in geoentities])
+
             path_to_pickled_weights = join(PATH_TO_DIRECTORY_OF_THIS_FILE, "weights.pickle")
             print "path_to_pickled_weights:", path_to_pickled_weights
             with open(path_to_pickled_weights) as f:
@@ -188,26 +225,50 @@ def run(geoentities, debug=True):
 
             #top3 = [i for p, i in sorted([(g.probability, index) for index, g in enumerate(geoentities)], reverse=True)[:3]]
             #print "top3:", top3
+            debug_explanations = False
 
             for index, geoentity in enumerate(geoentities):
-                #print "index:", index
+                correct = geoentity.probability == max_probability
+                if debug_explanations: print "\n\n" + "=" * 50
+                if debug_explanations: print "index:", index
                 explanation_rows = [["column_name", "value", "weight"]]
                 total_weight = 0
                 for column_name, weights_for_column in weights_for_all_columns.items():
-                    #print "column_name:", column_name
-                    value = df[column_name][index]
-                    weight = weights_for_column[value]
-                    total_weight += weight
-                    explanation_rows.append([column_name.decode("utf-8"), str(value), str(weight)])
+                    if debug_explanations: print "\ncolumn_name:", column_name
+                    #print "weights_for_column:", weights_for_column
+                    if isinstance(weights_for_column, dict):
+                        value = df[column_name][index]
+                        if debug_explanations: print "value:", value
+                        if debug_explanations: print "type(value):", type(value)
+                        if value in weights_for_column:
+                            weight = weights_for_column[value]
+                        else:
+                            if debug_explanations: print value, "not in weights, so weight is 0"
+                            weight = 0
+                        if debug_explanations: print "weight:", weight
+                        total_weight += weight
+                        explanation_rows.append([column_name.encode("utf-8"), str(value), str(weight)])
                 explanation_rows.append(["total","",str(total_weight)])
+                if debug_explanations: print "finished adding to explanation_rows"
                 #print "explanation:"
                 #print explanation
                 #if index in top3:
                 if True:
-                    with open(join(path_to_explanation_folder, geoentity.place_name.encode("utf-8") + "_" + str(geoentity.place_id)), "wb") as f:
-                        writer = csv.writer(f)
-                        for row in explanation_rows:
+                    filename = geoentity.place_name + "_" + str(geoentity.place_id) + "_" + str(geoentity.point.y) + "N" + "_" + str(geoentity.admin1code)
+                    if correct: filename += "_CORRECT"
+                    path_to_file = path_to_explanation_folder + "/" + filename
+                    try:
+                        f = open(path_to_file, "wb")
+                    except:
+                        f = open(path_to_explanation_folder + "/" + str(geoentity.place_id) + "_" + str(geoentity.admin1code) + ("_CORRECT" if correct else ""), "wb")
+                    if debug_explanations: print "opened file"
+                    writer = csv.writer(f)
+                    for row in explanation_rows:
+                        try:
                             writer.writerow(row)
+                        except Exception as e:
+                            print "failed to write:", row
+                    f.close()
                 geoentity.explanation = explanation_rows
 
         print "predict.run took", (datetime.now() - start).total_seconds(), "seconds"

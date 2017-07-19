@@ -214,7 +214,7 @@ class Place(Base):
 
     pcode = CharField(max_length=200, null=True, blank=True, db_index=True)
     skeleton = MultiLineStringField(null=True, blank=True)
-    timezone = CharField(max_length=200, null=True, blank=True)
+    timezone = CharField(max_length=200, null=True, blank=True, db_index=True)
     topic = ForeignKey("Topic", null=True) # represents the most common topic associated with this place
 
     def __str__(self):

@@ -32,7 +32,8 @@ class GeoEntity(object):
             self.feature_code = str(row[15]).upper()
             self.notability = int(row[16] or 0)
             self.timezone = row[17]
-            self.importance = float(row[18] or 0)
+            self.importance = importance = float(row[18] or 0)
+            self.is_important = importance > 0.5
         except Exception as e:
             print "EXCEPTION in GeoEntity.__init__:", e
             raise e
