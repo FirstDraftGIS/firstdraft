@@ -24,11 +24,12 @@ from tempfile import mkdtemp
 PATH_TO_DIRECTORY_OF_THIS_FILE = dirname(realpath(__file__))
 PATH_TO_DIRECTORY_OF_INPUT_DATA = PATH_TO_DIRECTORY_OF_THIS_FILE + "/data/input"
 
-# pass column names into stepper
-stepper.CATEGORICAL_COLUMNS = CATEGORICAL_COLUMNS
-stepper.CONTINUOUS_COLUMNS = CONTINUOUS_COLUMNS
-stepper.LABEL_COLUMN = LABEL_COLUMN
-stepper.COLUMNS = COLUMNS
+if len(MigrationLoader(connection, ignore_no_migrations=True).applied_migrations) > 0:
+    # pass column names into stepper
+    stepper.CATEGORICAL_COLUMNS = CATEGORICAL_COLUMNS
+    stepper.CONTINUOUS_COLUMNS = CONTINUOUS_COLUMNS
+    stepper.LABEL_COLUMN = LABEL_COLUMN
+    stepper.COLUMNS = COLUMNS
 
 class bcolors:
     HEADER = '\033[95m'
