@@ -24,6 +24,7 @@ sudo ln -sf /usr/local/share/$PHANTOM_JS/bin/phantomjs /usr/local/bin
 
 
 echo "INSTALLING DJANGO"
+sudo pip install --upgrade pip
 sudo pip install django==1.9.9
 sudo pip list | grep Django
 
@@ -103,6 +104,7 @@ sudo -H -u usrfd bash -c "cd /home/usrfd/venv/bin && tar -xvzf geckodriver-v0.11
 sudo -H -u usrfd bash -c "rm /home/usrfd/venv/bin/geckodriver-v0.11.1-linux64.tar.gz"
 
 echo "INSTALLING PYTHON PACKAGES"
+sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install pip --upgrade"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip install -r /home/usrfd/firstdraft/requirements.txt --upgrade"
 # have to install scikit-learn separately because need to have NumPy and SciPy installed first
 echo "INSTALL SCIKIT LEARN"
