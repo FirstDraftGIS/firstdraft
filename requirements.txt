@@ -54,6 +54,7 @@ requests
 scipy
 scrp
 selenium==2.52.0
+six
 social-auth-app-django
 stop-words
 super_python
