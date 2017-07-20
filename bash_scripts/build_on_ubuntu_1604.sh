@@ -113,6 +113,8 @@ sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate
 echo "INSTALLING newspaper"
 sudo -H -u usrfd bash -c "cd /home/usrfd && git clone -b python-2-head https://github.com/DanielJDufour/newspaper.git";
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && pip install -e /home/usrfd/newspaper";
+# need to reinstall six with upgrade because newspaper will install old version
+sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && pip install --upgrade six";
 
 echo "PRINTING PIP LIST"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip list"
