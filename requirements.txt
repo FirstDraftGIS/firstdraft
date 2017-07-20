@@ -58,6 +58,7 @@ six
 social-auth-app-django
 stop-words
 super_python
+table-extractor
 tensorflow
 titlecase
 validators
