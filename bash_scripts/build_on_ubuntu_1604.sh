@@ -115,6 +115,9 @@ sudo -H -u usrfd bash -c "cd /home/usrfd && git clone -b python-2-head https://g
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && pip install -e /home/usrfd/newspaper";
 # need to reinstall six with upgrade because newspaper will install old version
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && pip install --upgrade six";
+#https://stackoverflow.com/questions/38447738/beautifulsoup-html5lib-module-object-has-no-attribute-base
+sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && pip install html5lib==0.9999999";
+
 
 echo "PRINTING PIP LIST"
 sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip list"
