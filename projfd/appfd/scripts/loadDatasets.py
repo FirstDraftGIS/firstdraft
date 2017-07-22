@@ -1,4 +1,5 @@
 #load_datasets
+from appfd.models import Alias, AliasPlace, Place
 from appfd.scripts.load import run as load
 print "load:", dir(load)
 
