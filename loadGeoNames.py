@@ -43,7 +43,31 @@ with open("/tmp/allCountries.txt", "r") as f:
         elif feature_code == "ADM5": admin_level = "5"
         else: admin_level = "null"
         point = wkb_w.write_hex(Point(float(longitude), float(latitude), srid=4326))
-        writer.writerow([ counter, admin_level or null, admin1_code or null, admin2_code or null, null, country_code or null, null, feature_class or null, feature_code or null, null, geonameid or null, null, null, name or null, null, point or null, population or null, null, null, timezone or null, null ])
+        writer.writerow([
+            counter, #id
+            null, #created
+            null, #modified
+            admin_level or null,
+            admin1_code or null,
+            admin2_code or null,
+            null, #area_sqkm
+            country_code or null,
+            null, #district_num
+            feature_class or null,
+            feature_code or null,
+            null, #fips
+            geonameid or null,
+            null, #mls
+            null, #mpoly
+            name or null,
+            null, #note
+            point or null,
+            population or null,
+            null, #popularity
+            null, #pcode
+            timezone or null,
+            null #topic_id
+        ])
         if counter % 100000 == 0:
              print counter, ":", str((datetime.now() - start).total_seconds()), "seconds so far"
              if dry_run:
