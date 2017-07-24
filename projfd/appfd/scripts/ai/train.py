@@ -177,20 +177,20 @@ def run(fake_importance_data=True, debug=True):
         if fake_importance_data:
 
             fps = FeaturePlace.objects.exclude(country_rank=None).values_list("country_rank", flat=True)
-            avg_country_rank_correct = median(list(fps.filter(correct=True)))
-            avg_country_rank_incorrect = median(list(fps.filter(correct=False)))
+            avg_country_rank_correct = median(list(fps.filter(correct=True)) or [5])
+            avg_country_rank_incorrect = median(list(fps.filter(correct=False)) or [34])
             print "avg_country_rank_correct:", avg_country_rank_correct
             print "avg_country_rank_incorrect:", avg_country_rank_incorrect
 
             fps = FeaturePlace.objects.values_list("popularity", flat=True)
-            avg_popularity_correct = median(list(fps.filter(correct=True)))
-            avg_popularity_incorrect = median(list(fps.filter(correct=False)))
+            avg_popularity_correct = median(list(fps.filter(correct=True)) or [3])
+            avg_popularity_incorrect = median(list(fps.filter(correct=False)) or [-4])
             print "avg_popularity_correct:", avg_popularity_correct
             print "avg_popularity_incorrect:", avg_popularity_incorrect
 
             median_distances = FeaturePlace.objects.values_list("median_distance", flat=True)
-            avg_median_distance_correct = median(list(median_distances.filter(correct=True)))
-            avg_median_distance_incorrect = median(list(median_distances.filter(correct=False)))
+            avg_median_distance_correct = median(list(median_distances.filter(correct=True)) or [70])
+            avg_median_distance_incorrect = median(list(median_distances.filter(correct=False)) or [70])
             print "avg_median_distance_correct:", avg_median_distance_correct
             print "avg_median_distance_incorrect:", avg_median_distance_incorrect
 
