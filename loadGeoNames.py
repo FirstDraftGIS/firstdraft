@@ -26,6 +26,10 @@ null = "null"
 output_file = open("/tmp/allCountriesCleaned.txt", "wb")
 writer = csv.writer(output_file, delimiter=delimiter)
 
+first_columns = [[column.strip() for column in line.split("|")][0] for line in check_output("sudo -u postgres psql dbfd -c '\d+ appfd_place'", shell=True).splitlines()]
+order_of_columns = first_columns[first_columns.index("id"):first_columns.index("Indexes:")]
+print "order_of_columns:", order_of_columns
+
 wkb_w = WKBWriter()
 wkb_w.srid = True
 print "writing output file"
@@ -35,39 +39,18 @@ with open("/tmp/allCountries.txt", "r") as f:
     for line in f:
       try:
         counter += 1
-        geonameid, name, asciiname, alternatenames, latitude, longitude, feature_class, feature_code, country_code, cc2, admin1_code, admin2_code, admin3_code, admin4_code, population, elevation, dem, timezone, modification_date = line.split("\t")
+        values = dict(zip(["geonameid", "name", "asciiname", "alternatenames", "latitude", "longitude", "feature_class", "feature_code", "country_code", "cc2", "admin1_code", "admin2_code", "admin3_code", "admin4_code", "population", "elevation", "dem", "timezone", "modification_date"], line.split("\t")))
+        values["id"] = counter
+        feature_code = values['feature_code']
         if feature_code == "ADM1": admin_level = "1"
         elif feature_code == "ADM2": admin_level = "2"
         elif feature_code == "ADM3": admin_level = "3"
         elif feature_code == "ADM4": admin_level = "4"
         elif feature_code == "ADM5": admin_level = "5"
         else: admin_level = "null"
-        point = wkb_w.write_hex(Point(float(longitude), float(latitude), srid=4326))
-        writer.writerow([
-            counter, #id
-            null, #created
-            null, #modified
-            admin_level or null,
-            admin1_code or null,
-            admin2_code or null,
-            null, #area_sqkm
-            country_code or null,
-            null, #district_num
-            feature_class or null,
-            feature_code or null,
-            null, #fips
-            geonameid or null,
-            null, #mls
-            null, #mpoly
-            name or null,
-            null, #note
-            point or null,
-            population or null,
-            null, #popularity
-            null, #pcode
-            timezone or null,
-            null #topic_id
-        ])
+        values["admin_level"] = admin_level
+        values['point'] = wkb_w.write_hex(Point(float(values['longitude']), float(values['latitude']), srid=4326))
+        writer.writerow([values.get(column_name, null) for column_name in order_of_columns])
         if counter % 100000 == 0:
              print counter, ":", str((datetime.now() - start).total_seconds()), "seconds so far"
              if dry_run:
