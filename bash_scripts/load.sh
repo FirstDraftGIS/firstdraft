@@ -6,7 +6,7 @@ echo "STARTING load.sh"
 echo "LOADING GEONAMES"
 sudo rm -fr /tmp/allCountries.*
 cd /tmp && wget http://download.geonames.org/export/dump/allCountries.zip --no-verbose
-cd /tmp && unzip -o allCountries.zip
+cd /tmp && unzip -o allCountries.zip && rm allCountries.zip
 sudo python /home/usrfd/firstdraft/loadGeoNames.py
 
 echo "Updating Primary Key Value Just In Case"
@@ -15,7 +15,7 @@ sudo -u usrfd psql -c "SELECT setval('appfd_place_id_seq', (SELECT MAX(id) FROM 
 echo "STARTING TO LOAD AlTERNATE NAMES AT $(date)"
 sudo rm -fr /tmp/alternateNames.*
 cd /tmp && wget http://download.geonames.org/export/dump/alternateNames.zip --no-verbose
-cd /tmp && unzip -o alternateNames.zip
+cd /tmp && unzip -o alternateNames.zip && rm alternateNames.zip
 sudo -u postgres psql -f /home/usrfd/firstdraft/sql_scripts/loadAlternateNames.sql dbfd
 echo "FINISHED LOADING AlTERNATE NAMES AT $(date)"
 
