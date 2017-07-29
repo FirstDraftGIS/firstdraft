@@ -12,12 +12,12 @@ def run():
 
     if not os.path.isfile('/tmp/AFRICAAMERICAS.zip'):
         urlretrieve('http://geonode.state.gov/geoserver/wfs?format_options=charset%3AUTF-8&typename=geonode%3AAfrica_Americas_LSIB7a_gen_polygons&outputFormat=SHAPE-ZIP&version=1.0.0&service=WFS&request=GetFeature', '/tmp/AFRICAAMERICAS.zip')
-        with zipfile.ZipFile('/tmp/Africa_Americas_LSIB7a_gen_polygons.shp', "r") as z:
+        with zipfile.ZipFile('/tmp/AFRICAAMERICAS.zip', "r") as z:
             z.extractall('/tmp/')
 
     if not os.path.isfile('/tmp/EurasiaOceania.zip'):
         urlretrieve('http://geonode.state.gov/geoserver/wfs?format_options=charset%3AUTF-8&typename=geonode%3AEurasia_Oceania_LSIB7a_gen_polygons&outputFormat=SHAPE-ZIP&version=1.0.0&service=WFS&request=GetFeature', '/tmp/EurasiaOceania.zip')
-        with zipfile.ZipFile('/tmp/Eurasia_Oceania_LSIB7a_gen_polygons.zip', "r") as z:
+        with zipfile.ZipFile('/tmp/EurasiaOceania.zip', "r") as z:
             z.extractall('/tmp/')
 
 
