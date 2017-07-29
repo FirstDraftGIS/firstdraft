@@ -27,6 +27,10 @@ def extract_locations_from_text(text):
             #if possible_abbreviation in location_extractor.dictionary_of_keywords['English']['abbreviations']:
             #    names.append(possible_abbreviation)
 
+        # doing this because sometimes get grammatically incorrect tweets
+        if len(text) < 1e5:
+            names.extend([word.strip() for word in text.split()])
+
         print "names are yeah:", names
 
         results = location_extractor.extract_locations_with_context(text, names, debug=True, return_abbreviations=True)
