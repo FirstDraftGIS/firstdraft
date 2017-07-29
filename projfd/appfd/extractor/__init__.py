@@ -31,10 +31,14 @@ def extract_locations_from_text(text):
         if len(text) < 1e5:
             names.extend([word.strip() for word in text.split()])
 
-        print "names are yeah:", names
+        try: print "names are yeah:", names
+        except: pass
 
         results = location_extractor.extract_locations_with_context(text, names, debug=True, return_abbreviations=True)
-        print "results:", results
+
+        try: print "results:", results
+        except: pass
+
         return results
 
     except Exception as e:
