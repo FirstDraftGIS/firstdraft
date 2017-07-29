@@ -10,6 +10,7 @@ from datetime import datetime
 from django.db import connection
 from django.db.models import Q
 import editdistance
+from exceptions import UnicodeEncodeError
 from multiprocessing import *
 from numpy import amin, argmin, mean, median, where
 from random import shuffle
@@ -86,10 +87,13 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
         else:
             statement = "SELECT * FROM fdgis_resolve('{" + ", ".join(names) + "}'::TEXT[], false);"
 
+    try:
+        print "statement:\n", statement
+    except UnicodeEncodeError:
+        print "couldn't print statement because non-ascii"
 
-    print "statement:\n", statement
     cursor.execute(statement)
-    #print "executed"
+    print "executed statement"
 
     geoentities = []
     for row in cursor.fetchall():
