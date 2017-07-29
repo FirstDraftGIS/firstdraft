@@ -5,7 +5,7 @@ from os import mkdir
 from os.path import isdir
 
 def run(key):
-    print "starting create_geojson with key " + key
+    print "starting create_geojson.run with key " + key
 
     from django.db import connection
     connection.close()
@@ -25,8 +25,14 @@ def run(key):
 
             properties['confidence'] = float(fp.confidence)
             place = fp.place
+            properties['admin_level'] = place.admin_level
             properties['admin1_code'] = place.admin1_code
             properties['country_code'] = place.country_code
+            try:
+                importance = place.wikipedia.importance
+            except:
+                importance = 0
+            properties['importance'] = importance
             properties['name'] = place.name
             properties['geonameid'] = place.geonameid
             properties['pcode'] = place.pcode
