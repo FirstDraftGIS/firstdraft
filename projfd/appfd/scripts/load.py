@@ -538,7 +538,7 @@ def run(path):
 
                     print "d['name'] = ", d['name']
                     name = feature.get(d['name'])
-                    print "name is", name
+                    print "name is", [name]
                     if len(name) > 2:
                         fields['name'] = name
                     else:
@@ -556,9 +556,9 @@ def run(path):
 
                     for key, value in d.iteritems():
                         if key not in ("admin_level","aliases","badnames","name","names","parent_pcode"):
-                            print "\tfor key", key, "value", value
+                            print "\tfor key", key, "value", [value]
                             value = feature.get(value)
-                            print "\tvalue = ", value
+                            print "\tvalue = ", [value]
                             fields[key] = value 
 
                     geom = feature.geom
