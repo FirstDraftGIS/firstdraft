@@ -31,4 +31,7 @@ sudo -u usrfd psql -c "SELECT setval('appfd_place_id_seq', (SELECT MAX(id) FROM 
 echo "LOADING OTHER DATASETS"
 sudo --set-home -u usrfd bash -c 'source ~/venv/bin/activate && cd ~/firstdraft/projfd && python ~/firstdraft/projfd/manage.py runscript loadDatasets -v3'
 
+echo "LOADING OSMNAMES"
+sudo python /home/usrfd/firstdraft/python_scripts/load_osmnames.py 
+
 echo "FINISHING load.sh"
