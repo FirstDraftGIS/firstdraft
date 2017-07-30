@@ -32,8 +32,8 @@ def run(debug=True, skip_cleaning=False):
 
             if not isfile(path_to_gz):
                 url = "https://github.com/OSMNames/OSMNames/releases/download/v1.1/planet-latest.tsv.gz"
-                urlretrieve(url, path_to_tsv)
-                print "downloaded to " + path_to_tsv
+                urlretrieve(url, path_to_gz)
+                print "downloaded to " + path_to_gz
 
             call(["gunzip", path_to_gz, "--force"], cwd="/tmp")
             print "gunzipped"
