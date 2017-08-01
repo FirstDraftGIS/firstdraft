@@ -38,7 +38,7 @@ def train_classifier(name, d):
         if "include_these_columns" in d:
             print "include_these_columns:", d["include_these_columns"]
             print "column_names:", [column.name for column in wide_columns]
-            raw_input('paused')
+            #raw_input('paused')
             linear_feature_columns = [ column for column in wide_columns if column.name in d['include_these_columns'] ]
 
             
@@ -281,6 +281,8 @@ def run(fake_importance_data=True, debug=True):
         classifiers = {}
         for name, d  in featuredict.items():
             classifiers[name] = train_classifier(name, d)
+
+        return classifiers
 
     except Exception as e:
         print "EXCEPTION in ai.train: " + str(e)
