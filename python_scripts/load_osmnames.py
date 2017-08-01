@@ -91,9 +91,12 @@ def run(debug=True, skip_cleaning=False):
 
         if debug:
             seconds = (datetime.now() - start).total_seconds()
-            seconds_per_line = float(seconds) / threshold
-            minutes_per_line = float(seconds_per_line) / 60
-            print "it would take ", minutes_per_line * total_number_of_rows / 60, "hours to complete"
+            if threshold:
+                seconds_per_line = float(seconds) / threshold
+                minutes_per_line = float(seconds_per_line) / 60
+                print "it would take ", minutes_per_line * total_number_of_rows / 60, "hours to complete"
+            else:
+                print "it took ", float(seconds) / 60, "hours to complete"
             
 
     except Exception as e:
