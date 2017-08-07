@@ -15,7 +15,7 @@ path_to_directory_of_this_file = dirname(realpath(__file__))
 stopwords = []
 stopwords += [month.lower() for month in month_to_number.keys()]
 stopwords += nltk_stopwords.words('english')
-print "stopwords:", len(stopwords)
+#print "stopwords:", len(stopwords)
 with open(path_to_directory_of_this_file + "/stopwords.txt") as f:
     stopwords.extend([word for word in f.read().decode("utf-8").split("\n") if word and not word.startswith("#")])
 stopwords = set(stopwords)
@@ -34,9 +34,9 @@ def prettify_topic(string):
         return topics[0] + ", " + topics[1] + " and " + topics[2]
 
 def tokenize(text):
-    print "starting tokenize with", text
+    #print "starting tokenize with", text
     result = [word for word in text.lower().replace("#"," ").replace("_"," ").replace("("," ").replace(")"," ").replace("/"," ").replace(":"," ").replace("."," ").split() if word not in stopwords and 3 < len(word) < 15 ]
-    print "finishing tokenize with", result
+    #print "finishing tokenize with", result
     return result
 
 def run():
@@ -59,7 +59,7 @@ def run():
     print "texts:", len(texts), texts[:5]
 
     dictionary = Dictionary(texts)
-    print "dictionary:", dictionary
+    #print "dictionary:", dictionary
     dictionary.save(path_to_directory_of_this_file + "/dictionary")
 
     corpus = [dictionary.doc2bow(text) for text in texts]
@@ -77,11 +77,13 @@ def run():
     Place.objects.exclude(topic=None).update(topic=None)
 
     Topic.objects.all().delete()
+    print "deleted all topics"
     topics = []
     for topic in lsi.show_topics():
         topics.append(Topic(id=topic[0], name=prettify_topic(topic[1])))
 
     Topic.objects.bulk_create(topics)
+    print "bulk created all topics"
 
 
     """
