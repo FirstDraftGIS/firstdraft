@@ -6,7 +6,7 @@ def agent_name = ""
 node('ec2') {
   stage "Build"
   agent_name = env.NODE_NAME
-  sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/build.sh -O /tmp/build.sh'
+  sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/build_on_ubuntu_1604.sh -O /tmp/build.sh'
   sh 'sudo bash /tmp/build.sh'
 
   stage "Load"
