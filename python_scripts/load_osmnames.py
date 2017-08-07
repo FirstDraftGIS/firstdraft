@@ -96,7 +96,7 @@ def run(debug=True, skip_cleaning=False):
                 minutes_per_line = float(seconds_per_line) / 60
                 print "it would take ", minutes_per_line * total_number_of_rows / 60, "hours to complete"
             else:
-                print "it took ", float(seconds) / 60, "hours to complete"
+                print "it took ", (float(seconds) / 60 / 60), "hours to complete"
             
 
     except Exception as e:
