@@ -120,8 +120,17 @@ sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate
 
 
 echo "PRINTING PIP LIST"
-sudo -H -u usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip list"
+sudo -Hu usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip list"
 sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python -c 'import nltk; nltk.download(\"stopwords\")'"
+
+echo "INSTALLING NODE MODULES"
+sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd/appfd/static && npm install"
+
+echo "INSTALLING LEAFLET VOICE COMMANDS"
+sudo -H -u usrfd bash -c "cd /home/usrfd && git clone https://github.com/DanielJDufour/leaflet-voice-commands.git";
+
+echo "COLLECTING STATIC"
+sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python /home/usrfd/firstdraft/projfd/manage.py collectstatic --noinput"
 
 echo "CREATING TABLES"
 sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python /home/usrfd/firstdraft/projfd/manage.py makemigrations"
