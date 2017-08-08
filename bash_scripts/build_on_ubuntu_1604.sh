@@ -123,11 +123,17 @@ echo "PRINTING PIP LIST"
 sudo -Hu usrfd bash -c "cd /home/usrfd && source /home/usrfd/venv/bin/activate && /home/usrfd/venv/bin/pip list"
 sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python -c 'import nltk; nltk.download(\"stopwords\")'"
 
+echo "INSTALLING BOWER COMPONENTS"
+sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd/appfd/static && bower install"
+
 echo "INSTALLING NODE MODULES"
 sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd/appfd/static && npm install"
 
 echo "INSTALLING LEAFLET VOICE COMMANDS"
 sudo -H -u usrfd bash -c "cd /home/usrfd && git clone https://github.com/DanielJDufour/leaflet-voice-commands.git";
+
+echo "MINIFYING STATIC FILES"
+sudo -Hu usrfd bash -c "cd /home/usrfd/firstdraft/projfd/appfd/static && gulp build less"
 
 echo "COLLECTING STATIC"
 sudo -Hu usrfd bash -c "source /home/usrfd/venv/bin/activate && python /home/usrfd/firstdraft/projfd/manage.py collectstatic --noinput"
