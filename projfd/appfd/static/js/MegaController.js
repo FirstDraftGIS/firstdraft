@@ -715,7 +715,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
 
     $scope.displayFixModalById = displayFixModalById = function(featureplace_id) {
         $scope.select(featureplace_id);
-        modals.fix.modal();
+        $scope.load_modal_if_necessary("fix").then(() => {
+            modals.fix.modal();
+        });
     };
 
     $scope.displayStyleModalById = displayStyleModalById = function(featureplace_id) {
