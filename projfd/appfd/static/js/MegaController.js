@@ -659,7 +659,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             }
         });
         $scope.features_that_appear_in_table = $scope.correct_features;
-        modals.edit.modal("hide");
+        if (modals.edit) modals.edit.modal("hide"); //if haven't loaded an edit modal before, then obviously don't have to hide it
         $scope.selection = {};
     };
 
