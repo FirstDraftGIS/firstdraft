@@ -13,43 +13,43 @@
               <div style="display: inline-block">
                   <span ng-hide="ready_to_download_csv">Generating CSV...</span>
                   <div ng-click="verify_map()" ng-show="ready_to_download_csv">
-                      <a class="btn btn-primary" id='download_link_csv' target='_blank'>CSV</a>
+                      <a class="btn btn-primary" id='download_link_csv' ng-href="{{download_link_csv}}" target='_blank'>CSV</a>
                   </div>
               </div>
               <div style="display: inline-block">
                   <span ng-hide="ready_to_download_geojson">Generating GeoJSON...</span>
                   <div ng-click="verify_map()" ng-show="ready_to_download_geojson">
-                      <a class="btn btn-primary" id='download_link_geojson' target='_blank'>GeoJSON</a>
+                      <a class="btn btn-primary" id='download_link_geojson' ng-href="{{download_link_geojson}}" target='_blank'>GeoJSON</a>
                   </div>
               </div>
               <div style="display: inline-block">
                   <span ng-hide="ready_to_download_gif">Generating GIF...</span>
                   <div ng-click="verify_map()" ng-show="ready_to_download_gif">
-                      <a class="btn btn-primary" id='download_link_gif' target='_blank'>GIF</a>
+                      <a class="btn btn-primary" id='download_link_gif' ng-href="{{download_link_gif}}" target='_blank'>GIF</a>
                   </div>
               </div>
               <div style="display: inline-block">
                   <span ng-hide="ready_to_download_jpg">Generating JPG...</span>
                   <div ng-click="verify_map()" ng-show="ready_to_download_jpg">
-                      <a class="btn btn-primary" id='download_link_jpg' target='_blank'>JPG</a>
+                      <a class="btn btn-primary" id='download_link_jpg' ng-href="{{download_link_jpg}}" target='_blank'>JPG</a>
                   </div>
               </div>
               <div style="display: inline-block">
                   <span ng-hide="ready_to_download_pdf">Generating PDF...</span>
                   <div ng-click="verify_map()" ng-show="ready_to_download_pdf">
-                      <a class="btn btn-primary" id='download_link_pdf' target='_blank'>PDF</a>
+                      <a class="btn btn-primary" id='download_link_pdf' ng-href="{{download_link_pdf}}" target='_blank'>PDF</a>
                   </div>
               </div>
               <div style="display: inline-block">
                   <span ng-hide="ready_to_download_png">Generating PNG...</span>
                   <div ng-click="verify_map()" ng-show="ready_to_download_png">
-                      <a class="btn btn-primary" id='download_link_png' target='_blank'>PNG</a>
+                      <a class="btn btn-primary" id='download_link_png' ng-href="{{download_link_png}}" target='_blank'>PNG</a>
                   </div>
               </div>
               <div style="display: inline-block">
                   <span ng-hide="ready_to_download_shp">Generating Shapefile...</span>
                   <div ng-click="verify_map()" ng-show="ready_to_download_shp">
-                      <a class="btn btn-primary" id='download_link_shp' target='_blank'>Shapefile</a>
+                      <a class="btn btn-primary" id='download_link_shp' ng-href="{{download_link_shp}}" target='_blank'>Shapefile</a>
                   </div>
               </div>
           </div>
