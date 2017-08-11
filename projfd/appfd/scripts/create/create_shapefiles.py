@@ -68,12 +68,15 @@ def run(key, debug=False):
             writer_points.point(float(place.point.x), float(place.point.y))
             number_of_points += 1
 
-            if place.mpoly:
-                #print "pyshp doesn't seem to be able to handle mpoly with original coords"
-                for c in place.mpoly.coords:
-                    writer_polygons.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonameid, place.pcode, start, end)
-                    writer_polygons.poly(parts=c, shapeType=POLYGONM)
-                    number_of_polygons += 1
+            try:
+                if place.mpoly:
+                    #print "pyshp doesn't seem to be able to handle mpoly with original coords"
+                    for c in place.mpoly.coords:
+                        writer_polygons.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonameid, place.pcode, start, end)
+                        writer_polygons.poly(parts=c, shapeType=POLYGONM)
+                        number_of_polygons += 1
+            except Exception as e:
+                print "caught the following error while trying to write multipolygons", e
 
     directory = "/home/usrfd/maps/" + key + "/"
     if number_of_points > 0 or number_of_polygons > 0:
