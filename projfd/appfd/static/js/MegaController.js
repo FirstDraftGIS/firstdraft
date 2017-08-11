@@ -682,9 +682,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         console.log("entity:", entity);
         close_all_modals();
         $scope.load_modal_if_necessary("edit").then(() => {
-            modals.edit.modal();
             // need to set the selection after the modal loads because it will override entity properties with loaded from template via ng-model
             if (entity) $scope.selection = entity;
+            modals.edit.modal();
         });
     };
 
