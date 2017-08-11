@@ -10,6 +10,12 @@ function load_script(path_to_script) {
     });
 }
 
+Object.defineProperty(window, "scope", {
+    get: function() {
+        return angular.element(document.getElementById("map")).scope();
+    }
+});
+
 
 Object.defineProperty(window, 'modals', {
     get: function() {
@@ -675,8 +681,11 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.displayEditModal = displayEditModal= function(entity) {
         console.log("entity:", entity);
         close_all_modals();
-        if (entity) $scope.selection = entity;
-        modals.edit.modal();
+        $scope.load_modal_if_necessary("edit").then(() => {
+            modals.edit.modal();
+            // need to set the selection after the modal loads because it will override entity properties with loaded from template via ng-model
+            if (entity) $scope.selection = entity;
+        });
     };
 
     $scope.select = function(featureplace_id) {
