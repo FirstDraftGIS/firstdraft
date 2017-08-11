@@ -339,7 +339,10 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
                 map.removeLayer(layer);
             }
         });
-    };
+        // hack to force renderer to reset width and height of svgs when drawing next
+        //https://github.com/Leaflet/Leaflet/blob/cbaf02034c916e0e3ea1f1f5c21d08c41efd0b3e/src/layer/vector/SVG.js#L90
+        map._renderer._svgSize = null;
+   };
 
     $scope.clear_everything = function() {
         console.log("starting clear_everything");
@@ -402,7 +405,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             if ($scope.job == original_job) {
                 console.log("checking if", $scope.job, extension, "is ready");
                 $scope.load_modal_if_necessary("download").then(function() {
-                    document.getElementById("download_link_" + extension).href = location.origin + "/get_map/" + $scope.job + "/" + extension;
+                    $scope["download_link_" + extension] = location.origin + "/get_map/" + $scope.job + "/" + extension;
                 });
                 $http.get('/does_map_exist/' + $scope.job + "/" + extension).then(function(response) {
                     console.log("got response", response);
