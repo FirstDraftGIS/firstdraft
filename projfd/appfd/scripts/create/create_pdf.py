@@ -32,15 +32,19 @@ def run(key):
         # if you're running FDGIS on another port, you will have to add in a port here
         driver.get("http://127.0.0.1/preview_map/" + key)
 
-        # sleep 5 seconds to let basemap load
-        sleep(5)
+        # sleep 10 seconds to let leaflet and basemap load
+        sleep(15)
 
         path_to_pdf = directory + key + ".pdf"
         print "path_to_pdf:", path_to_pdf
         if isfile(path_to_pdf): remove(path_to_pdf) 
 
         driver.execute_script("$('#map').height(" + str(height) + ").width(" + str(width) + ").css('position', 'relative');")
+        sleep(2)
+        print "set map height, width and position"
         driver.execute_script("map.fitBounds(featureGroup.getBounds().pad(0.01));")
+        sleep(2)
+        print "fit map"
 
         pageFormat = '''this.paperSize = {format: "Letter", margin: "1in", orientation: "landscape" };'''
         execute(pageFormat, [])
