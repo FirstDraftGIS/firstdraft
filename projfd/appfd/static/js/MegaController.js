@@ -683,8 +683,10 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
         close_all_modals();
         $scope.load_modal_if_necessary("edit").then(() => {
             // need to set the selection after the modal loads because it will override entity properties with loaded from template via ng-model
-            if (entity) $scope.selection = entity;
-            modals.edit.modal();
+            $scope.$apply(function(){
+                if (entity) $scope.selection = entity;
+                modals.edit.modal();
+            });
         });
     };
 
@@ -721,8 +723,10 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     };
 
     $scope.displayEditModalById = displayEditModalById = function(featureplace_id) {
-        $scope.select(featureplace_id);
-        modals.edit.modal();
+        $scope.load_modal_if_necessary("edit").then(() => {
+            $scope.select(featureplace_id);
+            modals.edit.modal();
+        }):
     };
 
     $scope.displayFixModalById = displayFixModalById = function(featureplace_id) {
