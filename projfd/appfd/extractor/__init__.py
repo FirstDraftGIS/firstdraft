@@ -14,6 +14,7 @@ def extract_locations_from_text(text):
 
         pattern = "(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}"
         names = [name for name in set(findall(pattern, text)) if len(name) > 3]
+        #print "names from pattern:", names
         location_extractor.load_non_locations()
         names = [name for name in names if name not in location_extractor.nonlocations]
 
@@ -29,7 +30,7 @@ def extract_locations_from_text(text):
 
         # doing this because sometimes get grammatically incorrect tweets
         if len(text) < 1e5:
-            names.extend([word.strip() for word in text.split()])
+            names.extend([word.strip().strip(",") for word in text.split()])
 
         try: print "names are yeah:", names
         except: pass
