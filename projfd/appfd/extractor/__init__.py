@@ -41,7 +41,7 @@ def extract_locations_from_text(text, case_insensitive=None, debug=True):
             names.extend([word.strip().strip(",") for word in text.split()])
 
         #filter out nonlocations again
-        names = [name for name in names if name.lower() not in nonlocations]
+        names = [name for name in names if name.lower() not in nonlocations and len(name) > 3]
 
         try: print "names are yeah:", names
         except: pass
