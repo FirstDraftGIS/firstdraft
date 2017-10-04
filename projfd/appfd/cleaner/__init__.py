@@ -37,6 +37,11 @@ def clean(POST, FILES, debug=False):
                 if debug: print "zone:", end_user_timezone.zone
                 extra_context["end_user_timezone"] = end_user_timezone.zone
 
+        if "case_insensitive" in POST:
+            case_insensitive_value = POST["case_insensitive"]
+            if case_insensitive_value in [True, "True", "true"]:
+                extra_context['case_insensitive'] = True
+
         map_format = POST['map_format'] if POST.get("map_format", None) in ["geojson", "gif", "jpg", "png", "xy"] else "all"
 
         sources = []
