@@ -21,7 +21,7 @@ def save_text_to_file(text, filepath):
 def generate_map_from_sources(job, data_sources, metadata_sources):
 
     try:
-        print "starting generate_map_from_sources"
+        print "starting generate_map_from_sources w job"
 
         key = job['key']
         max_seconds = int(job.get('max_seconds', 10))
@@ -30,6 +30,7 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
         order_id = job['order_id']
         extra_context = job.get("extra_context", {})
         end_user_timezone = extra_context.get("end_user_timezone", None)
+        case_insensitive = extra_context.get("case_insensitive", None)
 
         # make directory to store input sources and final maps
         directory = "/home/usrfd/maps/" + key + "/"
@@ -47,7 +48,7 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                     Source.objects.create(order_id=order_id, source_text=source_data.encode("utf-8"), source_type="text")
                     print "[generator] created source object"
                     #save_text_to_file(source_data, toFileName(source_data, max_length=20))
-                    locations.extend(extract_locations_from_text(source_data))
+                    locations.extend(extract_locations_from_text(source_data, case_insensitive=case_insensitive))
                 elif (isinstance(source_data, unicode) or isinstance(source_data, str)) and validators.url(source_data):
                     print "source is url"
 
@@ -78,7 +79,7 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                     elif url.endswith(".pdf"):
                         locations.extend(extract_locations_with_context_from_pdf(BytesIO(get(url).content)))
                     elif url.endswith(".txt"):
-                        locations.extend(extract_locations_from_text(get(url).content))
+                        locations.extend(extract_locations_from_text(get(url).content, case_insensitive=case_insensitive))
                     elif url.endswith(".zip"):
                         pass
                     else:
@@ -104,7 +105,7 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                     elif source_extension in ("csv", "tsv", "xls", "xlsm", "xlsx"):
                         locations.extend(extract_locations_from_tables(extract_tables(source_data)))
                     elif source_extension == "txt":
-                        locations.extend(extract_locations_from_text(source_data.read()))
+                        locations.extend(extract_locations_from_text(source_data.read(), case_insensitive=case_insensitive))
                     elif source_extension == "pdf":
                         print "source_extension is pdf"
                         locations.extend(extract_locations_with_context_from_pdf(source_data))
