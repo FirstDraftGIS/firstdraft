@@ -6,14 +6,16 @@ from webpage import extract_locations_from_webpage
 
 # we're just casting a wide net and extracting 
 # all the capitalized words and other words that follow rules
-def extract_locations_from_text(text):
+def extract_locations_from_text(text, case_insensitive=None, debug=True):
 
     try:
 
         print "starting extract_locations_from_text"
+        if debug:
+            print "    [extractor] case_insensitive:", case_insensitive
 
-        pattern = "(?:[A-Z][a-z]{1,15} )*(?:de )?[A-Z][a-z]{1,15}"
-        names = [name for name in set(findall(pattern, text)) if len(name) > 3]
+        pattern = u"(?:[A-Z][a-z\u00ed]{1,15} )*(?:de )?[A-Z][a-z\u00ed]{1,15}"
+        names = [name.lstrip("de ") for name in set(findall(pattern, text)) if len(name) > 3]
         #print "names from pattern:", names
         location_extractor.load_non_locations()
         names = [name for name in names if name not in location_extractor.nonlocations]
