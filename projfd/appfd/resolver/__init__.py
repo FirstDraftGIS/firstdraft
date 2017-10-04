@@ -25,13 +25,14 @@ from timeit import default_timer
 from time import sleep
 
 # takes in a list of locations and resovles them to features in the database
-def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1codes=[], debug=True, end_user_timezone=None):
+def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1codes=[], debug=True, end_user_timezone=None, case_insensitive=None):
   try:
     print "starting resolve_locations with", type(locations)
-    print "locations = ", len(locations), locations[:5]
-    print "countries:", countries
-    print "admin1codes:", admin1codes
-    print "end_user_timezone:", end_user_timezone
+    print ""*4, "locations = ", len(locations), locations[:5]
+    print ""*4, "countries:", countries
+    print ""*4, "admin1codes:", admin1codes
+    print ""*4, "end_user_timezone:", end_user_timezone
+    print ""*4, "case_insensitive:", case_insensitive
 
     start = datetime.now()
 
@@ -46,31 +47,42 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
     for location in locations:
         #cleaning name a little just to play it safe; sometimes have blank depending on extract method
         name = location['name'] = location['name'].strip()
+        try: print "name:", name
+        except Exception as e: pass
         #skipping over places with commas and parentheses in them.. because won't find in db anyway... probably need more longterm solution like escape quoting in psql
         if name and not any(char in name for char in [',', ')', '(', '?', "'", '"', "}", "{"]): 
             names.append(name)
-            name_location[name] = location
+            name_location[name.lower()] = location
             if location.get('country', None):
-                name_country[name] = location['country']
+                name_country[name.lower()] = location['country']
             if location.get('country_code', None):
-                name_country_code[name] = location['country_code']
+                name_country_code[name.lower()] = location['country_code']
             if "context" in location:
                 topic_id = get_topic(location['context'])
                 location['topic_id'] = topic_id
-                name_topic[name] = topic_id
+                name_topic[name.lower()] = topic_id
             else:
-                name_topic[name] = None
+                name_topic[name.lower()] = None
 
 
     number_of_locations = len(locations)
+    print "number_of_locations:", number_of_locations 
 
     #print "names", len(names), names[:5]
 
     # randomize order in order to minimize statistic bias
     shuffle(names)
 
+    if case_insensitive is True:
+        print "[resolver] add in other cased versions of names"
+        names.extend([name.lower() for name in names])
+        names.extend([name.title() for name in names])
+        names.extend([name.upper() for name in names])
+        print "[resolver] names after updating:", [names]
+
     names = set(names)
-    print "names:", names
+    try: print "names:", names
+    except UnicodeEncodeError: print "couldn't print statement because non-ascii"
 
     cursor = connection.cursor()
 
@@ -155,8 +167,8 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
     all_coords = []
     for geoentity in geoentities:
         all_coords.append(geoentity.point.coords)
-        target_geoentities[geoentity.target].append(geoentity)
-        target_coords[geoentity.target].append(geoentity.point.coords)
+        target_geoentities[geoentity.target.lower()].append(geoentity)
+        target_coords[geoentity.target.lower()].append(geoentity.point.coords)
 
     #number_of_clusters =  max(3, number_of_locations/20)
     number_of_clusters = 3 if len(all_coords) >= 3 else len(all_coords)
@@ -179,11 +191,12 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
     print "number of target_geoentities:", len(target_geoentities)
     for target, options in target_geoentities.items():
         #print "target:", target
-        for i, v in enumerate(median(cdist(target_coords[target], all_coords), axis=1)):
-            target_geoentities[target][i].median_distance_from_all_other_points = int(v)
+        target_lowered = target.lower()
+        for i, v in enumerate(median(cdist(target_coords[target_lowered], all_coords), axis=1)):
+            target_geoentities[target_lowered][i].median_distance_from_all_other_points = int(v)
        
         #print "name_topic names are", name_topic.keys() 
-        topic_id = name_topic[target]
+        topic_id = name_topic[target_lowered]
         #print "topic:", topic_id
         for option in options:
             #print "\toption.topic_id:", option.topic_id
@@ -195,8 +208,9 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
 
     # need to choose one for each target based on highest probability
     for target, options in target_geoentities.items():
+        target_lowered = target.lower()
 
-        country_code = name_country_code.get(target, None)
+        country_code = name_country_code.get(target_lowered, None)
         if country_code:
             matches_country_code = [o for o in options if o.country_code == country_code]
             if debug: print "matches_country_code:", matches_country_code
@@ -219,8 +233,9 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
     #Feature, FeaturePlace
     featureplaces = [] 
     for target, options in target_geoentities.items():
-        l = name_location[target]
-        topic_id = name_topic[target] if target in name_topic else None
+        target_lowered = target.lower()
+        l = name_location[target_lowered]
+        topic_id = name_topic[target_lowered] if target_lowered in name_topic else None
         count = l['count'] if 'count' in l else 1
         correct_option = next(option for option in options if option.correct)
         geometry_used = "Shape" if correct_option.has_mpoly else "Point"
