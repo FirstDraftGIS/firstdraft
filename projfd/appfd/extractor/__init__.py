@@ -1,5 +1,5 @@
 import location_extractor
-from re import findall
+from re import findall, IGNORECASE
 from table import extract_locations_from_tables
 from webpage import extract_locations_from_webpage
 
@@ -16,7 +16,9 @@ def extract_locations_from_text(text, case_insensitive=None, debug=True):
 
         pattern = u"(?:[A-Z][a-z\u00ed]{1,15} )*(?:de )?[A-Z][a-z\u00ed]{1,15}"
         names = [name.lstrip("de ") for name in set(findall(pattern, text)) if len(name) > 3]
-        #print "names from pattern:", names
+        if case_insensitive:
+            names = [name.lstrip("de ") for name in set(findall(pattern, text, IGNORECASE)) if len(name) > 3]
+        if debug: print "    [extractor] names from pattern:", [names]
         location_extractor.load_non_locations()
         names = [name for name in names if name not in location_extractor.nonlocations]
 
@@ -37,7 +39,7 @@ def extract_locations_from_text(text, case_insensitive=None, debug=True):
         try: print "names are yeah:", names
         except: pass
 
-        results = location_extractor.extract_locations_with_context(text, names, debug=True, return_abbreviations=True)
+        results = location_extractor.extract_locations_with_context(text, names, debug=True, return_abbreviations=True, case_insensitive=case_insensitive)
 
         try: print "results:", results
         except: pass
