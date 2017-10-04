@@ -18,7 +18,7 @@ def save_text_to_file(text, filepath):
     with open(filepath, "wb") as f:
         f.write(text.encode("utf-8"))
 
-def generate_map_from_sources(job, data_sources, metadata_sources):
+def generate_map_from_sources(job, data_sources, metadata_sources, debug=False):
 
     try:
         print "starting generate_map_from_sources w job"
@@ -115,7 +115,7 @@ def generate_map_from_sources(job, data_sources, metadata_sources):
                 print "failed to get locations for source because", e
   
         print "[generate_map_from_sources] locations before resolving:", len(locations) 
-        resolve_locations(locations, order_id=order_id, max_seconds=max_seconds, countries=countries, end_user_timezone=end_user_timezone)
+        resolve_locations(locations, order_id=order_id, max_seconds=max_seconds, countries=countries, end_user_timezone=end_user_timezone, case_insensitive=case_insensitive, debug=debug)
 
         print "job.keys():", job.keys()
         if "style" in job:
