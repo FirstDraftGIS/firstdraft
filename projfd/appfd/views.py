@@ -578,6 +578,8 @@ def request_map_from_sources(request, debug=True):
                     job['extra_context'] = {}
                     if "end_user_timezone" in cleaned['extra_context']:
                         job['extra_context']['end_user_timezone'] = end_user_timezone = cleaned['extra_context']['end_user_timezone']
+                    if "case_insensitive" in cleaned['extra_context']:
+                        job['extra_context']['case_insensitive'] = case_insensitive = cleaned['extra_context']['case_insensitive']
 
                 order_id = Order.objects.create(token=key, end_user_timezone=end_user_timezone, map_format=cleaned['map_format']).id
                 from django.db import connection 
@@ -597,7 +599,13 @@ def request_map_from_sources(request, debug=True):
                 metadata = []
                 print "sources:", sources
                 for source in sources:
-                    if is_metadata(source['data'], debug=False):
+
+                    try:
+                        source_is_metadata = is_metadata(source['data'], debug=False)
+                    except:
+                        source_is_metadata = False
+
+                    if source_is_metadata:
                         print "is metadata"
                         metadata.append(source)
                     else:
