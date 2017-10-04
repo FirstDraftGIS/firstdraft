@@ -18,9 +18,13 @@ def extract_locations_from_text(text, case_insensitive=None, debug=True):
         names = [name.lstrip("de ") for name in set(findall(pattern, text)) if len(name) > 3]
         if case_insensitive:
             names = [name.lstrip("de ") for name in set(findall(pattern, text, IGNORECASE)) if len(name) > 3]
-        if debug: print "    [extractor] names from pattern:", [names]
+        try: print "    [extractor] names from pattern:", [names]
+        except: pass
         location_extractor.load_non_locations()
-        names = [name for name in names if name not in location_extractor.nonlocations]
+        nonlocations = [location.lower() for location in location_extractor.nonlocations]
+        names = [name for name in names if name.lower() not in nonlocations]
+        try: print "    names after filtering out nonlocations:", names
+        except: pass
 
         location_extractor.load_language_into_dictionary_of_keywords("English")
         for possible_abbreviation in list(set(findall("[A-Z]{2}", text))):
@@ -35,6 +39,9 @@ def extract_locations_from_text(text, case_insensitive=None, debug=True):
         # doing this because sometimes get grammatically incorrect tweets
         if len(text) < 1e5:
             names.extend([word.strip().strip(",") for word in text.split()])
+
+        #filter out nonlocations again
+        names = [name for name in names if name.lower() not in nonlocations]
 
         try: print "names are yeah:", names
         except: pass
