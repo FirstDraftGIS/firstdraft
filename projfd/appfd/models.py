@@ -161,6 +161,7 @@ class Order(Base):
     end = DateTimeField(null=True)
     end_user_timezone = CharField(max_length=20, null=True)
     map_format = CharField(max_length=20, null=True)
+    open_source = BooleanField(default=False) #is this map open-sourced, such that it can be included in open source training data?
     start = DateTimeField(auto_now_add=True, null=True) # it will never be null, but have to do this because migration asks for default otherwise
     style = ForeignKey("MapStyle", null=True)
     token = CharField(max_length=200, null=True, unique=True) # the random string that's used to find the order in the maps
