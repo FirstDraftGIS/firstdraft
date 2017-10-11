@@ -60,6 +60,13 @@
                 <div style="text-align: center;">
                     <div ng-class="'btn btn-lg btn-success' + (!sources || sources.length === 0 ? ' disabled' : '')" ng-click="generate()">Generate Map</div>
                 </div>
+
+                <div style="text-align: center;" ng-if="settings.open_source_training_data">
+                    </br>
+                    <input type="checkbox" ng-model="settings.open_source_training_data_for_this_map" style="font-size: 20px; height: 20px; width: 20px;"> 
+                    <label>Open Source This Map</label>
+                </div>
+
             </div>
         </div>
     </div>

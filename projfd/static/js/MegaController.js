@@ -10,6 +10,12 @@ function load_script(path_to_script) {
     });
 }
 
+Object.defineProperty(window, "scope", {
+    get: function() {
+        return angular.element(document.getElementById("map")).scope();
+    }
+});
+
 
 Object.defineProperty(window, 'modals', {
     get: function() {
@@ -234,6 +240,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
                 formData.append("source_" + index + "_data", source.data);
             });
 
+
+            formData.append("open_source", $scope.settings.open_source_training_data_for_this_map || false);
+
             $http.post('/request_map_from_sources', formData, {
                 transformRequest: angular.identity,
                 headers: {'Content-Type': undefined}
@@ -339,7 +348,10 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
                 map.removeLayer(layer);
             }
         });
-    };
+        // hack to force renderer to reset width and height of svgs when drawing next
+        //https://github.com/Leaflet/Leaflet/blob/cbaf02034c916e0e3ea1f1f5c21d08c41efd0b3e/src/layer/vector/SVG.js#L90
+        map._renderer._svgSize = null;
+   };
 
     $scope.clear_everything = function() {
         console.log("starting clear_everything");
@@ -402,7 +414,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             if ($scope.job == original_job) {
                 console.log("checking if", $scope.job, extension, "is ready");
                 $scope.load_modal_if_necessary("download").then(function() {
-                    document.getElementById("download_link_" + extension).href = location.origin + "/get_map/" + $scope.job + "/" + extension;
+                    $scope["download_link_" + extension] = location.origin + "/get_map/" + $scope.job + "/" + extension;
                 });
                 $http.get('/does_map_exist/' + $scope.job + "/" + extension).then(function(response) {
                     console.log("got response", response);
@@ -659,7 +671,7 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
             }
         });
         $scope.features_that_appear_in_table = $scope.correct_features;
-        modals.edit.modal("hide");
+        if (modals.edit) modals.edit.modal("hide"); //if haven't loaded an edit modal before, then obviously don't have to hide it
         $scope.selection = {};
     };
 
@@ -672,8 +684,13 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     $scope.displayEditModal = displayEditModal= function(entity) {
         console.log("entity:", entity);
         close_all_modals();
-        if (entity) $scope.selection = entity;
-        modals.edit.modal();
+        $scope.load_modal_if_necessary("edit").then(() => {
+            // need to set the selection after the modal loads because it will override entity properties with loaded from template via ng-model
+            $scope.$apply(function(){
+                if (entity) $scope.selection = entity;
+                modals.edit.modal();
+            });
+        });
     };
 
     $scope.select = function(featureplace_id) {
@@ -709,8 +726,10 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
     };
 
     $scope.displayEditModalById = displayEditModalById = function(featureplace_id) {
-        $scope.select(featureplace_id);
-        modals.edit.modal();
+        $scope.load_modal_if_necessary("edit").then(() => {
+            $scope.select(featureplace_id);
+            modals.edit.modal();
+        });
     };
 
     $scope.displayFixModalById = displayFixModalById = function(featureplace_id) {

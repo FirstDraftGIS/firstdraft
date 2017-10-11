@@ -240,6 +240,9 @@ app.controller('MegaController', ['$scope', '$http', '$window', '$compile', '$el
                 formData.append("source_" + index + "_data", source.data);
             });
 
+
+            formData.append("open_source", $scope.settings.open_source_training_data_for_this_map || false);
+
             $http.post('/request_map_from_sources', formData, {
                 transformRequest: angular.identity,
                 headers: {'Content-Type': undefined}
