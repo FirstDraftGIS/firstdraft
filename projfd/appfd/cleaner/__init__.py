@@ -1,6 +1,9 @@
 from appfd.forms import BasemapForm, FileForm, LinkForm, TextForm, TimezoneForm, TweetForm
 from django.core.files.uploadedfile import SimpleUploadedFile
 
+
+trues = [True, "True", "true", "t", "T", 1, "1"]
+
 def clean_tweet(POST, debug=True):
     try:
         if debug: print "starting clean_tweet with", POST
@@ -37,10 +40,10 @@ def clean(POST, FILES, debug=False):
                 if debug: print "zone:", end_user_timezone.zone
                 extra_context["end_user_timezone"] = end_user_timezone.zone
 
-        if "case_insensitive" in POST:
-            case_insensitive_value = POST["case_insensitive"]
-            if case_insensitive_value in [True, "True", "true"]:
-                extra_context['case_insensitive'] = True
+        for text in ["case_insensitive", "open_source"]:
+            if POST.get(text, False) in trues:
+                extra_context[text] = True
+
 
         map_format = POST['map_format'] if POST.get("map_format", None) in ["geojson", "gif", "jpg", "png", "xy"] else "all"
 
