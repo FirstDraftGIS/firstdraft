@@ -574,14 +574,18 @@ def request_map_from_sources(request, debug=True):
                 }
 
                 end_user_timezone = None
+                open_source = False #default contributing map to open source training data as false
                 if "extra_context" in cleaned:
                     job['extra_context'] = {}
-                    if "end_user_timezone" in cleaned['extra_context']:
-                        job['extra_context']['end_user_timezone'] = end_user_timezone = cleaned['extra_context']['end_user_timezone']
-                    if "case_insensitive" in cleaned['extra_context']:
-                        job['extra_context']['case_insensitive'] = case_insensitive = cleaned['extra_context']['case_insensitive']
+                    extra_context = cleaned['extra_context']
+                    if "end_user_timezone" in extra_context:
+                        job['extra_context']['end_user_timezone'] = end_user_timezone = extra_context['end_user_timezone']
+                    if "case_insensitive" in extra_context:
+                        job['extra_context']['case_insensitive'] = case_insensitive = extra_context['case_insensitive']
+                    if "open_source" in extra_context:
+                        job['extra_context']['open_source'] = open_source = extra_context['open_source']
 
-                order_id = Order.objects.create(token=key, end_user_timezone=end_user_timezone, map_format=cleaned['map_format']).id
+                order_id = Order.objects.create(token=key, end_user_timezone=end_user_timezone, map_format=cleaned['map_format'], open_source=open_source).id
                 from django.db import connection 
                 connection.close()
                 sources = cleaned['sources']
