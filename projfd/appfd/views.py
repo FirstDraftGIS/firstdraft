@@ -75,17 +75,6 @@ from zipfile import ZipFile
 #    #f = open("/tmp/stdout","w")
 #    sys.stdout = sys.stderr
 
-# returns longest soup
-def soupify(text):
-    soups = []
-    for parser in ["html5lib", "html.parser"]:
-        try:
-            soup = BeautifulSoup(text, parser)
-            soups.append([soup, len(soup)])
-        except Exception as e:
-            print e
-    return sorted(soups, key=lambda tup: -1 * tup[1])[0][0]
-
 def _map(request, job):
 
     print "starting _map with ", job
