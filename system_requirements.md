@@ -52,7 +52,6 @@
 | python               | |
 | python3-venv         | |
 | python-dev           | |
-| python-letsencrypt-apache | |
 | python-qgis          | |
 | python-virtualenv    | |
 | qgis                 | |
