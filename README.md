@@ -36,31 +36,8 @@ The quickest way to get First Draft GIS up and running is to launch the First Dr
 | python-social-auth | used so people can login via Facebook, Google and other things |
 | Psycopg | a PostgreSQL database adapater for Python |
 
-#### Some APT Packages Installed
-| name | use |
-| --------- | --------- |
-| apache | webserver |
-| apache2-dev | python_mod needs this |
-| apache2-mpm-prefork | unknown |
-| apt-file | useful for looking up which packages have which files |
-| autoconf | used by postgis autogen.sh |
-| build-essential | need for phantomjs and includes c++ compilier we need for sfcgal |
-| chrpath | needed by PhantomJS |
-| curl | download files from internet |
-| git | download code from github repositories |
-| mariadb-server | used to process Wikipedia geo_tags dump |
-| postgresql | database that stores the information |
-| libapache2-mod-wsgi | installed for wsgi |
-| libfontconfig1 | needed by PhantomJS |
-| libfontconfig1-dev | needed by PhantomJS |
-| libfreetype6 | needed by PhantomJS |
-| libfreetype6-dev | needed by PhantomJS |
-| libjson0... | for Json-C dependency for postgis |
-| libpq-dev | needed to install psycopg2 database adapater |
-| libssl-dev | needed by PhantomJS |
-| libxft-dev | needed by PhantomJS |
-| pkg-config | postgis dependency |
-| vim | edit files in terminal |
+# System Packages
+Here's a link to a table of the operating system packages that are installed: https://github.com/FirstDraftGIS/firstdraft/blob/master/system_requirements.md
 
 ####Create Admin User
 The following command will prompt you for a username and email address.
