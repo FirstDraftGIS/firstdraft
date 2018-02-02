@@ -25,6 +25,7 @@ django-timezone-field
 editdistance
 gensim
 geojson
+georefdata
 html5lib==0.9999999
 language-detector
 location-extractor
