@@ -1,6 +1,7 @@
 from appfd.models import Place
 from django.db import connection
 from django.db.migrations.loader import MigrationLoader
+import georefdata
 from os.path import dirname, join, realpath
 from tensorflow.contrib.layers import bucketized_column, crossed_column, embedding_column, sparse_column_with_keys, sparse_column_with_hash_bucket, real_valued_column
 
@@ -38,8 +39,7 @@ SELECT NULL WHERE EXISTS(SELECT 1 FROM appfd_place WHERE {0} IS NULL);
     #cluster_frequency = real_valued_column("cluster_frequency")
     #cluster_frequency_buckets = bucketized_column(cluster_frequency, boundaries=[0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1])
 
-    cursor.execute(loose_index_scan.format("country_code"))
-    country_codes = sorted(list(set([_tup[0].upper() for _tup in cursor.fetchall() if _tup[0]])))
+    country_codes = georefdata.get_country_codes()
     country_code = sparse_column_with_keys("country_code", keys=country_codes)
 
     country_rank = real_valued_column("country_rank")
@@ -47,14 +47,10 @@ SELECT NULL WHERE EXISTS(SELECT 1 FROM appfd_place WHERE {0} IS NULL);
 
     favor_local = sparse_column_with_keys(column_name="favor_local", keys=["True", "False", "Unknown"])
 
-    #feature_classes = list(Place.objects.values_list("feature_class", flat=True).distinct())
-    cursor.execute(loose_index_scan.format("feature_class"))
-    feature_classes = sorted(list(set([_tup[0].upper() for _tup in cursor.fetchall() if _tup[0]])))
+    feature_classes = georefdata.get_geonames_feature_classes()
     feature_class = sparse_column_with_keys("feature_class", keys=feature_classes)
 
-    #feature_codes = list(Place.objects.values_list("feature_code", flat=True).distinct())
-    cursor.execute(loose_index_scan.format("feature_code"))
-    feature_codes = sorted(list(set([_tup[0].upper() for _tup in cursor.fetchall() if _tup[0]])))
+    feature_codes = georefdata.get_geonames_feature_codes()
     feature_code = sparse_column_with_keys("feature_code", keys=feature_codes)
 
     has_pcode = sparse_column_with_keys(column_name="has_pcode", keys=["True", "False"])
@@ -68,8 +64,8 @@ SELECT NULL WHERE EXISTS(SELECT 1 FROM appfd_place WHERE {0} IS NULL);
     is_most_important_in_timezone = sparse_column_with_keys(column_name="is_most_important_in_timezone", keys=["True", "False"])
     matches_topic = sparse_column_with_keys(column_name="matches_topic", keys=["True", "False"])
 
-    #cursor.execute(loose_index_scan.format("timezone"))
-    time_zones = list(set(Place.objects.values_list("timezone", flat=True)[:1e5]))
+    # we don't do a loose index scan, because even that can take a long time when you have tens of millions of records
+    time_zones = georefdata.get_timezones()
 
     matches_end_user_timezone = sparse_column_with_keys(column_name="matches_end_user_timezone", keys=["True", "False", "Unknown"])
     # probably need a cross column here with timezone and user
