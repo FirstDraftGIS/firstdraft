@@ -1,4 +1,6 @@
 #-*- coding: utf-8 -*-
+from base import Base
+
 from datetime import datetime
 from django.core.validators import RegexValidator
 from django.db import IntegrityError
@@ -7,22 +9,11 @@ from django.contrib.gis.db.models import *
 from pytz import utc
 from shutil import rmtree
 
-
-class Base(Model):
-    created = DateTimeField(auto_now_add=True, null=True)
-    modified = DateTimeField(auto_now=True, null=True)
-
-    class Meta:
-        abstract = True
-
-class Alert(Base):
-    colors = (("danger", "danger"),("info", "info"),("success", "success"),("warning","warning"))
-    color = CharField(choices=colors, max_length=200)
-    permanent = BooleanField()
-    text = CharField(max_length=200)
-    user = OneToOneField(User, blank=True, null=True)
-    def __str__(self):
-        return self.text
+# import other models
+from activation import Activation
+from alert import Alert
+from order import Order
+from place import Place
 
 #class Account(Model):
 #    max_orders = IntegerField() # the maximum number of order this account can make per month
@@ -73,15 +64,6 @@ class Calls(Base):
     CHOICES = [('gt', "Google Translate API")]
     service = CharField(max_length=200, choices=CHOICES)
 
-class Activation(Base):
-    expired = BooleanField(default=False)
-    key = CharField(max_length=200)
-    notified_success = BooleanField(default=False)
-    used = BooleanField(default=False)
-    user = OneToOneField(User)
-    def __str__(self):
-        return str(self.key[:10]) + "..."
-
 class Alias(Base):
     alias = CharField(max_length=200, null=True, blank=True, db_index=True, unique=True)
     language = CharField(max_length=7, null=True, blank=True, db_index=True)
@@ -89,10 +71,6 @@ class Alias(Base):
         ordering = ['alias']
     def __str__(self):
         return self.alias.encode("utf-8")
-    def update(self, d):
-        for k,v in d.iteritems():
-            setattr(self,k,v)
-        self.save()
 
 class AliasPlace(Base):
     alias = ForeignKey('Alias')
@@ -154,85 +132,6 @@ except:
 class MapStyle(Base):
     basemap = ForeignKey("Basemap", default=default_basemap_id)
 
-class Order(Base):
-    complete = BooleanField(default=False)
-    duration = IntegerField(null=True) # how long it took to process the order
-    edited = BooleanField(default=False) # tells you whether they opened it for editing... not whether any actual edits were made
-    end = DateTimeField(null=True)
-    end_user_timezone = CharField(max_length=20, null=True)
-    map_format = CharField(max_length=20, null=True)
-    open_source = BooleanField(default=False) #is this map open-sourced, such that it can be included in open source training data?
-    start = DateTimeField(auto_now_add=True, null=True) # it will never be null, but have to do this because migration asks for default otherwise
-    style = ForeignKey("MapStyle", null=True)
-    token = CharField(max_length=200, null=True, unique=True) # the random string that's used to find the order in the maps
-    url = URLField(null=True, max_length=1000, unique=True) # URL if started from url or iframe embeded on a webpage
-
-    def __str__(self):
-        return self.token
-
-    def d(self):
-        self.delete_map()
-        self.delete()
-
-    def delete_map(self):
-        rmtree("/home/usrfd/maps/" + self.token)
-
-    def finish(self):
-        self.complete = True
-        self.end = end = datetime.now().replace(tzinfo=utc)
-        self.duration = (end - self.start).total_seconds()
-        self.save()
-
-    def update(self, d):
-        for k,v in d.iteritems():
-            setattr(self,k,v)
-        self.save()
-
-# should add in org and person model at some point, so can cross locate story based on people or orgs if no location names given
-
-class Place(Base):
-    admin_level = IntegerField(null=True, blank=True, db_index=True)
-    admin1_code = CharField(max_length=100, null=True, blank=True, db_index=True)
-    admin2_code = CharField(max_length=100, null=True, blank=True, db_index=True)
-    aliases = ManyToManyField('Alias', through="AliasPlace", related_name="place_from_placealias+")
-    area_sqkm = IntegerField(null=True, blank=True)
-    attribution = CharField(max_length=1000, null=True, blank=True)
-    country_code = CharField(max_length=10, null=True, blank=True, db_index=True)
-    district_num = IntegerField(null=True, blank=True)
-    enwiki_title = TextField(max_length=5000, null=True, blank=True)
-    feature_class = CharField(max_length=50, null=True, blank=True, db_index=True)
-    feature_code = CharField(max_length=50, null=True, blank=True, db_index=True)
-    fips = IntegerField(null=True, blank=True, db_index=True)
-    geonameid = IntegerField(null=True, blank=True, db_index=True)
-    mls = MultiLineStringField(null=True, blank=True)
-    mpoly = MultiPolygonField(null=True, blank=True)
-    name = CharField(max_length=2000, null=True, blank=True, db_index=True)
-    note = CharField(max_length=200, null=True, blank=True)
-    objects = GeoManager()
-    place_type = CharField(max_length=1, null=True, blank=True)
-    point = PointField(null=True, blank=True)
-    population = BigIntegerField(null=True, blank=True)
-
-    # number of times name appeared and meant this place minus number of times didn't mean this place
-    popularity = BigIntegerField(null=True, blank=True)
-
-    pcode = CharField(max_length=200, null=True, blank=True, db_index=True)
-    skeleton = MultiLineStringField(null=True, blank=True)
-    timezone = CharField(max_length=200, null=True, blank=True, db_index=True)
-    topic = ForeignKey("Topic", null=True) # represents the most common topic associated with this place
-
-    def __str__(self):
-        try:
-            return self.name.encode("utf-8")
-        except:
-            return self.id
-    class Meta:
-        ordering = ['name']
-    def update(self, d):
-        for k,v in d.iteritems():
-            if getattr(self, k) != v:
-                setattr(self,k,v)
-        self.save()
 
 class ParentChild(Base):
     parent = ForeignKey('Place', related_name="parentplace")
@@ -290,23 +189,3 @@ class Topic(Base):
 
 class Translator(Base):
     name = CharField(max_length=200, null=True, blank=True)
-
-class Wikipedia(Base):
-    place = OneToOneField("Place")
-    charcount = IntegerField(null=True)
-    importance = FloatField(db_index=True, null=True)
-
-#class UserOrder(Model):
-#    user = ForeignKey(User)
-#    order = ForeignKey("Order", unique)
-
-#    def __str__(self):
-#        return self.user + ":" + self.order
-
-
-# can also use topics to cirumscribe locations via topic area
-
-
-#should also probably add in website at some point, so can associate websites with certain topics, too
-
-#also add in feature classes of geonames, so don't mean lake when mean city!
