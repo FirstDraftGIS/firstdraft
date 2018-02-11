@@ -50,23 +50,18 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'django_extensions',
-    #'social_django',
     'mod_wsgi.server',
     'rest_framework',
     'rest_framework_gis',
     'rest_framework_swagger',
-    #'reversion',
     'appfd',
     'behave_django',
     'apifd',
-    'crispy_forms',
-    'silk',
-    'controlcenter',
     'timezone_field'
 ]
 
 if DEBUG:
-    INSTALLED_APPS.append('nplusone.ext.django')
+    pass
 
 MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -79,12 +74,12 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'silk.middleware.SilkyMiddleware'
+    #'silk.middleware.SilkyMiddleware'
     #'reversion.middleware.RevisionMiddleware'
 ]
 
 if DEBUG:
-    MIDDLEWARE_CLASSES.append("nplusone.ext.django.NPlusOneMiddleware")
+    pass
 
 ROOT_URLCONF = 'projfd.urls'
 
