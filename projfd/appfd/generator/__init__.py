@@ -36,6 +36,8 @@ def generate_map_from_sources(job, data_sources, metadata_sources, debug=False):
         directory = "/home/usrfd/maps/" + key + "/"
         mkdir(directory)
 
+        max_source_text_length = next(f for f in Source._meta.fields if f.name == "source_text").max_length
+
         locations = []
         for source in data_sources:
             try:
@@ -45,7 +47,8 @@ def generate_map_from_sources(job, data_sources, metadata_sources, debug=False):
                 if source_type == "text":
                     print "source_data:", source_data.encode("utf-8")
                     print "[generator] creating source object"
-                    Source.objects.create(order_id=order_id, source_text=source_data.encode("utf-8"), source_type="text")
+                    source_text = source_data.encode("utf-8") if len(source_data.encode("utf-8")) < max_source_text_length else None
+                    Source.objects.create(order_id=order_id, source_text=source_text, source_type="text")
                     print "[generator] created source object"
                     #save_text_to_file(source_data, toFileName(source_data, max_length=20))
                     locations.extend(extract_locations_from_text(source_data, case_insensitive=case_insensitive))
