@@ -5,7 +5,7 @@ from newspaper import Article
 from scrp import getTextContentViaMarionette, getRandomUserAgentString
 from requests import get
 
-def extract_locations_from_webpage(url, html=None, max_seconds=5):
+def extract_locations_from_webpage(url, html=None, max_seconds=5, debug_level=0):
   try:
 
     filename = url.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
@@ -25,10 +25,15 @@ def extract_locations_from_webpage(url, html=None, max_seconds=5):
         text = bnlp_clean(html)
 
 
+    if debug_level > 0: print "[extract_locations_from_webpage] text:", type(text)
     locations = extract_locations_with_context_from_html_tables(html)
+    if debug_level >0: print "[extract_locations_from_webpage] locations:", locations
     names_from_tables = [location['name'] for location in locations]
+    if debug_level > 0: print "[extract_locations_from_webpage] names_from_tables:", names_from_tables
 
-    for location in extract_locations_with_context(text, ignore_these_names=names_from_tables, debug=False, max_seconds=max_seconds-2):
+    locations_extracted_from_context = extract_locations_with_context(text, ignore_these_names=names_from_tables, debug=False, max_seconds=max_seconds-2)
+    print "locations_extracted_from_context:", locations_extracted_from_context
+    for location in locations_extracted_from_context:
         name = location['name']
         skip = False
         for l in locations:
