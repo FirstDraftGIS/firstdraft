@@ -3,6 +3,9 @@ from re import findall, IGNORECASE
 from table import extract_locations_from_tables
 from webpage import extract_locations_from_webpage
 
+# http://locallyoptimal.com/blog/2013/01/20/elegant-n-gram-generation-in-python/
+def find_ngrams(input_list, n):
+  return [" ".join(ngram) for ngram in zip(*[input_list[i:] for i in range(n)])]
 
 # we're just casting a wide net and extracting 
 # all the capitalized words and other words that follow rules
@@ -37,11 +40,19 @@ def extract_locations_from_text(text, case_insensitive=None, debug=True):
             #    names.append(possible_abbreviation)
 
         # doing this because sometimes get grammatically incorrect tweets
-        if len(text) < 1e5:
-            names.extend([word.strip().strip(",") for word in text.split()])
+        text_length = len(text)
+        if text_length < 1e5:
+            splat = text.split()
+            names.extend([word.strip().strip(",").strip(";").strip(".")  for word in splat])
+
+            if text_length < 500:
+                names.extend([ngram.strip().strip(",").strip(";").strip(".") for ngram in find_ngrams(splat, 2)])
 
         #filter out nonlocations again
         names = [name for name in names if name.lower() not in nonlocations and len(name) > 3]
+
+        # remove duplicates
+        names = list(set(names))
 
         try: print "names are yeah:", names
         except: pass
