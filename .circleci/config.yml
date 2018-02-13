@@ -1,25 +1,9 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: python:latest
-        environment:
-        - PG_HOST=localhost
-        - PG_USER=ubuntu
-      - image: circleci/postgres:9.5-alpine-postgis
+    machine: true
     steps:
       - checkout
-      - run:
-          name: install dockerize
-          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-          environment:
-            DOCKERIZE_VERSION: v0.3.0
-      - run:
-          name: Wait for db
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
-      - run:
-          name: Update Package Lists
-          command: apt-get update -qq
       - run:
           name: Build Docker
           command: docker -D build .
