@@ -6,11 +6,22 @@ WORKDIR /
 
 ADD . /firstdraft
 
+RUN apt-get update
+
+# Install add-apt-repository command and others
+RUN apt-get install -y software-properties-common
+
+# Install System Repositories
+RUN add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_repositories.md)
+
 # make sure have links to most recent version of system packages
 RUN apt-get update
 
 # install all system packages in system_requirements.md
-RUN apt-get install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md)
+RUN apt-get -q install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md)
+
+# Install Mapnik
+RUN bash firstdraft/bash_scripts/install_mapnik.sh
 
 # set environmental variables
 # so pip install works
@@ -22,20 +33,13 @@ ENV LANGUAGE en_US:en
 RUN curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | python3
 
 # just hedging incase version is old
-RUN pip install --upgrade pip
+RUN pip3 install --upgrade pip
 
 # install all Python requirements.txt
-RUN pip install -r firstdraft/requirements.txt
+RUN pip3 install -r firstdraft/requirements.txt
 
 # install scikit-learn after installed numpy and scipy
-RUN pip install -U scikit-learn
-
-RUN git clone -b python-2-head https://github.com/DanielJDufour/newspaper.git
-RUN pip install -e newspaper
-# need to reinstall six with upgrade because newspaper will install old version
-RUN pip install --upgrade six
-#https://stackoverflow.com/questions/38447738/beautifulsoup-html5lib-module-object-has-no-attribute-base
-RUN pip install html5lib==0.9999999
+RUN pip3 install -U scikit-learn
 
 # download NLTK data
 RUN python3 -c "import nltk; nltk.download('stopwords')"
@@ -59,9 +63,10 @@ RUN echo "Loading Unum Data"
 RUN cd /tmp && wget https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip && unzip conformed.tsv.zip
 RUN psql -f firstdraft/sql_scripts/unum/load.sql dbfd
 
+
 #CREATING INDEXES AND SQL FUNCTIONS
-RUN psql -f firstdraft/sql_scripts/calc_popularity.sql dbfd
-RUN psql -f firstdraft/sql_scripts/resolve.sql dbfd
+#RUN psql -f firstdraft/sql_scripts/calc_popularity.sql dbfd
+#RUN psql -f firstdraft/sql_scripts/resolve.sql dbfd
 
 # WHERE SHOULD I Create Maps Folder???
 # can I programatically generate via postgis toGeojson functionality and mapnik??
