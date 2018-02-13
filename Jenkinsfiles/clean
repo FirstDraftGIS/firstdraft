@@ -1,9 +1,0 @@
-echo "starting clean"
-
-node('ec2') {
-  stage "Clean"
-  sh 'wget https://raw.githubusercontent.com/FirstDraftGIS/firstdraft/master/bash_scripts/clean.sh -O /tmp/clean.sh'
-  sh 'sudo bash /tmp/clean.sh'
-}
-
-echo "finishing clean"

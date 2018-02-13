@@ -49,6 +49,8 @@ RUN service postgresql restart
 RUN psql -c "CREATE DATABASE dbfd;"
 
 RUN psql -c "CREATE EXTENSION unaccent; CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology; CREATE EXTENSION fuzzystrmatch; CREATE EXTENSION pg_trgm;" dbfd
+
+RUN echo "Creating and Installing safecast Extension"
 RUN git clone https://github.com/DanielJDufour/safecast
 RUN cd safecast && make install && make installcheck
 RUN psql -c "CREATE EXTENSION safecast" dbfd
@@ -56,13 +58,16 @@ RUN psql -c "CREATE EXTENSION safecast" dbfd
 
 RUN service postgresql restart
 
-RUN cd firstdraft/projfd && python3 manage.py makemigrations
-RUN cd firstdraft/projfd && python3 manage.py migrate
+RUN echo "Building Database Tables"
+RUN cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
 
 RUN echo "Loading Unum Data"
 RUN cd /tmp && wget https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip && unzip conformed.tsv.zip
 RUN psql -f firstdraft/sql_scripts/unum/load.sql dbfd
 
+RUN echo "Indexing Database"
+RUN echo "DB_INDEX = True" >> firstdraft/projfd/projfd/dynamic_settings.py 
+RUN cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
 
 #CREATING INDEXES AND SQL FUNCTIONS
 #RUN psql -f firstdraft/sql_scripts/calc_popularity.sql dbfd
