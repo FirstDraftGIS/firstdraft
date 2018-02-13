@@ -6,7 +6,7 @@ WORKDIR /
 
 ADD . /firstdraft
 
-RUN apt-get update
+RUN apt-get -qq update
 
 # Install add-apt-repository command and others
 RUN apt-get -qq install -y software-properties-common
