@@ -15,7 +15,7 @@ RUN apt-get -qq install -y software-properties-common
 RUN add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_repositories.md)
 
 # make sure have links to most recent version of system packages
-RUN apt-get update
+RUN apt-get -qq update
 
 # install all system packages in system_requirements.md
 RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md)
