@@ -9,7 +9,7 @@ ADD . /firstdraft
 RUN apt-get -qq update
 
 # Install add-apt-repository command and others
-RUN apt-get -qq install -y software-properties-common
+RUN apt-get -qq install -y software-properties-common | grep -v "^[(Selecting)|(Preparing)|(Unpacking)]"
 
 # Install System Repositories
 RUN add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_repositories.md)
@@ -18,7 +18,7 @@ RUN add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_repo
 RUN apt-get -qq update
 
 # install all system packages in system_requirements.md
-RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md)
+RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md)  | grep -v "^[(Selecting)|(Preparing)|(Unpacking)]"
 
 # Install Mapnik
 RUN bash firstdraft/bash_scripts/install_mapnik.sh

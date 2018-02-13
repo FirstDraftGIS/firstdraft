@@ -83,3 +83,4 @@ projfd/appfd/scripts/ai/lsi/dictionary
 projfd/appfd/scripts/ai/data/*
 projfd/static/bower_components/*
 node_modules/
+*.pickle
