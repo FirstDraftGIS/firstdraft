@@ -1,3 +1,5 @@
+TRUNCATE TABLE appfd_place CASCADE;
+
 /* takes about 7 minutes */
 COPY appfd_place FROM '/tmp/conformed.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '');
 
