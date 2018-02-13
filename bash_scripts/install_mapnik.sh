@@ -12,4 +12,4 @@ source bootstrap.sh
 ./configure CUSTOM_CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0" CXX=${CXX} CC=${CC}
 make
 make test
-sudo make install
+make install
