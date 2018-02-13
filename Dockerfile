@@ -18,7 +18,7 @@ RUN add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_repo
 RUN apt-get update
 
 # install all system packages in system_requirements.md
-RUN apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md)
+RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md)
 
 # Install Mapnik
 RUN bash firstdraft/bash_scripts/install_mapnik.sh
