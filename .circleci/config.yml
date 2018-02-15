@@ -35,7 +35,7 @@ jobs:
       - run:
           name: Upgrade Pip
           command:  pip install -q --upgrade pip
-      - run: python --version
+      - run: python3 --version
       - run: 
           name: Install Python Requirements
           command: pip install -r requirements.txt
