@@ -2,7 +2,7 @@ FROM ubuntu:latest
 
 MAINTAINER First Draft GIS, LLC
 
-WORKDIR /
+WORKDIR ~/
 
 ADD . /firstdraft
 
@@ -18,10 +18,10 @@ RUN add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_repo
 RUN apt-get -qq update
 
 # install all system packages in system_requirements.md
-RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md)  | grep -v "^[(Adding)|(Enabling)|(Selecting)|(Preparing)|(Unpacking)]"
+RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md)  | grep -v "^[(Adding)|(Enabling)|(Selecting)|(Preparing)|(Unpacking)|(update-alternatives)]"
 
 # Install Mapnik
-RUN bash firstdraft/bash_scripts/install_mapnik.sh
+#RUN bash firstdraft/bash_scripts/install_mapnik.sh
 
 # set environmental variables
 # so pip install works
@@ -33,20 +33,21 @@ ENV LANGUAGE en_US:en
 RUN curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | python3
 
 # just hedging incase version is old
-RUN pip3 install -q --upgrade pip
+RUN pip3 install --upgrade pip
 
 # install all Python requirements.txt
-RUN pip3 install -q -r firstdraft/requirements.txt
+RUN pip3 install -r firstdraft/requirements.txt
 
 # install scikit-learn after installed numpy and scipy
-RUN pip3 install -q -U scikit-learn
+RUN pip3 install -U scikit-learn
 
 # download NLTK data
 RUN python3 -c "import nltk; nltk.download('stopwords')"
 
 RUN service postgresql restart
 
-RUN psql -c "CREATE DATABASE dbfd;"
+
+RUN bash firstdraft/bash_scripts/setup_database.sh
 
 RUN psql -c "CREATE EXTENSION unaccent; CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology; CREATE EXTENSION fuzzystrmatch; CREATE EXTENSION pg_trgm;" dbfd
 
@@ -83,3 +84,6 @@ RUN echo "finished building docker container"
 
 
 EXPOSE 80
+
+
+# DEBUG WITH docker run --rm -it d9e56bffd6f5 sh 
