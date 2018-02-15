@@ -34,13 +34,13 @@ jobs:
           command: curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | python3
       - run:
           name: Upgrade Pip
-          command:  pip3 install -q --upgrade pip
+          command:  pip install -q --upgrade pip
       - run: 
           name: Install Python Requirements
-          command: pip3 install -q -r requirements.txt
+          command: pip install -q -r requirements.txt
       - run:
           name: Install scikit-learn
-          command: pip3 install -q -U scikit-learn
+          command: pip install -q -U scikit-learn
       - run:
           name: Download NLTK Data
           command: python3 -c "import nltk; nltk.download('stopwords')"
