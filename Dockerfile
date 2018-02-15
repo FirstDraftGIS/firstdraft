@@ -9,7 +9,7 @@ ADD . /firstdraft
 RUN apt-get -qq update
 
 # Install add-apt-repository command and others
-RUN apt-get -qq install -y software-properties-common | grep -v "^[(Selecting)|(Preparing)|(Unpacking)]"
+RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y software-properties-common | grep -v "^[(Selecting)|(Preparing)|(Unpacking)]"
 
 # Install System Repositories
 RUN add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_repositories.md)
