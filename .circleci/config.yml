@@ -1,7 +1,6 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/
     docker:
       - image: python:latest
         environment:
@@ -14,10 +13,10 @@ jobs:
           name: Update Repository List
           command: apt-get -qq update
       - run: apt-get -qq install -y software-properties-common
-      - run: add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_repositories.md)
+      - run: add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' system_repositories.md)
       - run: apt-get -qq update
-      - run: DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md) 
-      - run: bash firstdraft/bash_scripts/install_mapnik.sh
+      - run: DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' system_requirements.md) 
+      - run: bash bash_scripts/install_mapnik.sh
       - run:
           name: Set Up Environmental Variables
           command: |
@@ -32,7 +31,7 @@ jobs:
           command:  pip3 install -q --upgrade pip
       - run: 
           name: Install Python Requirements
-          command: pip3 install -q -r firstdraft/requirements.txt
+          command: pip3 install -q -r requirements.txt
       - run:
           name: Install scikit-learn
           command: pip3 install -q -U scikit-learn
@@ -46,29 +45,39 @@ jobs:
           name: Create Database
           command: psql -c "CREATE DATABASE dbfd"
       - run:
-          name: Create Extensions
-          command: |
-            git clone https://github.com/DanielJDufour/safecast
-            cd safecast && make install && make installcheck
-            psql -c "$(awk 'NR>=3 { printf "CREATE EXTENSION " $2 "; " }' firstdraft/postgresql_extensions.md)" dbfd;
-            cd /
+          name: Download Safecast
+          working_directory: ~/
+          command: git clone https://github.com/DanielJDufour/safecast
+      - run:
+          name: Make Safecast
+          working_directory: ~/safecast
+          command: make install && make installcheck
+      - run:
+          name: Create PostgreSQL Extensions
+          working_directory: /tmp    
+          command: psql -c "$(awk 'NR>=3 { printf "CREATE EXTENSION " $2 "; " }' postgresql_extensions.md)" dbfd;            
       - run:
           name: Restart PostgreSQL
           command: service postgresql restart
       - run:
           name: Building Database Tables
-          command: cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
+          working_directory: ~/firstdraft/projfd
+          command: python3 manage.py makemigrations && python3 manage.py migrate
       - run:
           name: Download Unum Gazetteer Data
-          command: cd /tmp && wget https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip && unzip conformed.tsv.zip
+          working_directory: /tmp
+          command: wget https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip && unzip conformed.tsv.zip
       - run:
           name: Load Unum into Database
           command: psql -f firstdraft/sql_scripts/unum/load.sql dbfd
       - run:
+          name: Enable Indexing
+          working_directory: ~/firstdraft/projfd/projfd
+          command: echo "DB_INDEX = True" >> dynamic_settings.py
+      - run:
           name: Index Database
-          command: | 
-            echo "DB_INDEX = True" >> firstdraft/projfd/projfd/dynamic_settings.py && 
-            cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
+          working_directory: ~/firstdraft/projfd
+          command: python3 manage.py makemigrations && python3 manage.py migrate
         
 
 
