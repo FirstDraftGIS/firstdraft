@@ -13,8 +13,12 @@ jobs:
           name: Update Repository List
           command: apt-get -qq update
       - run: apt-get -qq install -y software-properties-common
-      - run: add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' system_repositories.md)
-      - run: apt-get -qq update
+      - run:
+          name: Install Additional Apt Repositories
+          command: add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' system_repositories.md)
+      - run:
+          name: Update Repository List
+          command: apt-get -qq update
       - run: DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' system_requirements.md) 
       - run: bash bash_scripts/install_mapnik.sh
       - run:
