@@ -45,10 +45,10 @@ jobs:
       - run:
         - name: Create Extensions
         - command: |
-          git clone https://github.com/DanielJDufour/safecast
-          cd safecast && make install && make installcheck
-          psql -c "$(awk 'NR>=3 { printf "CREATE EXTENSION " $2 "; " }' firstdraft/postgresql_extensions.md)" dbfd;
-          cd /
+            git clone https://github.com/DanielJDufour/safecast
+            cd safecast && make install && make installcheck
+            psql -c "$(awk 'NR>=3 { printf "CREATE EXTENSION " $2 "; " }' firstdraft/postgresql_extensions.md)" dbfd;
+            cd /
       - run:
         - name: Restart PostgreSQL
         - command: service postgresql restart
@@ -64,8 +64,8 @@ jobs:
       - run:
         - name: Index Database
         - command: | 
-          echo "DB_INDEX = True" >> firstdraft/projfd/projfd/dynamic_settings.py && 
-          cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
+            echo "DB_INDEX = True" >> firstdraft/projfd/projfd/dynamic_settings.py && 
+            cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
         
 
 
