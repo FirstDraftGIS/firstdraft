@@ -48,8 +48,7 @@
 | postgresql-contrib   | |
 | postgresql-server-dev-all | |
 | ^postgresql-[0-9].[0-9]-postgis-[0-9].[0-9]$ | PostGIS |
-| python               | |
-| python-dev           | |
+| python3.6            | |
 | software-properties-common | adds add-apt-repository command used by Mapnik installation |
 | vim                  | text editing |
 | zip                  | |
