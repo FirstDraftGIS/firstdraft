@@ -22,7 +22,7 @@ jobs:
       - run:
           name: Install Apt Packages
           command: DEBIAN_FRONTEND=noninteractive apt-get install -y $(awk 'NR>=3 { printf $2 " " }' system_requirements.md) 
-      - run: bash bash_scripts/install_mapnik.sh
+      #- run: bash bash_scripts/install_mapnik.sh
       - run:
           name: Set Up Environmental Variables
           command: |
