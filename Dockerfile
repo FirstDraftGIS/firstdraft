@@ -18,7 +18,7 @@ RUN add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_repo
 RUN apt-get -qq update
 
 # install all system packages in system_requirements.md
-RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md)  | grep -v "^[(Selecting)|(Preparing)|(Unpacking)]"
+RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md)  | grep -v "^[(Adding)|(Enabling)|(Selecting)|(Preparing)|(Unpacking)]"
 
 # Install Mapnik
 RUN bash firstdraft/bash_scripts/install_mapnik.sh
@@ -33,13 +33,13 @@ ENV LANGUAGE en_US:en
 RUN curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | python3
 
 # just hedging incase version is old
-RUN pip3 install --upgrade pip
+RUN pip3 install -q --upgrade pip
 
 # install all Python requirements.txt
-RUN pip3 install -r firstdraft/requirements.txt
+RUN pip3 install -q -r firstdraft/requirements.txt
 
 # install scikit-learn after installed numpy and scipy
-RUN pip3 install -U scikit-learn
+RUN pip3 install -q -U scikit-learn
 
 # download NLTK data
 RUN python3 -c "import nltk; nltk.download('stopwords')"
