@@ -9,63 +9,65 @@ jobs:
       - image: circleci/postgres:9.5-alpine-postgis
     steps:
       - checkout
-      - run: apt-get -qq update
+      - run:
+          name: Update Repository List
+          command: apt-get -qq update
       - run: apt-get -qq install -y software-properties-common
       - run: add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_repositories.md)
       - run: apt-get -qq update
       - run: DEBIAN_FRONTEND=noninteractive apt-get -qq install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md) 
       - run: bash firstdraft/bash_scripts/install_mapnik.sh
       - run:
-        name: Set Up Environmental Variables
-        command: |
-          locale-gen en_US.UTF-8
-          export LANG=en_US.UTF-8
-          export LANGUAGE=en_US:en
+          name: Set Up Environmental Variables
+          command: |
+            locale-gen en_US.UTF-8
+            export LANG=en_US.UTF-8
+            export LANGUAGE=en_US:en
       - run:
-        name: Install Pip
-        command: curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | python3
+          name: Install Pip
+          command: curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | python3
       - run:
-        name: Upgrade Pip
-        command:  pip3 install -q --upgrade pip
+          name: Upgrade Pip
+          command:  pip3 install -q --upgrade pip
       - run: 
-        name: Install Python Requirements
-        command: pip3 install -q -r firstdraft/requirements.txt
+          name: Install Python Requirements
+          command: pip3 install -q -r firstdraft/requirements.txt
       - run:
-        name: Install scikit-learn
-        command: pip3 install -q -U scikit-learn
+          name: Install scikit-learn
+          command: pip3 install -q -U scikit-learn
       - run:
-        name: Download NLTK Data
-        command: python3 -c "import nltk; nltk.download('stopwords')"
+          name: Download NLTK Data
+          command: python3 -c "import nltk; nltk.download('stopwords')"
       - run:
-        name: Restart PostgreSQL
-        command: service postgresql restart
+          name: Restart PostgreSQL
+          command: service postgresql restart
       - run:
-        name: Create Database
-        command: psql -c "CREATE DATABASE dbfd"
+          name: Create Database
+          command: psql -c "CREATE DATABASE dbfd"
       - run:
-        name: Create Extensions
-        command: |
-          git clone https://github.com/DanielJDufour/safecast
-          cd safecast && make install && make installcheck
-          psql -c "$(awk 'NR>=3 { printf "CREATE EXTENSION " $2 "; " }' firstdraft/postgresql_extensions.md)" dbfd;
-          cd /
+          name: Create Extensions
+          command: |
+            git clone https://github.com/DanielJDufour/safecast
+            cd safecast && make install && make installcheck
+            psql -c "$(awk 'NR>=3 { printf "CREATE EXTENSION " $2 "; " }' firstdraft/postgresql_extensions.md)" dbfd;
+            cd /
       - run:
-        name: Restart PostgreSQL
-        command: service postgresql restart
+          name: Restart PostgreSQL
+          command: service postgresql restart
       - run:
-        name: Building Database Tables
-        command: cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
+          name: Building Database Tables
+          command: cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
       - run:
-        name: Download Unum Gazetteer Data
-        command: cd /tmp && wget https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip && unzip conformed.tsv.zip
+          name: Download Unum Gazetteer Data
+          command: cd /tmp && wget https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip && unzip conformed.tsv.zip
       - run:
-        name: Load Unum into Database
-        command: psql -f firstdraft/sql_scripts/unum/load.sql dbfd
+          name: Load Unum into Database
+          command: psql -f firstdraft/sql_scripts/unum/load.sql dbfd
       - run:
-        name: Index Database
-        command: | 
-          echo "DB_INDEX = True" >> firstdraft/projfd/projfd/dynamic_settings.py && 
-          cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
+          name: Index Database
+          command: | 
+            echo "DB_INDEX = True" >> firstdraft/projfd/projfd/dynamic_settings.py && 
+            cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
         
 
 
