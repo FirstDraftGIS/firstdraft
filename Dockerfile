@@ -2,7 +2,7 @@ FROM ubuntu:latest
 
 MAINTAINER First Draft GIS, LLC
 
-WORKDIR ~/
+WORKDIR /
 
 ADD . /firstdraft
 
@@ -12,7 +12,7 @@ RUN apt-get -qq update
 RUN DEBIAN_FRONTEND=noninteractive apt-get -qq install -y software-properties-common | grep -v "^[(Selecting)|(Preparing)|(Unpacking)]"
 
 # Install System Repositories
-RUN add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_repositories.md)
+RUN add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' /firstdraft/system_repositories.md)
 
 # make sure have links to most recent version of system packages
 RUN apt-get -qq update
@@ -36,7 +36,7 @@ RUN curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | 
 RUN pip3 install --upgrade pip
 
 # install all Python requirements.txt
-RUN pip3 install -r firstdraft/requirements.txt
+RUN pip3 install -r /firstdraft/requirements.txt
 
 # install scikit-learn after installed numpy and scipy
 RUN pip3 install -U scikit-learn
@@ -44,20 +44,7 @@ RUN pip3 install -U scikit-learn
 # download NLTK data
 RUN python3 -c "import nltk; nltk.download('stopwords')"
 
-RUN service postgresql restart
-
-
-RUN bash firstdraft/bash_scripts/setup_database.sh
-
-RUN psql -c "CREATE EXTENSION unaccent; CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology; CREATE EXTENSION fuzzystrmatch; CREATE EXTENSION pg_trgm;" dbfd
-
-RUN echo "Creating and Installing safecast Extension"
-RUN git clone https://github.com/DanielJDufour/safecast
-RUN cd safecast && make install && make installcheck
-RUN psql -c "CREATE EXTENSION safecast" dbfd
-
-
-RUN service postgresql restart
+RUN bash /firstdraft/bash_scripts/setup_database.sh
 
 RUN echo "Building Database Tables"
 RUN cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
