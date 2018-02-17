@@ -1,5 +1,5 @@
 #-*- coding: utf-8 -*-
-from base import Base
+from .base import Base
 
 from datetime import datetime
 from django.core.validators import RegexValidator
@@ -10,10 +10,10 @@ from pytz import utc
 from shutil import rmtree
 
 # import other models
-from activation import Activation
-from alert import Alert
-from order import Order
-from place import Place
+from .activation import Activation
+from .alert import Alert
+from .order import Order
+from .place import Place
 
 #class Account(Model):
 #    max_orders = IntegerField() # the maximum number of order this account can make per month
@@ -53,7 +53,7 @@ class Basemap(Base):
 class CountryCodeRank(Base):
     country_code = CharField(max_length=10)
     rank = IntegerField(null=True)
-    order = ForeignKey("order", to_field="token")
+    order = ForeignKey("order", to_field="token", on_delete=CASCADE)
 
     class Meta:
         unique_together = (("country_code","order"))
@@ -73,8 +73,8 @@ class Alias(Base):
         return self.alias.encode("utf-8")
 
 class AliasPlace(Base):
-    alias = ForeignKey('Alias')
-    place = ForeignKey('Place')
+    alias = ForeignKey('Alias', on_delete=CASCADE)
+    place = ForeignKey('Place', on_delete=CASCADE)
 
     class Meta:
         unique_together = (("alias","place"))
@@ -85,10 +85,10 @@ class Email(Base):
     entered = DateTimeField(auto_now_add=True)
 
 class MetaData(Base):
-    order = ForeignKey("Order")
+    order = ForeignKey("Order", on_delete=CASCADE)
 
 class MetaDataEntry(Base):
-    metadata = ForeignKey("Metadata")
+    metadata = ForeignKey("Metadata", on_delete=CASCADE)
     key = CharField(max_length=255)
     value = TextField(max_length=2000)
 
@@ -97,14 +97,14 @@ class MetaDataEntry(Base):
 
 ### this is what consitutes the FeatureCollection of the map
 class Feature(Base):
-    order = ForeignKey("Order")
+    order = ForeignKey("Order", on_delete=CASCADE)
     count = IntegerField(null=True) # number of times the thing was mentioned in the text
     end = DateTimeField(null=True)
     name = CharField(max_length=255)
     geometry_used = CharField(max_length=100, default="Point") #"Point", "Polygon" or "Point & Polygon"
     start = DateTimeField(null=True)
     text = TextField(max_length=1000, null=True)
-    topic = ForeignKey("Topic", null=True)
+    topic = ForeignKey("Topic", null=True, on_delete=SET_NULL)
     verified = BooleanField(default=False) # has a user verified this... we just go by whether a user has taken an action that implies they verified this such as downloading the map or clicking share
     # should probably include some styling information at some point
     # maybe should add in info about whether use point or polygon info
@@ -112,8 +112,8 @@ class Feature(Base):
         return str([self.order.token + "|" + self.name])
 
 class FeaturePlace(Base):
-    feature = ForeignKey("Feature")
-    place = ForeignKey("Place")
+    feature = ForeignKey("Feature", on_delete=CASCADE)
+    place = ForeignKey("Place", on_delete=CASCADE)
     cluster_frequency = FloatField(null=True)
     confidence = DecimalField(max_digits=5, decimal_places=4)
     country_rank = IntegerField(null=True)
@@ -130,12 +130,12 @@ try:
 except:
     default_basemap_id = -1
 class MapStyle(Base):
-    basemap = ForeignKey("Basemap", default=default_basemap_id)
+    basemap = ForeignKey("Basemap", default=default_basemap_id, on_delete=SET_NULL)
 
 
 class ParentChild(Base):
-    parent = ForeignKey('Place', related_name="parentplace")
-    child = ForeignKey('Place', related_name="subplace")
+    parent = ForeignKey('Place', related_name="parentplace", on_delete=CASCADE)
+    child = ForeignKey('Place', related_name="subplace", on_delete=CASCADE)
 
     #makes sure we can't repeat parent child in db
     class Meta:
@@ -143,7 +143,7 @@ class ParentChild(Base):
 
 # this is the source data, not the attribution
 class Source(Base):
-    order = ForeignKey("order")
+    order = ForeignKey("order", on_delete=CASCADE)
     source_text = CharField(max_length=2000, null=True)
     source_type = CharField(max_length=200)
     source_url = URLField(max_length=2000, null=True)
@@ -157,7 +157,7 @@ class Source(Base):
         return representation 
 
 class Style(Base):
-    feature = ForeignKey("feature")
+    feature = ForeignKey("feature", on_delete=CASCADE)
     fill = CharField(max_length=30, null=True)
     fillOpacity = FloatField(null=True)
     label = BooleanField(default=False)

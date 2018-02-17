@@ -1,1 +1,1 @@
-DEBIAN_FRONTEND=noninteractive apt-get install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md); #  | grep -v "^[(Adding)|(Enabling)|(Selecting)|(Preparing)|(Unpacking)|(update-alternatives)]"
+DEBIAN_FRONTEND=noninteractive apt-get -q install -y $(awk 'NR>=3 { printf $2 " " }' firstdraft/system_requirements.md) | grep -v "^[(Get)|(Adding)|(Enabling)|(Selecting)|(Preparing)|(Unpacking)|(update)]";

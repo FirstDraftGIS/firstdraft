@@ -20,5 +20,6 @@
 **/*.sw*
 temp
 data
+Dockerfile
 storage
 examples

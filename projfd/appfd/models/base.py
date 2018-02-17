@@ -1,5 +1,5 @@
 #-*- coding: utf-8 -*-
-from django.contrib.gis.db.models import *
+from django.contrib.gis.db.models import DateTimeField, Model
 
 class Base(Model):
 

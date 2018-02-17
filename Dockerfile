@@ -4,50 +4,29 @@ MAINTAINER First Draft GIS, LLC
 
 WORKDIR /
 
+RUN apt-get -qq update
+
 ADD . /firstdraft
 
-RUN apt-get -qq update
-
-# Install add-apt-repository command and others
 RUN bash firstdraft/bash_scripts/install_software_properties_common.sh
 
-# Install System Repositories
-RUN bash /firstdraft/bash_scripts/add_apt_repos.sh
+RUN bash firstdraft/bash_scripts/add_apt_repos.sh
 
-# make sure have links to most recent version of system packages
 RUN apt-get -qq update
 
-# install all system packages in system_requirements.md
-RUN bash /firstdraft/bash_scripts/install_system_packages.sh
+RUN bash firstdraft/bash_scripts/install_system_packages.sh
 
-# Install Mapnik
 #RUN bash firstdraft/bash_scripts/install_mapnik.sh
 
-# set environmental variables
-# so pip install works
-RUN locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
+RUN bash firstdraft/bash_scripts/install_python_packages.sh
 
-# install pip
-RUN curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | python3
+RUN bash firstdraft/bash_scripts/setup_database.sh
 
-# just hedging incase version is old
-RUN pip3 install --upgrade pip
+# make migrations
+RUN cd firstdraft/projfd && python3 manage.py makemigrations
 
-# install all Python requirements.txt
-RUN pip3 install -r /firstdraft/requirements.txt
-
-# install scikit-learn after installed numpy and scipy
-RUN pip3 install -U scikit-learn
-
-# download NLTK data
-RUN python3 -c "import nltk; nltk.download('stopwords')"
-
-RUN bash /firstdraft/bash_scripts/setup_database.sh
-
-RUN echo "Building Database Tables"
-RUN cd firstdraft/projfd && python3 manage.py makemigrations && python3 manage.py migrate
+# migrate
+RUN cd firstdraft/projfd && python3 manage.py migrate
 
 RUN echo "Loading Unum Data"
 RUN cd /tmp && wget https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip && unzip conformed.tsv.zip

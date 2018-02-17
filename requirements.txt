@@ -39,7 +39,7 @@ numpy
 openpyxl
 pandas
 Pillow
-psycopg2
+psycopg2-binary
 PyPDF2
 pyproj
 git+git://github.com/GeospatialPython/pyshp

@@ -3,7 +3,7 @@ import getpass, imp, os
 from django.utils.crypto import get_random_string
 from subprocess import check_output
 
-from dynamic_settings import *
+from .dynamic_settings import *
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SETTINGS_DIR = os.path.dirname(__file__)

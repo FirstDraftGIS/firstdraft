@@ -1,17 +1,23 @@
 #-*- coding: utf-8 -*-
-from base import Base
-from django.contrib.gis.db.models import *
-from postgres_copy import CopyManager
+from .base import Base
+from django.contrib.gis.db.models import BigIntegerField
+from django.contrib.gis.db.models import CharField
+from django.contrib.gis.db.models import FloatField
+from django.contrib.gis.db.models import ForeignKey
+from django.contrib.gis.db.models import IntegerField
+from django.contrib.gis.db.models import Manager as GeoManager
+from django.contrib.gis.db.models import MultiLineStringField
+from django.contrib.gis.db.models import MultiPolygonField
+from django.contrib.gis.db.models import PointField
+from django.contrib.gis.db.models import SET_NULL
+from django.contrib.gis.db.models import TextField
 from projfd.settings import SETTINGS_DIR
 
 # Default indexing of database to false.
 DB_INDEX = False
 
-# override default indexing of databse if appropriate
+# override default indexing of database if appropriate
 from projfd.dynamic_settings import *
-
-#class CustomManager(CopyManager, GeoManager):
-#    pass
 
 class Place(Base):
 
@@ -53,8 +59,6 @@ class Place(Base):
 
     # geometries
     objects = GeoManager()
-    #objects_copy = CopyManager()
-    #objects = CustomManager()
     latitude = FloatField(null=True, blank=True)
     longitude = FloatField(null=True, blank=True)
     mls = MultiLineStringField(null=True, blank=True)
@@ -87,7 +91,7 @@ class Place(Base):
     # number of times name appeared and meant this place minus number of times didn't mean this place
     popularity = BigIntegerField(null=True, blank=True)
     timezone = CharField(max_length=30, null=True, blank=True, db_index=DB_INDEX)
-    topic = ForeignKey("Topic", null=True) # represents the most common topic associated with this place
+    topic = ForeignKey("Topic", null=True, on_delete=SET_NULL) # represents the most common topic associated with this place
 
     class Meta:
         ordering = ['name']
