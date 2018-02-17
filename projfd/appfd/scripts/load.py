@@ -13,7 +13,7 @@ from django.utils.encoding import force_text
 #from location_extractor import extract_locations
 from language_detector import detect_language
 from numpy import median
-import os, urllib, zipfile
+import os, urllib.request, urllib.parse, urllib.error, zipfile
 import shutil
 from os import listdir, mkdir, remove
 from os.path import isdir, isfile
@@ -22,8 +22,9 @@ from re import search as re_search
 from random import shuffle
 from requests import get, head
 from subprocess import call
-from urllib import urlretrieve, unquote
-from urlparse import urlparse
+from urllib.request import urlretrieve
+from urllib.parse import unquote
+from urllib.parse import urlparse
 from bnlp import trim_location
 from super_python import *
 from sys import exit
@@ -33,20 +34,20 @@ from django.utils.crypto import get_random_string
 
 def get_matching_place(fields):
   try:
-    print "\nstarting get_matching_place with", fields
+    print("\nstarting get_matching_place with", fields)
     # look up place and see if one is nearby or whatever
     matches_via_name_and_cc = Place.objects.filter(name=fields['name'], country_code=fields['country_code']).distinct() if "country_code" in fields else None
     if matches_via_name_and_cc:
-        print "\tmatches via name and country code:", matches_via_name_and_cc
+        print("\tmatches via name and country code:", matches_via_name_and_cc)
 
         # match via same exact point
         matches_via_point = matches_via_name_and_cc.filter(point=fields['point']).distinct()
         if matches_via_point:
-            print "\tmatches_via_point:", matches_via_point
+            print("\tmatches_via_point:", matches_via_point)
             if fields['admin_level']:
                 matches_via_admin_level = matches_via_point.filter(admin_level=fields['admin_level']).distinct()
                 if matches_via_admin_level:
-                    print "\tmatches_via_admin_level:", matches_via_admin_level
+                    print("\tmatches_via_admin_level:", matches_via_admin_level)
                     return matches_via_admin_level[0]
             else:
                 matches_with_admin_level_3 = matches_via_point.filter(admin_level=3).distinct()
@@ -58,22 +59,22 @@ def get_matching_place(fields):
         if 'mpoly' in fields and fields['mpoly']:
             matches_inside_mpoly = matches_via_name_and_cc.filter(point__within=fields['mpoly']).distinct()
             if matches_inside_mpoly:
-                print "\tmatches inside mpoly:", matches_inside_mpoly
+                print("\tmatches inside mpoly:", matches_inside_mpoly)
                 if 'admin_level' in fields and fields['admin_level']:
                     matches_via_admin_level = matches_inside_mpoly.filter(admin_level=fields['admin_level'])
                     if matches_via_admin_level:
-                        print "\tmatches_via_admin_level:", matches_via_admin_level
+                        print("\tmatches_via_admin_level:", matches_via_admin_level)
                         return matches_via_admin_level[0]
-                print "should return whichever one is closest to the point"
+                print("should return whichever one is closest to the point")
                 return matches_inside_mpoly.distance(fields['point']).order_by('distance')[0]
 
         matches_via_distance = matches_via_name_and_cc.filter(point__distance_lt=(fields['point'], D(m=5)))
         if matches_via_distance:
-            print "matches_via_distance:", matches_via_distance
+            print("matches_via_distance:", matches_via_distance)
             if "admin_level" in fields and fields['admin_level']:
                 matches_via_admin_level = matches_via_distance.filter(admin_level=fields['admin_level'])
                 if matches_via_admin_level:
-                    print "\tmatches_via_admin_level:", matches_via_admin_level
+                    print("\tmatches_via_admin_level:", matches_via_admin_level)
                     return matches_via_admin_level.distance(fields['point']).order_by('distance')[0]
             else:
                 matches_with_admin_level_3 = matches_via_point.filter(admin_level=3)
@@ -84,9 +85,9 @@ def get_matching_place(fields):
 
         # should probably do something with levenstein distance filter and edit distance filter
         
-    print "no matches"
+    print("no matches")
   except Exception as e:
-    print "CAUGHT exception in get_matching_place with:", e
+    print("CAUGHT exception in get_matching_place with:", e)
     raise e
 
 def get_values_list(layer, field, max_errors=0.05):
@@ -102,7 +103,7 @@ def get_values_list(layer, field, max_errors=0.05):
             errors += 1
         if isinstance(value, str):
             value.append(value.decode("utf-8").lower())
-        elif isinstance(value, unicode):
+        elif isinstance(value, str):
             values.append(value.lower())
         else:
             values.append(value)
@@ -111,13 +112,13 @@ def get_values_list(layer, field, max_errors=0.05):
 
     return values
   except Exception as e:
-    print "CAUGHT EXCEPTION IN get_values_list:", e
+    print("CAUGHT EXCEPTION IN get_values_list:", e)
     raise e
  
 
 
 def get_admin_level_from_string(string):
-    print "starting get_ad...", string
+    print("starting get_ad...", string)
     string_lower = string.lower()
     if any([text in string_lower for text in ["admin 1", "admin1", "adm1", "shabiya"] ]):
         return 1
@@ -164,8 +165,8 @@ def describe_layer_fields(layer):
 
 @superfy
 def get_area_field(layer, fields, field_types):
-    print fields
-    print field_types
+    print(fields)
+    print(field_types)
     candidates = []
     for i, field in enumerate(fields):
         field = fields[i]
@@ -236,7 +237,7 @@ def get_name_and_alias_fields(layer, fields, field_types):
 
     if name_fields:
         name_fields_in_english = [name_field for name_field in name_fields if name_field['language'] == "English"]
-        print "name_fields_in_english = ", name_fields_in_english
+        print("name_fields_in_english = ", name_fields_in_english)
         primary_name_field = name_fields_in_english[0] if name_fields_in_english else name_fields[0]
         primary_name = primary_name_field['name']
         alias_fields = [name_field for name_field in name_fields if name_field != primary_name_field]
@@ -247,9 +248,9 @@ def get_name_and_alias_fields(layer, fields, field_types):
 
 @superfy
 def get_name_fields(layer, fields, field_types, min_completeness=0.8, min_uniqueness=0.8):
-    print "starting get_name_field with:"
-    print fields
-    print field_types
+    print("starting get_name_field with:")
+    print(fields)
+    print(field_types)
     name_fields = []
     for i, field in enumerate(fields):
         field = fields[i]
@@ -267,16 +268,16 @@ def get_name_fields(layer, fields, field_types, min_completeness=0.8, min_unique
     # sort namefields by uniqueness
     name_fields = sorted(name_fields, key = lambda namefield: -1*namefield["uniqueness"])
 
-    print "name_fields are", name_fields
+    print("name_fields are", name_fields)
     return name_fields
 
 
 def parse_layer(layer):
-    print "starting parse_layer with ", layer
+    print("starting parse_layer with ", layer)
 
     fields = layer.fields
     field_types = [ft.__name__ for ft in layer.field_types]
-    print "field_types are", field_types
+    print("field_types are", field_types)
     d = {}
     pcodes = []
 
@@ -298,7 +299,7 @@ def parse_layer(layer):
 
     for i, field in enumerate(fields):
         field = fields[i]
-        print "field is", field
+        print("field is", field)
         field_lower = field.lower()
         field_type = field_types[i]
         values_list = get_values_list(layer, field)
@@ -333,14 +334,14 @@ def parse_layer(layer):
         pcodes = sorted(pcodes, key=lambda tup: -1*tup[1])
         d['parent_pcode'] = [fieldname for fieldname, uniquenes in pcodes][0]
 
-    print "d is", d
+    print("d is", d)
     return d
 
 def get_country_code_from_shuffled_features(features):
     country_codes = set()
     for feature in features[:20]:
         geom = feature.geom
-        geom.transform(u'+proj=longlat +datum=WGS84 +no_defs ')
+        geom.transform('+proj=longlat +datum=WGS84 +no_defs ')
         geos = geom.geos
         if isinstance(geos, Point):
             point = geos
@@ -356,40 +357,40 @@ def get_country_code_from_shuffled_features(features):
         return country_codes.pop()
 
 def download(url, path_to_directory):
-    print "starting download with", url, path_to_directory
+    print("starting download with", url, path_to_directory)
     if "geoserver/wfs" in url:
         filename = unquote(search("(?<=typename=)[^&]*",url).group(0)).replace(":","_")
         extension = "zip"
         filename_with_extension = filename + "." + extension
     else:
         filename_with_extension = unquote(url.split("?")[0].split("/")[-1])
-        print "filename_with_extension = ", filename_with_extension
+        print("filename_with_extension = ", filename_with_extension)
         filename = filename_with_extension.split(".")[0]
         
-    print "filename is", filename
-    print "filename_with_extension = ", filename_with_extension
+    print("filename is", filename)
+    print("filename_with_extension = ", filename_with_extension)
     path_to_directory_of_downloadable = path_to_directory + "/" + filename
     if not isdir(path_to_directory_of_downloadable):
         mkdir(path_to_directory_of_downloadable)
     path_to_downloaded_file = path_to_directory_of_downloadable + "/" + filename_with_extension
     if not isfile(path_to_downloaded_file):
-        print "url:", url
-        print "path_to_downloaded_file:", path_to_downloaded_file
+        print("url:", url)
+        print("path_to_downloaded_file:", path_to_downloaded_file)
         urlretrieve(url, path_to_downloaded_file)
-        print "saved file to ", path_to_downloaded_file
+        print("saved file to ", path_to_downloaded_file)
     if path_to_downloaded_file.endswith("zip"):         
         if is_zipfile(path_to_downloaded_file):    
             with zipfile.ZipFile(path_to_downloaded_file, "r") as z:
                 z.extractall(path_to_directory_of_downloadable)
-                print "unzipped", path_to_downloaded_file
+                print("unzipped", path_to_downloaded_file)
         else:
             remove(path_to_downloaded_file)
-            print "removed file because it wasn't a zip file eventhough had zip extension"
+            print("removed file because it wasn't a zip file eventhough had zip extension")
 
 @superfy
 def run(path):
   try:
-    print "starting load.run with ", path
+    print("starting load.run with ", path)
     admin_level = None
     country_code = None
 
@@ -403,20 +404,20 @@ def run(path):
 
     if path.startswith("http"):
         content_type = head(path).headers['content-type']
-        print "content_type = ", content_type
+        print("content_type = ", content_type)
         if content_type == "application/zip":
-            print "content-type is application/zip"
+            print("content-type is application/zip")
             if "geoserver/wfs" in path:
                 dirname = unquote(search("(?<=typename=)[^&]*",path).group(0)).replace(":","_")
-                print "dirname is", dirname
+                print("dirname is", dirname)
                 extension = "zip"
                 path_to_directory = path_to_tmp + "/" + dirname
-                print "path_to_directory is", path_to_directory
+                print("path_to_directory is", path_to_directory)
                 if not isdir(path_to_directory):
                     mkdir(path_to_directory)
                 download(path, path_to_directory)
             elif path.endswith(".zip"):
-                print "zip"
+                print("zip")
                 filename = unquote(path.split("?")[0].split("/")[-1]).split(".")[0]
                 path_to_directory = path_to_tmp + "/" + filename
                 if not isdir(path_to_directory):
@@ -424,18 +425,18 @@ def run(path):
                 download(path, path_to_directory)
  
         elif content_type.startswith("text/html"):
-            print "content-type is text/html"
+            print("content-type is text/html")
             dirname = path.replace(".","_").replace("/","_").replace("-","_").replace(":","_").replace("___","_").replace("__","_")
-            print "dirname is", dirname
+            print("dirname is", dirname)
             path_to_directory = path_to_tmp + "/" + dirname
-            print "path_to_directory is", path_to_directory
+            print("path_to_directory is", path_to_directory)
             if not isdir(path_to_directory):
                 mkdir(path_to_directory)
-                print "made directory: ", path_to_directory
+                print("made directory: ", path_to_directory)
             text = get(path).text
-            print "text is", type(text), len(text)
+            print("text is", type(text), len(text))
             soup = BeautifulSoup(text, "lxml")
-            print "soup is", type(soup)
+            print("soup is", type(soup))
 
             if soup.title:
                 title = soup.title.text.lower()
@@ -454,7 +455,7 @@ def run(path):
                 download(href, path_to_directory)
 
     paths_to_gis_files = find_gis_files_in_directory(path_to_directory) 
-    print "path_to_gis_files = ", paths_to_gis_files
+    print("path_to_gis_files = ", paths_to_gis_files)
 
     """
     if path.startswith("http"):
@@ -490,17 +491,17 @@ def run(path):
     paths_to_shp = [path_to_gis_file]
     """
     for path_to_gis_file in paths_to_gis_files:
-        print "for path_to_gis_file", path_to_gis_file
+        print("for path_to_gis_file", path_to_gis_file)
         #raw_input("press any key to continue")
 
         # can be None if none found
         admin_level = get_admin_level_from_string(path_to_gis_file)
-        print "admin_level is", admin_level
+        print("admin_level is", admin_level)
         ds = DataSource(path_to_gis_file)
-        print "ds is", ds
-        print "dir(ds) = ", dir(ds)
+        print("ds is", ds)
+        print("dir(ds) = ", dir(ds))
         layers = list(ds)
-        print "layers are", [str(layer) for layer in layers]
+        print("layers are", [str(layer) for layer in layers])
         layer_parsing = [(layer, parse_layer(layer)) for layer in layers]
 
         # we want to sort the layers by admin level
@@ -509,15 +510,15 @@ def run(path):
         layer_parsing = sorted(layer_parsing, key = lambda tup: tup[1]['admin_level'])
 
         for layer, d in layer_parsing:
-            print "layer is", layer
+            print("layer is", layer)
             #raw_input()
-            print "dir(layer) is", dir(layer)
-            print "layer.fields = ", layer.fields
+            print("dir(layer) is", dir(layer))
+            print("layer.fields = ", layer.fields)
 
             if "name" not in d or not d['name']:
-                print "couldn't get name layer, so skip over this layer"
+                print("couldn't get name layer, so skip over this layer")
                 continue
-            else: print "successfully got name", d['name']
+            else: print("successfully got name", d['name'])
             #raw_input()
 
             if 'admin_level' in d and d['admin_level']:
@@ -533,12 +534,12 @@ def run(path):
             for i, feature in enumerate(features):
                 try:
 
-                    print "\nfor feature", i, "of", number_of_features
+                    print("\nfor feature", i, "of", number_of_features)
                     fields = {'admin_level': admin_level}
 
-                    print "d['name'] = ", d['name']
+                    print("d['name'] = ", d['name'])
                     name = feature.get(d['name'])
-                    print "name is", [name]
+                    print("name is", [name])
                     if len(name) > 2:
                         fields['name'] = name
                     else:
@@ -554,28 +555,28 @@ def run(path):
                     #        elif admin_level.lower() in ("region", "state"):
                     #            admin_level = 1
 
-                    for key, value in d.iteritems():
+                    for key, value in d.items():
                         if key not in ("admin_level","aliases","badnames","name","names","parent_pcode"):
-                            print "\tfor key", key, "value", [value]
+                            print("\tfor key", key, "value", [value])
                             value = feature.get(value)
-                            print "\tvalue = ", [value]
+                            print("\tvalue = ", [value])
                             fields[key] = value 
 
                     geom = feature.geom
-                    geom.transform(u'+proj=longlat +datum=WGS84 +no_defs ')
+                    geom.transform('+proj=longlat +datum=WGS84 +no_defs ')
                     geos = geom.geos
                     # transforms the geom to lat lon if necessary; if already longlat, nothing happens
-                    print "\tgeom_type = ", geom_type
+                    print("\tgeom_type = ", geom_type)
                     if isinstance(geos, Polygon):
                         fields['mpoly'] = MultiPolygon([geos])
                         fields['point'] = geos.centroid
-                        print "centroid is", geos.centroid
+                        print("centroid is", geos.centroid)
                     elif isinstance(geos, MultiPolygon):
                         fields['mpoly'] = geos
                         fields['point'] = geos.centroid
                     elif isinstance(geos, MultiPoint):
-                        print "MultiPoint geos:", geos
-                        print "points", list(geos)
+                        print("MultiPoint geos:", geos)
+                        print("points", list(geos))
                         if len(geos) == 1:
                             fields['point'] = geos[0]
                         else:
@@ -594,21 +595,21 @@ def run(path):
                                 fields['country_code'] = cc = Place.objects.get(admin_level=0, mpoly__contains=fields['point']).country_code
                                 country_codes.add(cc)
                             except Exception as e:
-                                print e
+                                print(e)
                     #raw_input()
                             
                     place = get_matching_place(fields)
-                    print "get_matching_place returned:", place
+                    print("get_matching_place returned:", place)
                     if not place:
                         place = Place.objects.create(**fields)
-                        print "created place", place
+                        print("created place", place)
 
                     if "parent_pcode" in d:
                         parent_pcode = feature.get(d['parent_pcode'])
-                        print "parent_pcode is", parent_pcode
+                        print("parent_pcode is", parent_pcode)
                         parent = Place.objects.filter(pcode=parent_pcode).first()
                         if parent:
-                            print "parent is", parent
+                            print("parent is", parent)
                             ParentChild.objects.get_or_create(parent=parent, child=place)
 
                     for dic in d['aliases']:
@@ -617,19 +618,19 @@ def run(path):
                         qs = Alias.objects.filter(alias=aliasString)
                         if qs.count() == 0:
                             alias = Alias.objects.create(alias=aliasString, language=language)
-                            print "created alias", alias.id
+                            print("created alias", alias.id)
                         else:
                             alias = qs[0]
                             alias.update({"language":language})
                         AliasPlace.objects.get_or_create(alias=alias, place=place)[0]
-                        print "created AliasPlace", alias, place
+                        print("created AliasPlace", alias, place)
                     places_added.append(place)
 
 
                 except Exception as e:
-                    print "CAUGHT EXCEPTION on feature", i, "|", feature
-                    print e
+                    print("CAUGHT EXCEPTION on feature", i, "|", feature)
+                    print(e)
                     #raw_input()
 
   except Exception as e:
-    print "CAUGHT EXCEPTION in load:", e
+    print("CAUGHT EXCEPTION in load:", e)

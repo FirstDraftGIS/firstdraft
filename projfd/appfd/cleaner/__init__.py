@@ -6,38 +6,38 @@ trues = [True, "True", "true", "t", "T", 1, "1"]
 
 def clean_tweet(POST, debug=True):
     try:
-        if debug: print "starting clean_tweet with", POST
+        if debug: print("starting clean_tweet with", POST)
         if "text" in POST:
             form = TweetForm({"text": POST["text"]})
             if form.is_valid():
-                if debug: print "form is valid"
+                if debug: print("form is valid")
                 result = {}
                 result['text'] = form.cleaned_data['text']
                 return result
 
     except Exception as e:
-        print "CAUGHT EXCEPTION in clean_tweet:", e
+        print("CAUGHT EXCEPTION in clean_tweet:", e)
 
 def clean(POST, FILES, debug=False):
     try:
-        print "starting clean"
+        print("starting clean")
 
         style = {}
         if "basemap" in POST:
             basemapForm = BasemapForm({"basemap": POST['basemap']})
             if basemapForm.is_valid():
                 style['basemap'] = basemapForm.cleaned_data['basemap']
-        if debug: print "style after cleaning:", style
+        if debug: print("style after cleaning:", style)
 
         extra_context = {}
         if "end_user_timezone" in POST:
-            if debug: print "end_user_timezone before cleaning:", POST['end_user_timezone']
+            if debug: print("end_user_timezone before cleaning:", POST['end_user_timezone'])
             timezoneForm = TimezoneForm({"timezone": POST['end_user_timezone']})
             timezoneForm.full_clean()
-            if debug: print "cleaned_data after clean:", timezoneForm.cleaned_data
+            if debug: print("cleaned_data after clean:", timezoneForm.cleaned_data)
             end_user_timezone = timezoneForm.cleaned_data.get("timezone", None)
             if end_user_timezone:
-                if debug: print "zone:", end_user_timezone.zone
+                if debug: print("zone:", end_user_timezone.zone)
                 extra_context["end_user_timezone"] = end_user_timezone.zone
 
         for text in ["case_insensitive", "open_source"]:
@@ -54,12 +54,12 @@ def clean(POST, FILES, debug=False):
             #print "post:", POST 
             if key in POST:
                 source_type = POST[key]
-                print "source_type:", source_type
+                print("source_type:", source_type)
                 data_key = "source_" + str(n) + "_data"
-                print data_key 
+                print(data_key) 
                 if source_type == "file":
                     if data_key in FILES:
-                        print "FILES:", FILES
+                        print("FILES:", FILES)
                         data = FILES[data_key]
                         # post data goes 
                         form = FileForm(files={"data": data})
@@ -68,7 +68,7 @@ def clean(POST, FILES, debug=False):
                             if cleaned_data:
                                 sources.append({"type": "file", "data": cleaned_data})
                         else:
-                            print "file is not valid", form.errors
+                            print("file is not valid", form.errors)
                 elif source_type == "link":
                     if data_key in POST:
                         data = POST[data_key]
@@ -86,8 +86,8 @@ def clean(POST, FILES, debug=False):
                             if cleaned_data:
                                 sources.append({"type": "text", "data": cleaned_data.strip()})
 
-        print "finishing clean"
+        print("finishing clean")
         return {"sources": sources, "style": style, "map_format": map_format, "extra_context": extra_context}
     except Exception as e:
-        print "EXCEPTION in cleaner.clean:", e
+        print("EXCEPTION in cleaner.clean:", e)
         raise e

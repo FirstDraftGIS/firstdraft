@@ -5,7 +5,7 @@ from collections import Counter
 from date_extractor import month_to_number
 from datetime import datetime
 
-stopwords = [month.lower() for month in month_to_number.keys()]
+stopwords = [month.lower() for month in list(month_to_number.keys())]
 
 def run(places=None):
 
@@ -21,7 +21,7 @@ def run(places=None):
 
             place_ids = Feature.objects.filter(featureplace__correct=True, featureplace__feature__verified=True).values_list("featureplace__place_id", flat=True)
 
-        print "place_ids:", len(place_ids)
+        print("place_ids:", len(place_ids))
         for place_id in place_ids:
 
             counter = Counter()
@@ -31,20 +31,20 @@ def run(places=None):
                     if topic_id:
                         counter[topic_id] += 1
                     else:
-                        print feature.text
+                        print(feature.text)
 
-            print "counter:", counter
+            print("counter:", counter)
             most_common_topics = counter.most_common(1)
             if most_common_topics:
                 most_common_topic_tuple = most_common_topics[0]
                 if most_common_topic_tuple:
                     most_common_topic_id = most_common_topic_tuple[0]
-                    print "\tmost_common_topic for", Place.objects.get(id=place_id), "is", Topic.objects.get(id=most_common_topic_id).name
+                    print("\tmost_common_topic for", Place.objects.get(id=place_id), "is", Topic.objects.get(id=most_common_topic_id).name)
 
-        print "took", (datetime.now() - start).total_seconds(), "seconds"
+        print("took", (datetime.now() - start).total_seconds(), "seconds")
 
     except Exception as e:
 
-        print e
+        print(e)
         
 

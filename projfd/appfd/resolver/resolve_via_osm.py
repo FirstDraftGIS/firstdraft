@@ -8,17 +8,17 @@ from requests import get
 
 def run(names, countries=[]):
     try:
-        print "starting resolve_via_osm with:"
+        print("starting resolve_via_osm with:")
 
         api = API()
         query = "("
         for index, name in enumerate(names):
-            if isinstance(name, unicode):
+            if isinstance(name, str):
                 name = name.encode("utf-8")
             query += '\nnode["name"="' + name + '"];'
             #language = detect_language(name)
             language = "Arabic" if index == 0 else "English"
-            print "language:", language
+            print("language:", language)
             if language == "Arabic":
                 query += '\nnode["name:ar"="' + name + '"];'
             elif language == "English":
@@ -41,12 +41,12 @@ def run(names, countries=[]):
                             if polygon.contains(point):
                                 filtered_features.append(feature)
                 except Exception as e:
-                    print "CAUGHT:", e
+                    print("CAUGHT:", e)
             features = filtered_features
               
-        print "features:", len(features)
+        print("features:", len(features))
 
         return features
 
     except Exception as e:
-        print e
+        print(e)

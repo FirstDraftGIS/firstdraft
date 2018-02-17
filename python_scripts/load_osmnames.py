@@ -9,7 +9,7 @@ from re import match, search
 from requests import get
 from subprocess import call
 from time import sleep
-from urllib import urlretrieve
+from urllib.request import urlretrieve
 import sys
 
 
@@ -20,7 +20,7 @@ def run(debug=True, skip_cleaning=False):
 
         if debug: start = datetime.now()
 
-        if debug: print "starting to import osmnames into First Draft"
+        if debug: print("starting to import osmnames into First Draft")
 
 
         csv.field_size_limit(sys.maxsize)
@@ -33,13 +33,13 @@ def run(debug=True, skip_cleaning=False):
             if not isfile(path_to_gz):
                 url = "https://github.com/OSMNames/OSMNames/releases/download/v1.1/planet-latest.tsv.gz"
                 urlretrieve(url, path_to_gz)
-                print "downloaded to " + path_to_gz
+                print("downloaded to " + path_to_gz)
 
             call(["gunzip", path_to_gz, "--force"], cwd="/tmp")
-            print "gunzipped"
+            print("gunzipped")
 
 
-        if debug: print "opening tsv"
+        if debug: print("opening tsv")
         number_created = 0
         number_found = 0
         set_of_importance = set()
@@ -62,7 +62,7 @@ def run(debug=True, skip_cleaning=False):
                     reader = csv.reader(f, delimiter="\t", quotechar='"')
 
                     # skip first row
-                    reader.next()
+                    next(reader)
 
                     for row in reader:
                         #counter[len(row)] += 1
@@ -74,18 +74,18 @@ def run(debug=True, skip_cleaning=False):
 
         seconds = (datetime.now() - start).total_seconds()
         minutes = float(seconds) / 60
-        print "took", minutes, "minutes to preprocess whole planet-latest.tsv file"
+        print("took", minutes, "minutes to preprocess whole planet-latest.tsv file")
 
         if debug: start = datetime.now()
         statement = "SELECT load_osm_name(name, lat, lon, country_code, importance) FROM planet_latest"
-        if debug: print "statement:", statement
+        if debug: print("statement:", statement)
         threshold = None
         if threshold:
             statement += " LIMIT " + str(threshold)
         bash_statement = "sudo -u postgres psql dbfd -c '" + statement + "';"
-        print "bash_statement:", bash_statement
+        print("bash_statement:", bash_statement)
         args = shlex.split(bash_statement)
-        print "args:", args
+        print("args:", args)
         FNULL = open(devnull, 'w')
         call(args, stdout=FNULL)
 
@@ -94,13 +94,13 @@ def run(debug=True, skip_cleaning=False):
             if threshold:
                 seconds_per_line = float(seconds) / threshold
                 minutes_per_line = float(seconds_per_line) / 60
-                print "it would take ", minutes_per_line * total_number_of_rows / 60, "hours to complete"
+                print("it would take ", minutes_per_line * total_number_of_rows / 60, "hours to complete")
             else:
-                print "it took ", (float(seconds) / 60 / 60), "hours to complete"
+                print("it took ", (float(seconds) / 60 / 60), "hours to complete")
             
 
     except Exception as e:
 
-        print e
+        print(e)
 
 run()

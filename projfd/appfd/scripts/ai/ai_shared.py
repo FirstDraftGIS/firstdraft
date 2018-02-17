@@ -87,12 +87,12 @@ SELECT NULL WHERE EXISTS(SELECT 1 FROM appfd_place WHERE {0} IS NULL);
     #pairs = [("favor_local", col.name) for col in wide_columns]
     #pairs = [("favor_local", "matches_end_user_timezone")]
     pairs = [("matches_end_user_timezone", "is_most_important_in_timezone")]
-    print "pairs:", pairs
+    print("pairs:", pairs)
     for name1, name2 in pairs:
         col1 = locals()[name1]
-        print "col1:", type(col1)
+        print("col1:", type(col1))
         col2 = locals()[name2]
-        print "col2:", type(col2)
+        print("col2:", type(col2))
         if hasattr(col1, "lookup_config") and hasattr(col2, "lookup_config"):
             column_name = col1.name + "_X_" + col2.name
             keys = []
@@ -100,7 +100,7 @@ SELECT NULL WHERE EXISTS(SELECT 1 FROM appfd_place WHERE {0} IS NULL);
                 for key2 in col2.lookup_config.keys:
                     keys.append(key1 + "_X_" + key2)
             new_column = sparse_column_with_keys(column_name=column_name, keys=keys)
-            print "new_column:", new_column
+            print("new_column:", new_column)
             crossed_columns.append(new_column)
 
     wide_columns += crossed_columns
@@ -141,7 +141,7 @@ def get_df_from_features(features):
         add_features_to_df(df, features)
         return df
     except Exception as e:
-        print "exception in get_df_from_features:", e
+        print("exception in get_df_from_features:", e)
 
 def halve(iterable):
     half = len(iterable) / 2
@@ -151,7 +151,7 @@ def get_fake_df():
     try:
         return dict([(k, []) for k in COLUMNS])
     except Exception as e:
-        print "CAUGHT EXCEPTION IN get_fake_df:", e
+        print("CAUGHT EXCEPTION IN get_fake_df:", e)
 
 def add_features_to_df(df, features):
 
@@ -160,7 +160,7 @@ def add_features_to_df(df, features):
 
     # clean / preprocess
     for feature in features:
-        for old_key in feature.keys():
+        for old_key in list(feature.keys()):
             if old_key.startswith('featureplace__place__'):
                 new_key = old_key.replace('featureplace__place__','')
                 if len(new_key) > 5: #skip id
@@ -170,7 +170,7 @@ def add_features_to_df(df, features):
 
 
     if len(features) > 0:
-        print "end_user_tz:", features[0]['order__end_user_timezone']
+        print("end_user_tz:", features[0]['order__end_user_timezone'])
 
     for index, feature in enumerate(features):
 
@@ -213,9 +213,9 @@ def add_features_to_df(df, features):
         #print "len(alternatives_in_same_timezone):", len(alternatives_in_same_timezone) 
         alternative_importances = [alt['wikipedia_importance'] for alt in alternatives_in_same_timezone]
         if len(alternative_importances) > 0:
-            print "alternative_importances:", alternative_importances
+            print("alternative_importances:", alternative_importances)
             max_alternative_importance = max(alternative_importances) or 0
-            print "max_alternative_importance:", max_alternative_importance
+            print("max_alternative_importance:", max_alternative_importance)
             is_most_important_in_timezone = importance >= max_alternative_importance
         else:
             is_most_important_in_timezone = True
@@ -251,14 +251,14 @@ def add_features_to_df(df, features):
 
         # add crossed column values
         # there should be a more efficient way of doing this 
-        for name_of_column in df.keys():
+        for name_of_column in list(df.keys()):
             try:
                 if "_X_" in name_of_column:
                     name_of_first_column, name_of_second_column = name_of_column.split("_X_")
                     crossed_value = df[name_of_first_column][-1] + "_X_" + df[name_of_second_column][-1]
                     df[name_of_column].append(crossed_value)
             except Exception as e:
-                print "CAUGHT EXCEPTION creating cross column for ", name_of_column, ":", e
+                print("CAUGHT EXCEPTION creating cross column for ", name_of_column, ":", e)
 
   except Exception as e:
-    print "CAUGHT EXCEPTION IN add_features_to_df:", e
+    print("CAUGHT EXCEPTION IN add_features_to_df:", e)

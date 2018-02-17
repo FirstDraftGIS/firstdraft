@@ -20,7 +20,7 @@ def run():
         with open("/home/usrfd/firstdraft/projfd/static/node_modules/leaflet-providers/leaflet-providers.js") as f:
             driver.execute_script(f.read())
 
-        print "current_url:", driver.current_url
+        print("current_url:", driver.current_url)
 
         providers = driver.execute_script("return L.TileLayer.Provider.providers")
 
@@ -43,4 +43,4 @@ def run():
 
 
     except Exception as e:
-        print e
+        print(e)

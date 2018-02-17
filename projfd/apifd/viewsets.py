@@ -50,7 +50,7 @@ class FeatureViewSet(ModelViewSet):
                 status = "failure"
             return HttpResponse(json.dumps({"status": status}))
         except Exception as e:
-            print e
+            print(e)
 
 
 # need to write method that overwrited retrieve method with token

@@ -25,7 +25,7 @@ class Base(Model):
 
     def update(self, d):
         save = False
-        for k,v in d.iteritems():
+        for k,v in d.items():
             if getattr(self, k) != v:
                 save = True
                 setattr(self,k,v)

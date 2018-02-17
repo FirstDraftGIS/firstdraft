@@ -10,7 +10,7 @@ def finish_order(key):
 
     try:
 
-        print "starting finish order with", key
+        print("starting finish order with", key)
 
         map_format = Order.objects.get(token=key).map_format
 
@@ -37,8 +37,8 @@ def finish_order(key):
         from django.db import connection
         connection.close()
         order = Order.objects.get(token=key).finish()
-        print "finished order", order
+        print("finished order", order)
 
     except Exception as e:
 
-        print "EXCEPTION in finish_order:", e
+        print("EXCEPTION in finish_order:", e)

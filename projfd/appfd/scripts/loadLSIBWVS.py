@@ -2,8 +2,8 @@ from appfd.models import *
 from django.contrib.gis.gdal import DataSource
 #from django.contrib.gis.gdal.geometries import Polygon
 from django.contrib.gis.geos import MultiPolygon, Polygon
-import os, urllib, zipfile
-from urllib import urlretrieve
+import os, urllib.request, urllib.parse, urllib.error, zipfile
+from urllib.request import urlretrieve
 from bnlp import trim_location
 
 def run():
@@ -27,13 +27,13 @@ def run():
     unfound = []
     for path_to_shp in ('/tmp/Africa_Americas_LSIB7a_gen_polygons.shp', '/tmp/Eurasia_Oceania_LSIB7a_gen_polygons.shp'):
         ds = DataSource(path_to_shp)
-        print "ds is", ds
+        print("ds is", ds)
         for feature in ds[0]:
             place = None
             name = trim_location(feature.get("COUNTRY_NA"))
             #country_code = feature.get("CNTRY_CODE")
             country_code = feature.get("COUNTRY_CO").upper()
-            print "name & country code:", name, "&", country_code
+            print("name & country code:", name, "&", country_code)
             qs = Place.objects.filter(country_code=country_code, admin_level=0)
             count = qs.count()
             if count == 0:
@@ -71,8 +71,8 @@ def run():
                 place.save()
                 #print "saved new polygon to ", place
  
-    print "unfound = ", unfound
+    print("unfound = ", unfound)
    
 
   except Exception as e:
-    print "EXCPETION in loadLSIBWVS:", e
+    print("EXCPETION in loadLSIBWVS:", e)

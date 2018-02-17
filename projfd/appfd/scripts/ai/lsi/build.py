@@ -13,7 +13,7 @@ from re import findall
 path_to_directory_of_this_file = dirname(realpath(__file__))
 
 stopwords = []
-stopwords += [month.lower() for month in month_to_number.keys()]
+stopwords += [month.lower() for month in list(month_to_number.keys())]
 stopwords += nltk_stopwords.words('english')
 #print "stopwords:", len(stopwords)
 with open(path_to_directory_of_this_file + "/stopwords.txt") as f:
@@ -41,12 +41,12 @@ def tokenize(text):
 
 def run():
   try:
-    print "starting to build LSI Model"
+    print("starting to build LSI Model")
 
     start = datetime.now()
     documents = Feature.objects.exclude(text=None).values_list("text", flat=True)
     number_of_documents = len(documents)
-    print "number_of_documents:", number_of_documents
+    print("number_of_documents:", number_of_documents)
 
     texts = [tokenize(document) for document in documents]
 
@@ -56,19 +56,19 @@ def run():
 
     texts = [[token for token in text if counter[token] > 1] for text in texts]
 
-    print "texts:", len(texts), texts[:5]
+    print("texts:", len(texts), texts[:5])
 
     dictionary = Dictionary(texts)
     #print "dictionary:", dictionary
     dictionary.save(path_to_directory_of_this_file + "/dictionary")
 
     corpus = [dictionary.doc2bow(text) for text in texts]
-    print "corpus:", type(corpus)
+    print("corpus:", type(corpus))
 
-    print "generating lsi model"
+    print("generating lsi model")
     
     lsi = LsiModel(corpus=corpus, id2word=dictionary, num_topics=10)
-    print "saving LSI model"
+    print("saving LSI model")
     lsi.save(path_to_directory_of_this_file + "/model")
 
 
@@ -77,13 +77,13 @@ def run():
     Place.objects.exclude(topic=None).update(topic=None)
 
     Topic.objects.all().delete()
-    print "deleted all topics"
+    print("deleted all topics")
     topics = []
     for topic in lsi.show_topics():
         topics.append(Topic(id=topic[0], name=prettify_topic(topic[1])))
 
     Topic.objects.bulk_create(topics)
-    print "bulk created all topics"
+    print("bulk created all topics")
 
 
     """
@@ -106,4 +106,4 @@ def run():
 
 
   except Exception as e:
-    print e
+    print(e)

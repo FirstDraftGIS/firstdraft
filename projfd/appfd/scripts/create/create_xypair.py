@@ -5,7 +5,7 @@ from os import mkdir
 from os.path import isdir
 
 def run(key):
-    print "starting create_xypair with key " + key
+    print("starting create_xypair with key " + key)
 
     from django.db import connection
     connection.close()

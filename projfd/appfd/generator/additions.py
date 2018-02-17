@@ -3,12 +3,12 @@ from appfd.models import Place
 from appfd.resolver.additions import resolve_possible_additions
 
 def generate_possible_additions(name, token):
-    print "starting generate_possible_additions"
+    print("starting generate_possible_additions")
 
     # returns sorted by probability
     geoentities = resolve_possible_additions(name, token)
 
-    print "resolved geoentities:", geoentities
+    print("resolved geoentities:", geoentities)
 
 
     #for g in geoentities:

@@ -35,5 +35,5 @@ class GeoEntity(object):
             self.importance = importance = float(row[18] or 0)
             self.is_important = importance > 0.5
         except Exception as e:
-            print "EXCEPTION in GeoEntity.__init__:", e
+            print("EXCEPTION in GeoEntity.__init__:", e)
             raise e

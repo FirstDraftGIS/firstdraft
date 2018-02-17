@@ -1,4 +1,4 @@
-from ai_shared import *
+from .ai_shared import *
 from appfd.models import Order, Feature, FeaturePlace
 from collections import Counter
 import csv
@@ -15,7 +15,7 @@ import pickle
 from random import choice, shuffle
 from shutil import rmtree
 from sklearn import datasets, metrics
-import stepper
+from . import stepper
 import tensorflow as tf
 from tensorflow import constant, SparseTensor, Graph, Session
 from tensorflow.contrib.learn.python.learn import DNNLinearCombinedClassifier, LinearClassifier
@@ -42,10 +42,10 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 def fail(string):
-    print(bcolors.FAIL + string + bcolors.ENDC)
+    print((bcolors.FAIL + string + bcolors.ENDC))
 
 def info(string):
-    print(bcolors.OKBLUE + string + bcolors.ENDC)
+    print((bcolors.OKBLUE + string + bcolors.ENDC))
 
 def get_df_from_csv(path_to_csv):
     d = {}
@@ -56,7 +56,7 @@ def get_df_from_csv(path_to_csv):
             column = real_df[column_name]
             values = list(real_df[column_name].values)
             if column_name == "country_code":
-                values = [unicode(v) for v in values]
+                values = [str(v) for v in values]
             elif column_name == "edit_distance":
                 values = [str(v) for v in values]
             elif column.dtype == numpy_bool:
@@ -73,7 +73,7 @@ def run(geoentities, mode, debug=True):
 
     try:
 
-        print "starting ai.predict"
+        print("starting ai.predict")
         connection.close()
 
         start = datetime.now()        
@@ -93,12 +93,12 @@ def run(geoentities, mode, debug=True):
             dnn_feature_columns=deep_columns,
             dnn_hidden_units=[100,50]
         )
-        print "classifier:", classifier
+        print("classifier:", classifier)
 
-        print "creating the classifier took", (datetime.now() - start).total_seconds(), "seconds"
+        print("creating the classifier took", (datetime.now() - start).total_seconds(), "seconds")
 
         df = get_fake_df()
-        print "about to populate data frame for prediction"
+        print("about to populate data frame for prediction")
         start_df = datetime.now()
 
 
@@ -111,7 +111,7 @@ def run(geoentities, mode, debug=True):
             else:
                 max_importances_in_timezone[timezone] = geoentity.importance
 
-        print "max_importances_in_timezone:", max_importances_in_timezone
+        print("max_importances_in_timezone:", max_importances_in_timezone)
         
         for index, geoentity in enumerate(geoentities):
             place_id = geoentity.place_id
@@ -130,7 +130,7 @@ def run(geoentities, mode, debug=True):
             is_highest_population = population and population == max([g.population for g in geoentities if g.target == name]) or False
 
             is_lowest_admin_level = str(lowest_admin_level == geoentity.admin_level)
-            if is_lowest_admin_level == "True": print str(place_id), "has the lowest admin level of ", lowest_admin_level
+            if is_lowest_admin_level == "True": print(str(place_id), "has the lowest admin level of ", lowest_admin_level)
 
             admin_level = geoentity.admin_level
             #df['admin_level'].append(str(geoentity.admin_level or "None"))
@@ -201,9 +201,9 @@ def run(geoentities, mode, debug=True):
 
         duration = (datetime.now() - start_df).total_seconds()
         if duration < 60:
-            print "populating df took", duration, "seconds"
+            print("populating df took", duration, "seconds")
         else:
-            print "populating df took", float(duration) / 60, "minutes"
+            print("populating df took", float(duration) / 60, "minutes")
 
         def step():
             return stepper.step(df)
@@ -216,11 +216,11 @@ def run(geoentities, mode, debug=True):
             max_probability = max([g.probability for g in geoentities])
 
             path_to_pickled_weights = join(PATH_TO_DIRECTORY_OF_THIS_FILE, "weights.pickle")
-            print "path_to_pickled_weights:", path_to_pickled_weights
+            print("path_to_pickled_weights:", path_to_pickled_weights)
             with open(path_to_pickled_weights) as f:
                 weights_for_all_columns = pickle.load(f)
             path_to_explanation_folder = "/tmp/" + "explanation_" + get_random_string()
-            print "path_to_explanation_folder:", path_to_explanation_folder
+            print("path_to_explanation_folder:", path_to_explanation_folder)
             mkdir(path_to_explanation_folder)
             # iterate through geoentities and attach explanation to them
 
@@ -230,27 +230,27 @@ def run(geoentities, mode, debug=True):
 
             for index, geoentity in enumerate(geoentities):
                 correct = geoentity.probability == max_probability
-                if debug_explanations: print "\n\n" + "=" * 50
-                if debug_explanations: print "index:", index
+                if debug_explanations: print("\n\n" + "=" * 50)
+                if debug_explanations: print("index:", index)
                 explanation_rows = [["column_name", "value", "weight"]]
                 total_weight = 0
-                for column_name, weights_for_column in weights_for_all_columns.items():
-                    if debug_explanations: print "\ncolumn_name:", column_name
+                for column_name, weights_for_column in list(weights_for_all_columns.items()):
+                    if debug_explanations: print("\ncolumn_name:", column_name)
                     #print "weights_for_column:", weights_for_column
                     if isinstance(weights_for_column, dict):
                         value = df[column_name][index]
-                        if debug_explanations: print "value:", value
-                        if debug_explanations: print "type(value):", type(value)
+                        if debug_explanations: print("value:", value)
+                        if debug_explanations: print("type(value):", type(value))
                         if value in weights_for_column:
                             weight = weights_for_column[value]
                         else:
-                            if debug_explanations: print value, "not in weights, so weight is 0"
+                            if debug_explanations: print(value, "not in weights, so weight is 0")
                             weight = 0
-                        if debug_explanations: print "weight:", weight
+                        if debug_explanations: print("weight:", weight)
                         total_weight += weight
                         explanation_rows.append([column_name.encode("utf-8"), str(value), str(weight)])
                 explanation_rows.append(["total","",str(total_weight)])
-                if debug_explanations: print "finished adding to explanation_rows"
+                if debug_explanations: print("finished adding to explanation_rows")
                 #print "explanation:"
                 #print explanation
                 #if index in top3:
@@ -262,17 +262,17 @@ def run(geoentities, mode, debug=True):
                         f = open(path_to_file, "wb")
                     except:
                         f = open(path_to_explanation_folder + "/" + str(geoentity.place_id) + "_" + str(geoentity.admin1code) + ("_CORRECT" if correct else ""), "wb")
-                    if debug_explanations: print "opened file"
+                    if debug_explanations: print("opened file")
                     writer = csv.writer(f)
                     for row in explanation_rows:
                         try:
                             writer.writerow(row)
                         except Exception as e:
-                            print "failed to write:", row
+                            print("failed to write:", row)
                     f.close()
                 geoentity.explanation = explanation_rows
 
-        print "predict.run took", (datetime.now() - start).total_seconds(), "seconds"
+        print("predict.run took", (datetime.now() - start).total_seconds(), "seconds")
 
     except Exception as e:
         fail("EXCPETION in scripts.ai.predict.run: " + str(e))

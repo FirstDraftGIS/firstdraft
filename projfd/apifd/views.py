@@ -30,10 +30,10 @@ def change_basemap(request):
 
         status = "success"
     except Exception as e:
-        print "[exception in change_basemap]", e
+        print("[exception in change_basemap]", e)
         status = "failure"
 
-        print "status:", status
+        print("status:", status)
     return HttpResponse(json.dumps({"status": status}))
 
 @require_POST
@@ -41,7 +41,7 @@ def change_featureplace(request):
     try:
         if request.method == "POST":
             d = json.loads(request.body)
-            print "d:", d
+            print("d:", d)
             fp = FeaturePlace.objects.get(id=int(d['featureplace_id'])) # converting to int to prevent sql injection
             if "correct" in d:
                 fp.correct = d["correct"] == True # checking to prevent sql injection
@@ -63,19 +63,19 @@ def change_featureplace(request):
         else:
             return HttpResponse("You have to use post")
     except Exception as e:
-        print e
+        print(e)
 
 @xframe_options_exempt
 def data(request):
-    print "starting data"
-    print "request.method:", request.method
+    print("starting data")
+    print("request.method:", request.method)
     if request.method == "POST":
-        print "request:", request.POST
+        print("request:", request.POST)
         order = Order.objects.get(token=request.POST['token'])
-        print "order:", order
-        print "Order:", Order
-        print "Feature:", Feature
-        print "feats:", Feature.objects.all()
+        print("order:", order)
+        print("Order:", Order)
+        print("Feature:", Feature)
+        print("feats:", Feature.objects.all())
         data = []
         for feature in Feature.objects.filter(order=order):
             datum = {
@@ -104,8 +104,8 @@ def data(request):
 # but will expand to lower layers
 @xframe_options_exempt
 def frequency(request, token, admin_level):
-    print "\nstarting frequency"
-    print 'request.method', request.method
+    print("\nstarting frequency")
+    print('request.method', request.method)
 
     path_to_geojson = "/home/usrfd/maps/" + token + "/" + token + "_frequency_" + str(admin_level) + ".geojson"
     if not isfile(path_to_geojson):
@@ -116,10 +116,10 @@ def frequency(request, token, admin_level):
 
 def geolocate_tweet(request):
     try:
-        print "starting geolocate_tweet"
-        print "method:", request.method
-        print "dir(request)", dir(request)
-        print "headers:", request.META
+        print("starting geolocate_tweet")
+        print("method:", request.method)
+        print("dir(request)", dir(request))
+        print("headers:", request.META)
         if request.method == "OPTIONS":
             response = HttpResponse()
             response["Access-Control-Allow-Origin"] = request.META['HTTP_ORIGIN']
@@ -128,15 +128,15 @@ def geolocate_tweet(request):
             response["Access-Control-Allow-Headers"] = request.META["HTTP_ACCESS_CONTROL_REQUEST_HEADERS"]
             return response
         elif request.method == "POST":
-            print "starting POST"
+            print("starting POST")
             tweet_dict = json.loads(request.body) if len(request.body) > 10 else request.POST
             cleaned_tweet = cleaner.clean_tweet(tweet_dict)
-            print "cleaned_tweet:", cleaned_tweet
+            print("cleaned_tweet:", cleaned_tweet)
             if cleaned_tweet:
                 key = get_random_string(25)
-                print "key:", key
+                print("key:", key)
                 order_id = Order.objects.create(token=key).id
-                print "order_id:", order_id
+                print("order_id:", order_id)
                 sources = [{"type": "text", "data": cleaned_tweet['text']}]
                 job = {
                     "sources": sources,
@@ -149,10 +149,10 @@ def geolocate_tweet(request):
                 response["Access-Control-Allow-Origin"] = request.META['HTTP_ORIGIN']
                 return response
     except Exception as e:
-        print "EXCEPTION in geolocate_tweet:", e
+        print("EXCEPTION in geolocate_tweet:", e)
 
 def metadata(request, token):
-    print "starting apifd.metadata with", token
+    print("starting apifd.metadata with", token)
 
     list_of_metadata = []
     for metaData in MetaData.objects.filter(order__token=token):
@@ -163,7 +163,7 @@ def metadata(request, token):
 @require_GET
 def feature_data(request, token):
   try:
-    print "starting apifd.feature_data with", token
+    print("starting apifd.feature_data with", token)
 
     order = Order.objects.get(token=token)
 
@@ -217,12 +217,12 @@ def feature_data(request, token):
 
     return HttpResponse(json.dumps({ "edited": order.edited, "features": list_of_features, "style": style }), content_type='application/json')
   except Exception as e:
-    print e
+    print(e)
 
 @require_POST
 def is_location_in_osm(request):
     try:
-        print "starting is_location_in_osm"
+        print("starting is_location_in_osm")
         if request.method == "POST":
             if len(request.body.strip()) > 10:
                 d = json.loads(request.body)
@@ -241,4 +241,4 @@ def is_location_in_osm(request):
             return HttpResponse("Use POST, please.", content_type='application/json')
  
     except Exception as e:
-        print e
+        print(e)

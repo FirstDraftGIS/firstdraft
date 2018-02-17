@@ -42,7 +42,7 @@ from openpyxl import load_workbook
 from operator import itemgetter
 from os import listdir, mkdir, remove
 from os.path import isfile
-import json, requests, StringIO, sys, zipfile
+import json, requests, io, sys, zipfile
 from json import dumps, loads
 from re import findall, search
 from requests import get
@@ -52,7 +52,8 @@ from sendfile import sendfile
 from scrp import getTextContentViaMarionette, getRandomUserAgentString
 from subprocess import call, check_output
 from super_python import superfy
-from urllib import quote, quote_plus, unquote, urlretrieve
+from urllib.parse import quote, quote_plus, unquote
+from urllib.request import urlretrieve
 from openpyxl import load_workbook
 from zipfile import ZipFile
 #import sys
@@ -77,7 +78,7 @@ from zipfile import ZipFile
 
 def _map(request, job):
 
-    print "starting _map with ", job
+    print(("starting _map with ", job))
 
     order = Order.objects.get(token=job)
     if not order.edited:
@@ -101,25 +102,25 @@ def about(request):
 
 def activate(request, key):
     activation = Activation.objects.get(key=key)
-    print "activation is", activation
+    print(("activation is", activation))
     if activation.used:
-        print "activation has already been used"
+        print("activation has already been used")
     else:
-        print "activation has not been used yet"
+        print("activation has not been used yet")
         if activation.expired:
-            print "activation has expired"
+            print("activation has expired")
         else:
-            print "activation hadn't expired as of last check"
-            print "today is", datetime.now()
-            print "date of activation key is", activation.created
+            print("activation hadn't expired as of last check")
+            print(("today is", datetime.now()))
+            print(("date of activation key is", activation.created))
             difference = (datetime.now() - activation.created.replace(tzinfo=None)).days
-            print "difference is", difference
+            print(("difference is", difference))
             if difference > 7:
-                print "activation has timed out and expired"
+                print("activation has timed out and expired")
                 activation.expired
                 activation.save()
             else:
-                print "you still got time, so we're gonna activate"
+                print("you still got time, so we're gonna activate")
                 user = activation.user
                 user.is_active = True
                 user.save()
@@ -131,12 +132,12 @@ def activate(request, key):
 @user_passes_test(must_be_active)
 def change_email(request):
     user = request.user
-    print "user is", user
+    print(("user is", user))
     if request.method == 'POST':
-        print "request.method is", request.method
+        print(("request.method is", request.method))
         form = forms.ChangeEmailForm(data=request.POST)
         if form.is_valid():
-            print "form is valid with cleaned_data", form.cleaned_data
+            print(("form is valid with cleaned_data", form.cleaned_data))
             password = form.cleaned_data['password']
             if user.check_password(password):
                 new_email = form.cleaned_data['new_email']
@@ -154,10 +155,10 @@ def change_email(request):
                             #create activation object/key
                             Activation.objects.create(expired=False, key=get_random_string(length=175), used=False, user=user)
 
-                            print "send an activation email"
+                            print("send an activation email")
                             link = "http://" + host + "/activate/" + key
                             try: send_mail("[First Draft] Confirm Your New Email Address", "Please click the following link in order to re-activate the account under a new email address: " + link, "2347812637543875413287548123548213754@gmail.com", [user.email], fail_silently=False, html_message="<h3>Please click the following link in order to re-activate the account under a new email address:</h3></br></br><a href='" + link + "'>" + link + "</a>")
-                            except Exception as e: print e
+                            except Exception as e: print(e)
 
                             alerts = [{"type": "warning", "text": "Re-activate your account under the new email adress by going to the link we sent in an email to " + str(request.user.email)}]
                             return render(request, 'appfd/change_email.html', {'alerts': alerts})
@@ -171,23 +172,23 @@ def change_email(request):
                 form.add_error('new_email', 'The password that you entered is incorrect.')
                 return render(request, 'appfd/change_email.html', {"form": form})
         else: #form is not valid
-            print "form is not valid:", form.errors
+            print(("form is not valid:", form.errors))
             return render(request, 'appfd/change_email.html', {"form": form})
 
     elif request.method == "GET":
-        print "request.method == \"GET\'"
+        print("request.method == \"GET\'")
         current_email = request.user.email
-        print "current_email is", current_email
+        print(("current_email is", current_email))
         return render(request, 'appfd/change_email.html', {"current_email": current_email})
 
 @csrf_protect
 @user_passes_test(must_be_active)
 def change_password(request):
     if request.method == 'POST':
-        print "request.method is", request.method
+        print(("request.method is", request.method))
         form = forms.ChangePasswordForm(data=request.POST)
         if form.is_valid():
-            print "form is valid with cleaned_data", form.cleaned_data
+            print(("form is valid with cleaned_data", form.cleaned_data))
             old_password = form.cleaned_data['old_password']
             user = request.user
             if user.check_password(old_password):
@@ -200,10 +201,10 @@ def change_password(request):
                 form.add_error('old_password', 'You entered the wrong old password.  Click forgot my password if you forgot it.')
                 return render(request, 'appfd/change_password.html', {'form': form})
         else:
-            print "form is valid"
+            print("form is valid")
             return render(request, 'appfd/change_password.html', {'form': form})
     else:
-        print "request.method is probably get"
+        print("request.method is probably get")
         return render(request, 'appfd/change_password.html', {})
 
 
@@ -229,25 +230,25 @@ def help(request):
 def iframe(request):
   try:
     if request.method == "GET":
-        print "request:", request
+        print(("request:", request))
         meta = request.META 
-        print "meta:", meta
+        print(("meta:", meta))
         if "HTTP_REFERER" in meta:
             url = meta["HTTP_REFERER"]
         if url:
             order = Order.objects.filter(url=url).first()
             if order:
-                print "got order:", order
+                print(("got order:", order))
             else:
                 key = get_random_string(25)
                 order = Order.objects.create(token=key, url=url)
-                print "created order:", order
+                print(("created order:", order))
                 job = { "link": url, "key": key }
                 create_map_from_link(job)
     
     return render(request, "appfd/embed.html", {'job': order.token})
   except Exception as e:
-    print e
+    print(e)
 
 def index(request):
     #print "starting index with request"
@@ -281,25 +282,25 @@ def index(request):
 def password_recovery(request):
     user = request.user
     if user.is_authenticated():
-        print "user is authenticated, so shouldn't be using forgot_password screen"
+        print("user is authenticated, so shouldn't be using forgot_password screen")
     else:
         if request.method == 'POST':
-            print "request.method is post, so change the password and send that email!!"
+            print("request.method is post, so change the password and send that email!!")
             alerts = []
             form = forms.EmailForm(data=request.POST)
             if form.is_valid():
-                print "cd is", form.cleaned_data
+                print(("cd is", form.cleaned_data))
                 email = form.cleaned_data['email']
                 qs = User.objects.filter(email=email)
                 count = qs.count()
                 if count == 1:
-                    print "looking good. there is 1 user with that email"
+                    print("looking good. there is 1 user with that email")
                     user_supposed = qs[0]
                     new_password = get_random_string(length=175)
                     user_supposed.set_password(new_password)
                     user_supposed.save()
-                    print "password changed to temp password"
-                    print "now send it in an email"
+                    print("password changed to temp password")
+                    print("now send it in an email")
 
                     alerts.append({"type": "success", "text": "We have sent you an email with a new temporary password."})
 
@@ -327,46 +328,46 @@ def mission(request):
 def register(request):
     host = request.get_host()
     if request.method == 'POST':
-        print "request.method is", request.method
+        print(("request.method is", request.method))
         form = forms.RegistrationForm(data=request.POST)
         if form.is_valid():
-            print "form is valid with cleaned_data", form.cleaned_data
+            print(("form is valid with cleaned_data", form.cleaned_data))
             email = form.cleaned_data['email']
             if User.objects.filter(email=email).count() > 0:
-                print "count > 0"
+                print("count > 0")
                 form.add_error('email', "The email " + email + " is already being used.")
                 return render(request, 'appfd/register.html', {'form': form})
             else:
-                print "that's a new email"
+                print("that's a new email")
                 password = form.cleaned_data['password']
                 user = User.objects.create(email=email, username=email, is_active=False)
                 user.set_password(password)
                 user.save()
 
-                print "created user", user
+                print(("created user", user))
 
                 #create activation key
                 #todo: make activation key of variable length
                 key = get_random_string(length=175)
                 Activation.objects.create(expired=False, key=key, used=False, user=user)
 
-                print "send an activation email"
+                print("send an activation email")
                 link = "http://" + host + "/activate/" + key
                 try: send_mail("[First Draft] Confirm Your Email Address", "Please click the following link in order to activate the account: " + link, "123489123401238476123847123412341234l@gmail.com", [user.email], fail_silently=False, html_message="<h3>Please click the following link in order to activate the account:</h3></br></br><a href='" + link + "'>" + link + "</a>")
-                except Exception as e: print e
+                except Exception as e: print(e)
 
                 #login after registration
                 user.backend = 'django.contrib.auth.backends.ModelBackend'
                 auth.login(request, user)
-                print "logged in user"
+                print("logged in user")
 
-                print "return to the homepage after a succesful registration"
+                print("return to the homepage after a succesful registration")
                 return render(request, 'appfd/register_success.html', {})
         else:
-            print "form is valid"
+            print("form is valid")
             return render(request, 'appfd/register.html', {'form': form})
     else:
-        print "request.method is probably get"
+        print("request.method is probably get")
         return render(request, 'appfd/register.html', {})
 
 
@@ -382,33 +383,33 @@ def generate_metadata_from_file(job):
         file_obj = job['file']
         filename = job['filename'] if "filename" in job else file_obj.name
         order_id = job['order_id']
-        print "order_id:", order_id
+        print(("order_id:", order_id))
         try:
             order = Order.objects.get(id=order_id)
-            print "order:", order
+            print(("order:", order))
         except Exception as e:
-            print "COULDN'T GET ORDER", e
+            print(("COULDN'T GET ORDER", e))
         if 'filepath' not in job:
             # make directory to store file and maps
             mkdir(directory)
 
             filepath = directory + "/" + filename
-            print "filepath = ", filepath
+            print(("filepath = ", filepath))
 
             # save file to disk
             with open(filepath, 'wb+') as destination:
                 for chunk in file_obj.chunks():
                     destination.write(chunk)
-            print "wrote file"
+            print("wrote file")
 
         metadata = extract_metadata(file_obj)
-        print "metadata:", metadata
-        print "directory:", directory
+        print(("metadata:", metadata))
+        print(("directory:", directory))
 
-        print "order_id:", order_id
+        print(("order_id:", order_id))
         for d in metadata:
             metadata_id = MetaData.objects.create(order_id=order_id).id
-            for k, v in d.items():
+            for k, v in list(d.items()):
                 MetaDataEntry.objects.create(metadata_id=metadata_id, key=k, value=v)
 
         save_metadata(metadata, _format="ISO 19115-2", path_to_dir=directory)
@@ -419,14 +420,14 @@ def generate_metadata_from_file(job):
                     path_to_file = directory + filename
                     zipped_shapefile.write(path_to_file, filename)
 
-        print "ABOUT TO FINISH ORDER"
+        print("ABOUT TO FINISH ORDER")
         try:
             finish_order(job['key'])
         except Exception as e:
-            print "CAUGHT EXCEPTION trying to finish_order:", e
+            print(("CAUGHT EXCEPTION trying to finish_order:", e))
         
     except Exception as e:
-        print "CAUGHT ERROR in generate_metadata_from_file", e
+        print(("CAUGHT ERROR in generate_metadata_from_file", e))
 
 def does_map_exist(request, job, extension):
     #print "starting does_map_exist"
@@ -443,11 +444,11 @@ def does_map_exist(request, job, extension):
                 return HttpResponse("no")
             
     except Exception as e:
-        print "[does_map_exist]", e
+        print(("[does_map_exist]", e))
         return HttpResponse("no")
 
 def does_metadata_exist(request, job, _type="iso_19115_2"):
-    print "starting does_metadata_exist with", job, _type
+    print(("starting does_metadata_exist with", job, _type))
     try:
         if _type == "iso_19115_2":
             if isfile("/home/usrfd/maps/" + job + "/" + job + "_metadata.zip"):
@@ -455,7 +456,7 @@ def does_metadata_exist(request, job, _type="iso_19115_2"):
             else:
                 return HttpResponse("no")
     except Exception as e:
-        print "CAUGHT EXCEPTION IN does_metadata_exist:", e
+        print(("CAUGHT EXCEPTION IN does_metadata_exist:", e))
         return HttpResponse("no")
 
 #
@@ -465,7 +466,7 @@ def does_metadata_exist(request, job, _type="iso_19115_2"):
 # and returns whatever file in their that ends with geojson
 def get_map(request, job, extension):
   try:
-    print "starting get_map with", job, extension
+    print(("starting get_map with", job, extension))
     path_to_directory = "/home/usrfd/maps/" + job + "/"
 
     # currently, loads zip file in memory and returns it
@@ -489,7 +490,7 @@ def get_map(request, job, extension):
     else:
         data = ""
         for filename in listdir(path_to_directory):
-            print "for filename"
+            print("for filename")
 
             if filename == job + "." + extension:
                 with open(path_to_directory + filename) as f:
@@ -497,11 +498,11 @@ def get_map(request, job, extension):
                 break
         return HttpResponse(data, content_type='application/json') 
   except Exception as e:
-    print e
+    print(e)
 
 def get_metadata(request, job, metadata_type="iso_19115_2"):
     try:
-        print "starting get_metadata with", job, metadata_type
+        print(("starting get_metadata with", job, metadata_type))
         path_to_directory = "/home/usrfd/maps/" + job + "/"
 
         # should auto-verify metadata at this point
@@ -516,7 +517,7 @@ def get_metadata(request, job, metadata_type="iso_19115_2"):
                 return response
 
     except Exception as e:
-        print e
+        print(e)
 
 def thanks(request):
     with open("/home/usrfd/firstdraft/requirements.txt") as f:
@@ -547,14 +548,14 @@ def request_possible_additions(request):
 def request_map_from_sources(request, debug=True):
 
     try:
-        print "starting upload_file"
+        print("starting upload_file")
         if request.method == 'POST':
             # need to add a way, so can upload advanced options
             #print "request.FILES", type(request.FILES['source_1_data'])
             #print "request.FILES:", request.FILES
             #print "request.POST:", request.POST
             cleaned = cleaner.clean(request.POST, request.FILES)
-            if debug: print "cleaned:", cleaned
+            if debug: print(("cleaned:", cleaned))
             if cleaned:
                 key = get_random_string(25)
 
@@ -586,11 +587,11 @@ def request_map_from_sources(request, debug=True):
                     job['style'] = {}
                     if "basemap" in cleaned['style']:
                         job['style']['basemap'] = cleaned['style']['basemap']
-                if debug: print "job:", job
+                if debug: print(("job:", job))
  
                 data = []
                 metadata = []
-                print "sources:", sources
+                print(("sources:", sources))
                 for source in sources:
 
                     try:
@@ -599,21 +600,21 @@ def request_map_from_sources(request, debug=True):
                         source_is_metadata = False
 
                     if source_is_metadata:
-                        print "is metadata"
+                        print("is metadata")
                         metadata.append(source)
                     else:
-                        print "is NOT metadata"
+                        print("is NOT metadata")
                         data.append(source)
 
-                print "data:", data
-                print "metadata:", metadata
+                print(("data:", data))
+                print(("metadata:", metadata))
 
                 Process(target=generate_map_from_sources, args=(job, data, metadata)).start()
 
                 return HttpResponse(job['key'])
                 
     except Exception as e:
-        print "CAUGHT ERROR in request_map_from_sources:", e
+        print(("CAUGHT ERROR in request_map_from_sources:", e))
  
 
 def view_frequency_map(request, job):

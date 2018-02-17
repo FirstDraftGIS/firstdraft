@@ -5,11 +5,11 @@ from appfd.scripts.ai import train
 #from tensorflow.contrib.learn.python.learn import Estimator
 
 classifier = train.run(return_classifier=True)
-print "classifier:", classifier
+print("classifier:", classifier)
 
 def run():
     try:
-        print "starting ai.predict"
+        print("starting ai.predict")
 
         #path_to_directory_of_this_file = dirname(realpath(__file__))
         #model_dir = path_to_directory_of_this_file + "/classifier"
@@ -18,6 +18,6 @@ def run():
         #classifier.fit(max_steps=0)
 
     except Exception as e:
-        print e
+        print(e)
 
 

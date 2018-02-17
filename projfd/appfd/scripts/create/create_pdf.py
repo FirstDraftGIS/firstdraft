@@ -7,7 +7,7 @@ from time import sleep
 
 def run(key):
     try:
-        print "starting create_pdf with key " + key
+        print("starting create_pdf with key " + key)
 
         from django.db import connection
         connection.close()
@@ -36,15 +36,15 @@ def run(key):
         sleep(15)
 
         path_to_pdf = directory + key + ".pdf"
-        print "path_to_pdf:", path_to_pdf
+        print("path_to_pdf:", path_to_pdf)
         if isfile(path_to_pdf): remove(path_to_pdf) 
 
         driver.execute_script("$('#map').height(" + str(height) + ").width(" + str(width) + ").css('position', 'relative');")
         sleep(2)
-        print "set map height, width and position"
+        print("set map height, width and position")
         driver.execute_script("map.fitBounds(featureGroup.getBounds().pad(0.01));")
         sleep(2)
-        print "fit map"
+        print("fit map")
 
         pageFormat = '''this.paperSize = {format: "Letter", margin: "1in", orientation: "landscape" };'''
         execute(pageFormat, [])
@@ -52,10 +52,10 @@ def run(key):
         render = '''this.render("'''+ path_to_pdf + '''")'''
         execute(render, [])
 
-        print "rendered"
+        print("rendered")
 
         driver.quit()
 
-        print "finished create_pdf"
+        print("finished create_pdf")
     except Exception as e:
-        print "CAUGHT EXCEPTION in create_pdf:", e
+        print("CAUGHT EXCEPTION in create_pdf:", e)

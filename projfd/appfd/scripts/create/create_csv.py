@@ -4,7 +4,7 @@ from os import mkdir
 from os.path import isdir
 
 def run(key):
-    print "starting create_csv with key " + key
+    print("starting create_csv with key " + key)
 
     from django.db import connection
     connection.close()
@@ -46,7 +46,7 @@ def run(key):
             try:
                 f.write("\n".encode("utf-8") + place.name.encode("utf-8") + ",".encode("utf-8") + str(fp.confidence).encode("utf-8") + "," + str(place.point.x).encode("utf-8") + "," + str(place.point.y).encode("utf-8") + "," + str(place.country_code).encode("utf-8") + "," + str(place.geonameid).encode("utf-8"))
             except Exception as e:
-                try: print "place.name:", [place.name]
+                try: print("place.name:", [place.name])
                 except: pass
                 raise e
 
@@ -74,4 +74,4 @@ def run(key):
 
     f.close()
 
-    print "finished creating csv"
+    print("finished creating csv")

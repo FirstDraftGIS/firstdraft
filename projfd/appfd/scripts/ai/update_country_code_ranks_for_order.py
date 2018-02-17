@@ -12,7 +12,7 @@ def run(token):
         from django.db import connection
         connection.close()
 
-        print "starting update_country_code_ranks_for_order"
+        print("starting update_country_code_ranks_for_order")
 
         counter = Counter(FeaturePlace.objects.filter(correct=True, feature__order__token=token).values_list("place__country_code", flat=True)) 
 
@@ -20,11 +20,11 @@ def run(token):
 
         CountryCodeRank.objects.filter(order_id=token).delete()
 
-        for country_code, count in counter.items():
+        for country_code, count in list(counter.items()):
             rank = counts.index(count)
             CountryCodeRank.objects.create(country_code=country_code, rank=rank, order_id=token)
 
 
     except Exception as e:
 
-        print e
+        print(e)

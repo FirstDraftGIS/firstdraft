@@ -6,7 +6,7 @@ def run(debug=False):
     try:
 
         if debug:
-            print "starting update.country_codes"
+            print("starting update.country_codes")
             start = datetime.now()
 
         connection.cursor().execute("SELECT update_country_codes();")
@@ -14,10 +14,10 @@ def run(debug=False):
         if debug:
             duration_in_seconds = (datetime.now() - start).total_seconds()
             if duration_in_seconds < 60:
-                if debug: print "updating country_codes took", duration_in_seconds, "seconds"
+                if debug: print("updating country_codes took", duration_in_seconds, "seconds")
             else:
-                if debug: print "updating country_codes took", duration_in_seconds / 60, "minutes"
+                if debug: print("updating country_codes took", duration_in_seconds / 60, "minutes")
 
     except Exception as e:
 
-        print e
+        print(e)

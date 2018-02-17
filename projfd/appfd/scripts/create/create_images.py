@@ -7,7 +7,7 @@ from time import sleep
 
 def run(key):
     try:
-        print "starting create_images with key " + key
+        print("starting create_images with key " + key)
 
         from django.db import connection
         connection.close()
@@ -30,12 +30,12 @@ def run(key):
 
         for extension in ["gif", "jpg", "png"]:
             path_to_screenshot = directory + key + "." + extension
-            print "path_to_screenshot:", path_to_screenshot
+            print("path_to_screenshot:", path_to_screenshot)
             if isfile(path_to_screenshot): remove(path_to_screenshot) 
             driver.save_screenshot(directory + key + "." + extension)
 
         driver.quit()
 
-        print "finished create_images"
+        print("finished create_images")
     except Exception as e:
-        print "CAUGHT EXCEPTION in create_images:", e
+        print("CAUGHT EXCEPTION in create_images:", e)

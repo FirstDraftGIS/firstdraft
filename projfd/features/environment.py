@@ -31,7 +31,7 @@ def before_all(context):
 
     #ip_address = gethostbyname(gethostname())
     ip_address = check_output("wget http://ipinfo.io/ip -qO -", shell=True)
-    print ("ip_address: " + ip_address)
+    print(("ip_address: " + ip_address))
     context.driver.get("http://" + ip_address)
     context.driver.maximize_window()
 
@@ -42,4 +42,4 @@ def after_scenario(context, scenario):
 def after_all(context):
     context.driver.quit()
     context.display.stop()
-    print("took", (datetime.now()-context.start).total_seconds(), "seconds")
+    print(("took", (datetime.now()-context.start).total_seconds(), "seconds"))

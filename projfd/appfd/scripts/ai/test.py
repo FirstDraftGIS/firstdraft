@@ -15,7 +15,7 @@ def run(debug=True):
 
         start = datetime.now()
 
-        if debug: print "starting test"
+        if debug: print("starting test")
 
 
         number_of_correct_features = 0
@@ -23,22 +23,22 @@ def run(debug=True):
 
 
         filenames = listdir(PATH_TO_DIRECTORY_OF_INPUT_DATA)
-        if debug: print "filenames:", filenames
+        if debug: print("filenames:", filenames)
         for filename in filenames:
-            if debug: print "filename:", filename
+            if debug: print("filename:", filename)
             path_to_date = PATH_TO_DIRECTORY_OF_INPUT_DATA + "/" + filename
             for order in listdir(path_to_date):
                 sources = []
                 path_to_order = path_to_date + "/" + order
-                if debug: print "path_to_order:", path_to_order
+                if debug: print("path_to_order:", path_to_order)
 
                 path_to_source_data_folder = path_to_order + "/source_data"
                 for filename in listdir(path_to_source_data_folder):
                     with open(path_to_source_data_folder + "/" + filename) as f:
                         sources.append(f.read())
-                print "sources:", sources
+                print("sources:", sources)
                 geojson = fdgis.make_map(sources)
-                print "geojson:", geojson
+                print("geojson:", geojson)
 
 
                 # test results
@@ -48,46 +48,46 @@ def run(debug=True):
                         try:
                             correct[name] = {"x": float(x), "y": float(y)}
                         except Exception as e:
-                            print "x:", [x]
-                            print "y:", [y]
+                            print("x:", [x])
+                            print("y:", [y])
                  
-                if debug: print "correct:", correct 
+                if debug: print("correct:", correct) 
                 if len(geojson['features']) == 0:
                     raise Exception("no features!")
                 for feature in geojson['features']:
                     name = feature['properties']['name']
-                    try: print "name:", [name]
+                    try: print("name:", [name])
                     except: pass
                     x, y = feature['geometry']['geometries'][0]['coordinates']
-                    if debug: print "x:", x
-                    if debug: print "y:", y
+                    if debug: print("x:", x)
+                    if debug: print("y:", y)
                     correct_props = correct.get(name, None)
-                    print "\tcorrect_props:", correct_props
+                    print("\tcorrect_props:", correct_props)
                     if correct_props:
                         correct_x = correct_props['x']
                         correct_y = correct_props['y']
-                        if debug: print "\tcorrect_props:", correct_props
+                        if debug: print("\tcorrect_props:", correct_props)
                         if correct_x and correct_y and correct_x != "NONE" and correct_y != "NONE":
                             if correct_x == x and correct_y == y:
                                 number_of_correct_features += 1
                             else:
                                 number_of_incorrect_features += 1
 
-        if debug: print "number_of_correct_features:", number_of_correct_features
-        if debug: print "number_of_incorrect_features:", number_of_incorrect_features
+        if debug: print("number_of_correct_features:", number_of_correct_features)
+        if debug: print("number_of_incorrect_features:", number_of_incorrect_features)
         accuracy = float(number_of_correct_features) / (number_of_correct_features + number_of_incorrect_features)
-        if debug: print "accuracy:", accuracy
+        if debug: print("accuracy:", accuracy)
 
         total_seconds = (datetime.now() - start).total_seconds()
-        if debug: print "total_seconds:", total_seconds
+        if debug: print("total_seconds:", total_seconds)
 
         Test.objects.create(accuracy=accuracy, duration=total_seconds)
 
-        if debug: print "finishing test"
+        if debug: print("finishing test")
 
     except Exception as e:
 
-        print "CAUGHT EXCEPTION in ai.test:", e
+        print("CAUGHT EXCEPTION in ai.test:", e)
 
 
 

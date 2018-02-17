@@ -11,7 +11,7 @@ path_to_directory_of_this_file = dirname(realpath(__file__))
 # used to create csv that other fdgis instances can read in to train their models
 def run():
     try:
-        print "starting export"
+        print("starting export")
 
         path_to_folder = path_to_directory_of_this_file + "/data/output/" + datetime.now().isoformat().split(".")[0].replace(":","-").replace("T","-")
         mkdir(path_to_folder)
@@ -50,7 +50,7 @@ def run():
                     else:
                         writer.writerow([name, "NONE", "NONE"])
                 else:
-                    print "skipping over ", name, "because we haven't verified it"
+                    print("skipping over ", name, "because we haven't verified it")
 
     except Exception as e:
-        print e
+        print(e)

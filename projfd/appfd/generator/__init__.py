@@ -21,7 +21,7 @@ def save_text_to_file(text, filepath):
 def generate_map_from_sources(job, data_sources, metadata_sources, debug=False):
 
     try:
-        print "starting generate_map_from_sources w job"
+        print("starting generate_map_from_sources w job")
 
         key = job['key']
         max_seconds = int(job.get('max_seconds', 10))
@@ -41,19 +41,19 @@ def generate_map_from_sources(job, data_sources, metadata_sources, debug=False):
         locations = []
         for source in data_sources:
             try:
-                print "source:", source
+                print("source:", source)
                 source_type = source['type']
                 source_data = source['data']
                 if source_type == "text":
-                    print "source_data:", source_data.encode("utf-8")
-                    print "[generator] creating source object"
+                    print("source_data:", source_data.encode("utf-8"))
+                    print("[generator] creating source object")
                     source_text = source_data.encode("utf-8") if len(source_data.encode("utf-8")) < max_source_text_length else None
                     Source.objects.create(order_id=order_id, source_text=source_text, source_type="text")
-                    print "[generator] created source object"
+                    print("[generator] created source object")
                     #save_text_to_file(source_data, toFileName(source_data, max_length=20))
                     locations.extend(extract_locations_from_text(source_data, case_insensitive=case_insensitive))
-                elif (isinstance(source_data, unicode) or isinstance(source_data, str)) and validators.url(source_data):
-                    print "source is url"
+                elif (isinstance(source_data, str) or isinstance(source_data, str)) and validators.url(source_data):
+                    print("source is url")
 
                     url = source_data.strip().strip('"').strip('"')
 
@@ -63,13 +63,13 @@ def generate_map_from_sources(job, data_sources, metadata_sources, debug=False):
                         url = unquote(search("(?<=&url=)[^&]{10,}", url).group(0))
 
                     if not url.startswith("http"):
-                        print "we assume that the user didn't include the protocol"
+                        print("we assume that the user didn't include the protocol")
                         url = "http://" + url
 
                     Source.objects.create(order_id=order_id, source_url=url, source_type="url")
 
                     extension = url.split(".")[-1]
-                    print "extension:", extension
+                    print("extension:", extension)
                     
                     # make head request to get content type
                     if extension in ("csv", "tsv", "xls", "xlsm", "xlsx"):
@@ -90,16 +90,16 @@ def generate_map_from_sources(job, data_sources, metadata_sources, debug=False):
                         if contentType.startswith("application/pdf"):
                             locations.extend(extract_locations_with_context_from_pdf(BytesIO(get(url).content)))
                         elif contentType.startswith("text/html"):
-                            print "seems to be a normal webpage"
+                            print("seems to be a normal webpage")
                             if "html" in source:
                                 # if passing in html along with url
                                 locations.extend(extract_locations_from_webpage(url, html=source['html']))
                             else:
                                 locations.extend(extract_locations_from_webpage(url))
                 elif source_type == "file":
-                    print "source_type is file"
-                    print "source_data:", source_data, dir(source_data)
-                    print "source_data.name:", source_data.name
+                    print("source_type is file")
+                    print("source_data:", source_data, dir(source_data))
+                    print("source_data.name:", source_data.name)
                     source_data_name = source_data.name
                     source_extension = source_data_name.split(".")[-1]
                     if source_extension == "docx":
@@ -110,24 +110,24 @@ def generate_map_from_sources(job, data_sources, metadata_sources, debug=False):
                     elif source_extension == "txt":
                         locations.extend(extract_locations_from_text(source_data.read(), case_insensitive=case_insensitive))
                     elif source_extension == "pdf":
-                        print "source_extension is pdf"
+                        print("source_extension is pdf")
                         locations.extend(extract_locations_with_context_from_pdf(source_data))
                     
  
             except Exception as e:
-                print "failed to get locations for source because", e
+                print("failed to get locations for source because", e)
   
-        print "[generate_map_from_sources] locations before resolving:", len(locations) 
+        print("[generate_map_from_sources] locations before resolving:", len(locations)) 
         resolve_locations(locations, order_id=order_id, max_seconds=max_seconds, countries=countries, end_user_timezone=end_user_timezone, case_insensitive=case_insensitive, debug=debug)
 
-        print "job.keys():", job.keys()
+        print("job.keys():", list(job.keys()))
         if "style" in job:
             style_order(order_id=order_id, style=job['style'])
         else:
             style_order(order_id=order_id)
 
-        print "finishing generate_map_from_sources"
+        print("finishing generate_map_from_sources")
         finish_order(job['key'])
 
     except Exception as e:
-        print "EXCEPTION in generate_map_from_sources:", e
+        print("EXCEPTION in generate_map_from_sources:", e)

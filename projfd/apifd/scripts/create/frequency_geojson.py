@@ -11,14 +11,14 @@ from os.path import isdir, isfile
 # it currently only supports countries
 # but will expand to lower layers
 def run(token):
-    print "\nstarting create.frequency_geojson"
+    print("\nstarting create.frequency_geojson")
 
     from django.db import connection
     connection.close()
 
     path_to_geojson = "/home/usrfd/maps/" + token + "/" + token + "_frequency.geojson"
     order = Order.objects.filter(token=token).first()
-    print "order:", order
+    print("order:", order)
     if order:
         features = Feature.objects.filter(order=order)
 

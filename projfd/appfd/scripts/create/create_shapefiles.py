@@ -20,7 +20,7 @@ def area(coords):
 def run(key, debug=False):
 
   try:
-    print "starting create_shapefiles with key " + key
+    print("starting create_shapefiles with key " + key)
 
     from django.db import connection
     connection.close()
@@ -76,7 +76,7 @@ def run(key, debug=False):
                         writer_polygons.poly(parts=c, shapeType=POLYGONM)
                         number_of_polygons += 1
             except Exception as e:
-                print "caught the following error while trying to write multipolygons", e
+                print("caught the following error while trying to write multipolygons", e)
 
     directory = "/home/usrfd/maps/" + key + "/"
     if number_of_points > 0 or number_of_polygons > 0:
@@ -84,7 +84,7 @@ def run(key, debug=False):
             writer_points.save(directory + key + "_points")
             with open(directory + key + "_points.prj", "wb") as f:
                 f.write(CRS)
-            print "WROTE PRJ"
+            print("WROTE PRJ")
         if number_of_polygons > 0:
             writer_polygons.save(directory + key + "_polygons")
             with open(directory + key + "_polygons.prj", "wb") as f:
@@ -97,7 +97,7 @@ def run(key, debug=False):
                     zipped_shapefile.write(path_to_file, filename)
                     remove(path_to_file)
 
-    print "finished creating shapefiles"
+    print("finished creating shapefiles")
 
   except Exception as e:
-    print "CAUGHT EXCEPTION in create_shapefiles:", e
+    print("CAUGHT EXCEPTION in create_shapefiles:", e)

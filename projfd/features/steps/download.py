@@ -2,7 +2,7 @@ from appfd.models import Place
 from os.path import isfile
 from os import remove
 from time import sleep
-from urllib import urlretrieve
+from urllib.request import urlretrieve
 
 def download(driver, extension):
     url = driver.find_element_by_id("download_link_" + extension).get_attribute("href")

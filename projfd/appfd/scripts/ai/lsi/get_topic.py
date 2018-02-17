@@ -17,7 +17,7 @@ try:
    
     dictionary = Dictionary.load(path_to_directory_of_this_file + "/dictionary")
 except Exception as e:
-    print e
+    print(e)
 
 def run(text):
 
@@ -32,4 +32,4 @@ def run(text):
                 return sorted(probabilities, key=lambda tup: -1*tup[1])[0][0]
 
     except Exception as e:
-        print e
+        print(e)

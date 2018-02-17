@@ -28,11 +28,11 @@ try:
         width = widgets.LARGEST
 
         def labels(self):
-            print "STARTING LABELS"
+            print("STARTING LABELS")
             return [d['day'].strftime("%m-%d") for d in self.queryset]
 
         def series(self):
-            print "SERIES"
+            print("SERIES")
             return [list(self.queryset.values_list("id__count", flat=True))]
 
     class NumberOfOrdersPerDayInLast30Days(widgets.SingleLineChart):
@@ -57,4 +57,4 @@ try:
 
 except Exception as e:
 
-    print "CAUGHT ERROR IN dashboards.py:", e
+    print("CAUGHT ERROR IN dashboards.py:", e)
