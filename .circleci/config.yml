@@ -11,17 +11,19 @@ jobs:
       - checkout
       - run:
           name: Update Repository List
-          command: apt-get -qq update
-      - run: apt-get install -y software-properties-common
+          command: apt-get update
+      - run:
+          name: Install software-properties-common
+          command: bash firstdraft/bash_scripts/install_software_properties_common.sh
       - run:
           name: Install Additional Apt Repositories
-          command: add-apt-repository -y $(awk 'NR>=3 { printf $2 " " }' system_repositories.md)
+          command: bash firstdraft/bash_scripts/add_apt_repos.sh
       - run:
           name: Update Repository List
           command: apt-get update
       - run:
           name: Install Apt Packages
-          command: DEBIAN_FRONTEND=noninteractive apt-get install -y $(awk 'NR>=3 { printf $2 " " }' system_requirements.md) 
+          command: bash firstdraft/bash_scripts/install_system_packages.sh; 
       #- run: bash bash_scripts/install_mapnik.sh
       - run:
           name: Set Up Environmental Variables
