@@ -1,7 +1,7 @@
 import appfd, inspect
 from appfd.models import Basemap
 from appfd import views
-from controlcenter.views import controlcenter
+#from controlcenter.views import controlcenter
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib.auth.models import User, Group
@@ -13,13 +13,13 @@ urlpatterns = [
     #url(r'^appfd/', include('appfd.urls')),
     url(r'^api/', include('apifd.urls')),
     url(r'^swagger/', get_swagger_view(title='First Draft GIS API')),
-    url(r'^silk/', include('silk.urls', namespace='silk')),
+    #url(r'^silk/', include('silk.urls', namespace='silk')),
     #url(r'^help/', include('help.urls')),
     url(r'^$', views.index, name="index"),
     #url(r'about$', views.about, name='about'),
     #url(r'activate/(?P<key>[^\./]+)$', views.activate, name='activate'),
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^admin/dashboard/', controlcenter.urls),
+    #url(r'^admin/', include(admin.site.urls)),
+    #url(r'^admin/dashboard/', controlcenter.urls),
     #url(r'change_email$', views.change_email, name='change_email'),
     #url(r'change_password$', views.change_password, name='change_password'),
     url(r'^contact$', views.contact, name='contact'),
@@ -47,8 +47,8 @@ urlpatterns = [
     url(r'thanks/', views.thanks, name='thanks'),
     url(r'view_map/(?P<job>[^/]+)', views.view_map, name='view_map'),
     url(r'view_frequency_map/(?P<job>[^/]+)', views.view_frequency_map, name='view_frequency_map'),
-    url('', include('social_django.urls', namespace='social')),
-    url('', include('django.contrib.auth.urls', namespace='auth'))
+    #url('', include('social_django.urls', namespace='social')),
+    #url('', include('django.contrib.auth.urls', namespace='auth'))
 ]
 
 # add urls for static content

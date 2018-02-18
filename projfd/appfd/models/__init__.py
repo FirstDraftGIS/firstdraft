@@ -130,7 +130,7 @@ try:
 except:
     default_basemap_id = -1
 class MapStyle(Base):
-    basemap = ForeignKey("Basemap", default=default_basemap_id, on_delete=SET_NULL)
+    basemap = ForeignKey("Basemap", default=default_basemap_id, on_delete=SET_DEFAULT)
 
 
 class ParentChild(Base):

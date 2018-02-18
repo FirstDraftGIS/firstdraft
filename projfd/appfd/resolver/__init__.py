@@ -10,7 +10,6 @@ from datetime import datetime
 from django.db import connection
 from django.db.models import Q
 import editdistance
-from exceptions import UnicodeEncodeError
 from multiprocessing import *
 from numpy import amin, argmin, mean, median, where
 from random import shuffle

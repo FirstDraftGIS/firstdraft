@@ -7,8 +7,8 @@ from appfd.forms import *
 from appfd.generator import generate_map_from_sources 
 from appfd.generator.additions import generate_possible_additions
 from appfd.models import *
-from bnlp import clean as bnlp_clean
-from bnlp import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
+from bnlp3 import clean as bnlp_clean
+from bnlp3 import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
 from bs4 import BeautifulSoup
 from collections import Counter
 import csv

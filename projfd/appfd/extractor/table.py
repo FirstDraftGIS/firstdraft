@@ -1,5 +1,5 @@
 from appfd.models import Place
-from bnlp import clean as bnlp_clean
+from bnlp3 import clean as bnlp_clean
 from broth import Broth
 from location_extractor import extract_locations_with_context, extract_locations_with_context_from_html_tables
 from newspaper import Article

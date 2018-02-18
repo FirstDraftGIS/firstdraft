@@ -118,7 +118,7 @@ def run(geoentities, mode, debug=True):
             name = geoentity.target
             timezone = geoentity.timezone
 
-	    feature_admin_levels = set([g.admin_level for g in geoentities if g.admin_level and g.target == name])
+            feature_admin_levels = set([g.admin_level for g in geoentities if g.admin_level and g.target == name])
             #print "feature_admin_levels:", feature_admin_levels
             if feature_admin_levels:
                 lowest_admin_level = min(feature_admin_levels)

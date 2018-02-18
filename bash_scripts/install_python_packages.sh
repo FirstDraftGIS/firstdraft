@@ -1,3 +1,5 @@
+set -o errexit;
+
 echo "setting environmental variables for pip install"
 locale-gen en_US.UTF-8
 export LANG=en_US.UTF-8

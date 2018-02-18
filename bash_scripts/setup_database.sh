@@ -1,3 +1,5 @@
+set -o errexit;
+
 service postgresql restart;
 
 su postgres -c "psql -c 'CREATE DATABASE dbfd'";
