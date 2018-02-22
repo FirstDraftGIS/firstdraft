@@ -15,11 +15,11 @@ jobs:
             psql -c "$(awk 'NR>=3 { printf "CREATE EXTENSION " $2 "; " }' postgresql_extensions.md)" dbfd
       - run:
           name: Building Database Tables
-          working_directory: ~/firstdraft/projfd
           command: |
-              service postgresql restart;
-              python3 manage.py makemigrations;
-              python3 manage.py migrate;
+            cd projfd
+            service postgresql restart;
+            python3 manage.py makemigrations;
+            python3 manage.py migrate;
       - restore_cache:
           keys:
             - conformed
