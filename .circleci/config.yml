@@ -3,7 +3,6 @@ jobs:
   build:
     docker:
       - image: firstdraftgis/base:latest
-    working_directory: /
     steps:
       - checkout
       - run:
