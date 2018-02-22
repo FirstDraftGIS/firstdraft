@@ -9,9 +9,9 @@ jobs:
           name: Create Database
           command: |
             service postgresql restart
-            su postgres -c "psql -c 'CREATE DATABASE dbfd'"
-            su postgres -c "psql -c 'CREATE ROLE $(whoami) SUPERUSER LOGIN CREATEDB'"
-            su postgres -c "psql -c 'ALTER DATABASE dbfd OWNER TO $(whoami)'"
+            psql -c 'CREATE DATABASE dbfd'
+            psql -c 'CREATE ROLE $(whoami) SUPERUSER LOGIN CREATEDB'
+            psql -c 'ALTER DATABASE dbfd OWNER TO $(whoami)'
             psql -c "$(awk 'NR>=3 { printf "CREATE EXTENSION " $2 "; " }' postgresql_extensions.md)" dbfd
       - run:
           name: Building Database Tables
