@@ -2,66 +2,16 @@ version: 2
 jobs:
   build:
     docker:
-      - image: ubuntu:latest
-        environment:
-        - PG_HOST=localhost
-        - PG_USER=ubuntu
-      - image: circleci/postgres:9.5-alpine-postgis
+      - image: firstdraftgis/base:latest
     working_directory: /
     steps:
       - checkout
       - run:
-          name: Update Repository List
-          command: apt-get update
-      - run:
-          name: Install software-properties-common
-          command: bash bash_scripts/install_software_properties_common.sh
-      - run:
-          name: Install Additional Apt Repositories
-          command: bash firstdraft/bash_scripts/add_apt_repos.sh
-      - run:
-          name: Update Repository List
-          command: apt-get update
-      - run:
-          name: Install Apt Packages
-          command: bash firstdraft/bash_scripts/install_system_packages.sh; 
-      #- run: bash bash_scripts/install_mapnik.sh
-      - run:
-          name: Set Up Environmental Variables
-          command: |
-            locale-gen en_US.UTF-8
-            export LANG=en_US.UTF-8
-            export LANGUAGE=en_US:en
-      - run:
-          name: Install Pip
-          command: curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | python3
-      - run:
-          name: Upgrade Pip
-          command:  pip install -q --upgrade pip
-      - run: python3 --version
-      - run: 
-          name: Install Python Requirements
-          command: pip install -r requirements.txt
-      - run:
-          name: Install scikit-learn
-          command: pip install -q -U scikit-learn
-      - run:
-          name: Download NLTK Data
-          command: python3 -c "import nltk; nltk.download('stopwords')"
-      - run:
-          name: Restart PostgreSQL
-          command: service postgresql restart
-      - run:
           name: Create Database
-          command: psql -c "CREATE DATABASE dbfd"
-      - run:
-          name: Download Safecast
-          working_directory: ~/
-          command: git clone https://github.com/DanielJDufour/safecast
-      - run:
-          name: Make Safecast
-          working_directory: ~/safecast
-          command: make install && make installcheck
+          command: |
+            su postgres -c "psql -c 'CREATE DATABASE dbfd'"
+            su postgres -c "psql -c 'CREATE ROLE $(whoami) SUPERUSER LOGIN CREATEDB'"
+            su postgres -c "psql -c 'ALTER DATABASE dbfd OWNER TO $(whoami)'"
       - run:
           name: Create PostgreSQL Extensions
           working_directory: /tmp    
@@ -72,14 +22,27 @@ jobs:
       - run:
           name: Building Database Tables
           working_directory: ~/firstdraft/projfd
-          command: python3 manage.py makemigrations && python3 manage.py migrate
+          command: |
+              service postgresql restart;
+              python3 manage.py makemigrations;
+              python3 manage.py migrate;
+      - restore_cache:
+          keys:
+            - conformed
       - run:
-          name: Download Unum Gazetteer Data
+          name: Download Conformed Gazetteer Data
           working_directory: /tmp
-          command: wget https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip && unzip conformed.tsv.zip
+          command: if [ ! -f /tmp/conformed.tsv ]; then wget https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip && unzip conformed.tsv.zip; fi
+      - save_cache:
+          key: conformed
+          paths:
+            - /tmp/conformed.tsv
       - run:
-          name: Load Unum into Database
-          command: psql -f firstdraft/sql_scripts/unum/load.sql dbfd
+          name: Load Data
+          command: psql -c "COPY appfd_place FROM '/tmp/conformed.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '');"
+      - run:
+          name: Normalize Names
+          command: psql -c "UPDATE appfd_place SET name_normalized = unaccent(lower(name_ascii));"
       - run:
           name: Enable Indexing
           working_directory: ~/firstdraft/projfd/projfd
@@ -87,7 +50,10 @@ jobs:
       - run:
           name: Index Database
           working_directory: ~/firstdraft/projfd
-          command: python3 manage.py makemigrations && python3 manage.py migrate
+          command: |
+            service postgresql restart
+            python3 manage.py makemigrations
+            python3 manage.py migrate
           
         
 

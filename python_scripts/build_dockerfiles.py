@@ -3,23 +3,7 @@ from re import search
 from shutil import copyfile
 from subprocess import check_output
 
-class Dockerfile:
-    
-    def __init__(self, filepath="Dockerfile"):
-        self.filepath = filepath
-        with open(filepath, "w") as f:
-            f.write("")
-    
-    def write_line(self, text):
-        with open(self.filepath, "a") as f:
-            f.write(text.rstrip("\n") + "\n")
-            
-    def run(self, text):
-        self.write_line("RUN " + text)
-    
-    def run_together(self, commands):
-        self.run(" \\\n &&  ".join(commands))
-
+from dockerfile import Dockerfile
 
 def get_first_column_values(filepath):
     values = []
@@ -69,49 +53,58 @@ df1.run("pip3 install --quiet " + " ".join(reqs))
 df1.run("pip3 install -U scikit-learn")
 df1.run('''python3 -c "import nltk; nltk.download('stopwords')"''')
 
-"""
-df.run_together([
+# install safecast
+df1.run("git clone https://github.com/DanielJDufour/safecast safecast")
+df1.run("cd /safecast && make install")
+
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+# build second docker file
+df2 = Dockerfile("dockerfiles/loaded/Dockerfile")
+df2.write_line("FROM firstdraftgis/base:latest")
+df2.write_line("MAINTAINER First Draft GIS, LLC")
+df2.write_line("WORKDIR /")
+
+# Create Database
+df2.run_together([
     "service postgresql restart",
     '''su postgres -c "psql -c 'CREATE DATABASE dbfd'"''',
     '''su postgres -c "psql -c 'CREATE ROLE $(whoami) SUPERUSER LOGIN CREATEDB'"''',
     '''su postgres -c "psql -c 'ALTER DATABASE dbfd OWNER TO $(whoami)'"'''    
 ])
 
-# set up database
-commands = [
-    "service postgresql restart",
-    "git clone https://github.com/DanielJDufour/safecast safecast",
-    "cd /safecast && make install && make installcheck",
-]
+# Create Extensions for Database
 extensions = get_first_column_values("postgresql_extensions.md")
-psql_command = " ".join(["CREATE EXTENSION " + extension + ";" for extension in extensions])
-commands.append("psql -c '" + psql_command + "' dbfd")
-df.run_together(commands)
+psql_command = " ".join(["CREATE EXTENSION " + ext + ";" for ext in extensions])
+df2.run_together([
+    "service postgresql restart",
+    "psql -c '" + psql_command + "' dbfd"
+])
 
-df.write_line("ADD . /firstdraft")
+df2.write_line("ADD . /firstdraft")
 
 # set up database tables
-df.write_line("WORKDIR /firstdraft/projfd")
 commands = [
+    "cd /firstdraft/projfd",
     "service postgresql restart",
     "python3 manage.py makemigrations",
-    "python3 manage.py migrate",
-    "service postgresql restart"]
-df.run_together(commands)
-df.write_line("WORKDIR /")
-
+    "python3 manage.py migrate"]
+df2.run_together(commands)
 
 if isfile("/tmp/conformed.tsv"):
-    df.write_line("ADD /tmp/conformed.tsv /tmp")
+    df2.write_line("ADD ../links/conformed.tsv /tmp")
 else:
     # download unum gazetteer data
-    df.run_together([
-        " if [! -f /tmp/conformed.zip ]; then"
+    df2.run_together([
         "cd /tmp",
         "wget --no-verbose https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip",
         "unzip conformed.tsv.zip"
     ])
-
+    
+"""
 # load unum gazetteer data
 df.run_together([
     "service postgresql restart",

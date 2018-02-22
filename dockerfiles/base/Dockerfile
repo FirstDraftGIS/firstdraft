@@ -24,3 +24,5 @@ RUN pip3 install --upgrade pip
 RUN pip3 install --quiet behave-django bnlp3 bscrp beryl boto broth Cython date-extractor Django django-braces django-crispy-forms djangorestframework djangorestframework-gis djangorestframework-queryfields django-rest-swagger django-extensions django-filter django-guardian django-sendfile django-timezone-field editdistance gensim geojson georefdata html5lib language-detector location-extractor lxml markdown maxminddb metadata-extractor mod_wsgi newspaper3k nltk numpy openpyxl pandas Pillow psycopg2-binary PyPDF2 pyproj git+git://github.com/GeospatialPython/pyshp pydash python-dateutil python-docx python-magic pyvirtualdisplay PyYAML pytz requests scipy scrp selenium six social-auth-app-django stop-words super_python table-extractor tensorflow titlecase validators wheel
 RUN pip3 install -U scikit-learn
 RUN python3 -c "import nltk; nltk.download('stopwords')"
+RUN git clone https://github.com/DanielJDufour/safecast safecast
+RUN cd /safecast && make install
