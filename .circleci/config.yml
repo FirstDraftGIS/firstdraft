@@ -8,16 +8,11 @@ jobs:
       - run:
           name: Create Database
           command: |
+            service postgresql restart
             su postgres -c "psql -c 'CREATE DATABASE dbfd'"
             su postgres -c "psql -c 'CREATE ROLE $(whoami) SUPERUSER LOGIN CREATEDB'"
             su postgres -c "psql -c 'ALTER DATABASE dbfd OWNER TO $(whoami)'"
-      - run:
-          name: Create PostgreSQL Extensions
-          working_directory: /tmp    
-          command: psql -c "$(awk 'NR>=3 { printf "CREATE EXTENSION " $2 "; " }' postgresql_extensions.md)" dbfd;            
-      - run:
-          name: Restart PostgreSQL
-          command: service postgresql restart
+            psql -c "$(awk 'NR>=3 { printf "CREATE EXTENSION " $2 "; " }' postgresql_extensions.md)" dbfd
       - run:
           name: Building Database Tables
           working_directory: ~/firstdraft/projfd
