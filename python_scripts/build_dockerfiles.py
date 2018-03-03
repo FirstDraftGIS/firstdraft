@@ -84,7 +84,16 @@ df2.run_together([
     "psql -c '" + psql_command + "' dbfd"
 ])
 
+# download place data
+df2.run_together([
+    "cd /tmp",
+    "wget --no-verbose https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip",
+    "unzip conformed.tsv.zip",
+    "rm conformed.tsv.zip"
+])
+
 df2.write_line("ADD . /firstdraft")
+
 
 # set up database tables
 commands = [
@@ -94,23 +103,23 @@ commands = [
     "python3 manage.py migrate"]
 df2.run_together(commands)
 
-if isfile("/tmp/conformed.tsv"):
-    df2.write_line("ADD ../links/conformed.tsv /tmp")
-else:
-    # download unum gazetteer data
-    df2.run_together([
-        "cd /tmp",
-        "wget --no-verbose https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip",
-        "unzip conformed.tsv.zip"
-    ])
-    
-"""
+
 # load unum gazetteer data
-df.run_together([
+df2.run_together([
     "service postgresql restart",
     "sleep 5", # playing it safe and making sure postgresql has restarted
-    "psql -f firstdraft/sql_scripts/unum/load.sql dbfd",
+    '''psql -c "COPY appfd_place FROM '/tmp/conformed.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd'''
 ])
+
+df2.run_together([
+    "service postgresql restart",
+    "sleep 5", # playing it safe and making sure postgresql has restarted
+    '''psql -c "UPDATE appfd_place SET name_normalized = unaccent(lower(name_ascii))" dbfd'''
+])
+
+
+
+"""
 
 # index database
 df.run_together([

@@ -84,3 +84,4 @@ projfd/appfd/scripts/ai/data/*
 projfd/static/bower_components/*
 node_modules/
 *.pickle
+conformed.tsv

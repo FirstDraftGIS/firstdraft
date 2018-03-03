@@ -1,7 +1,7 @@
 #-*- coding: utf-8 -*-
 from .base import Base
 from django.contrib.gis.db.models import BigIntegerField
-from django.contrib.gis.db.models import CharField
+from django.contrib.gis.db.models import TextField
 from django.contrib.gis.db.models import FloatField
 from django.contrib.gis.db.models import ForeignKey
 from django.contrib.gis.db.models import IntegerField
@@ -22,20 +22,20 @@ from projfd.dynamic_settings import *
 class Place(Base):
 
     # attribution
-    attribution = CharField(max_length=500, null=True, blank=True)
+    attribution = TextField(null=True, blank=True)
 
     # concordances
-    enwiki_title = TextField(max_length=175, null=True, blank=True, db_index=DB_INDEX)
+    enwiki_title = TextField(null=True, blank=True, db_index=DB_INDEX)
     geonames_id = IntegerField(null=True, blank=True, db_index=DB_INDEX)
-    osm_id = CharField(max_length=15, null=True, blank=True)
-    pcode = CharField(max_length=200, null=True, blank=True, db_index=DB_INDEX)
+    osm_id = TextField(null=True, blank=True)
+    pcode = TextField(null=True, blank=True, db_index=DB_INDEX)
     fips = IntegerField(null=True, blank=True, db_index=DB_INDEX)
 
     # admin stuff
-    admin1_code = CharField(max_length=10, null=True, blank=True, db_index=DB_INDEX)
-    admin2_code = CharField(max_length=65, null=True, blank=True, db_index=DB_INDEX)
-    admin3_code = CharField(max_length=15, null=True, blank=True, db_index=DB_INDEX)
-    admin4_code = CharField(max_length=15, null=True, blank=True, db_index=DB_INDEX)
+    admin1_code = TextField(null=True, blank=True, db_index=DB_INDEX)
+    admin2_code = TextField(null=True, blank=True, db_index=DB_INDEX)
+    admin3_code = TextField(null=True, blank=True, db_index=DB_INDEX)
+    admin4_code = TextField(null=True, blank=True, db_index=DB_INDEX)
     admin_level = IntegerField(null=True, blank=True, db_index=DB_INDEX)
 
     # bounding box stuff
@@ -45,17 +45,17 @@ class Place(Base):
     west = FloatField(null=True, blank=True)
 
     # name stuff
-    name = CharField(max_length=250, null=True, blank=True)
-    name_ascii = CharField(max_length=1500, null=True, blank=True)
-    name_display = CharField(max_length=350, null=True, blank=True)
-    name_en = CharField(max_length=250, null=True, blank=True)
-    name_normalized = CharField(max_length=2000, null=True, blank=True, db_index=DB_INDEX)
-    other_names = TextField(max_length=18873, null=True, blank=True)
+    name = TextField(null=True, blank=True)
+    name_ascii = TextField(null=True, blank=True)
+    name_display = TextField(null=True, blank=True)
+    name_en = TextField(null=True, blank=True)
+    name_normalized = TextField(null=True, blank=True, db_index=DB_INDEX)
+    other_names = TextField(null=True, blank=True)
 
     # place types
-    geonames_feature_class = CharField(max_length=1, null=True, blank=True, db_index=DB_INDEX)
-    geonames_feature_code = CharField(max_length=5, null=True, blank=True, db_index=DB_INDEX)
-    place_type = CharField(max_length=1, null=True, blank=True)
+    geonames_feature_class = TextField(null=True, blank=True, db_index=DB_INDEX)
+    geonames_feature_code = TextField(null=True, blank=True, db_index=DB_INDEX)
+    place_type = TextField(null=True, blank=True)
 
     # geometries
     objects = GeoManager()
@@ -68,9 +68,9 @@ class Place(Base):
 
     # osm stuff
     importance = FloatField(null=True, blank=True)
-    osmname_class = CharField(max_length=10, null=True, blank=True)
-    osmname_type = CharField(max_length=160, null=True, blank=True)
-    osm_type = CharField(max_length=106, null=True, blank=True)
+    osmname_class = TextField(null=True, blank=True)
+    osmname_type = TextField(null=True, blank=True)
+    osm_type = TextField(null=True, blank=True)
     place_rank = IntegerField(null=True, blank=True)
 
     # dem and elevation stuff
@@ -78,19 +78,19 @@ class Place(Base):
     elevation = FloatField(null=True, blank=True)
 
     # geocoder stuff
-    city = CharField(max_length=114, null=True, blank=True)
-    county = CharField(max_length=100, null=True, blank=True)
-    country = CharField(max_length=40, null=True, blank=True)
-    country_code = CharField(max_length=2, null=True, blank=True, db_index=DB_INDEX)
-    state = CharField(max_length=120, null=True, blank=True)
-    street = CharField(max_length=203, null=True, blank=True)
+    city = TextField(null=True, blank=True)
+    county = TextField(null=True, blank=True) # should be 100
+    country = TextField(null=True, blank=True)
+    country_code = TextField(null=True, blank=True, db_index=DB_INDEX)
+    state = TextField(null=True, blank=True)
+    street = TextField(null=True, blank=True)
 
     #misc
-    note = CharField(max_length=200, null=True, blank=True)
+    note = TextField(null=True, blank=True)
     population = BigIntegerField(null=True, blank=True)
     # number of times name appeared and meant this place minus number of times didn't mean this place
     popularity = BigIntegerField(null=True, blank=True)
-    timezone = CharField(max_length=30, null=True, blank=True, db_index=DB_INDEX)
+    timezone = TextField(null=True, blank=True, db_index=DB_INDEX)
     topic = ForeignKey("Topic", null=True, on_delete=SET_NULL) # represents the most common topic associated with this place
 
     class Meta:
