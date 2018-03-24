@@ -2,6 +2,6 @@
 DROP TABLE IF EXISTS genesis;
 CREATE TABLE genesis (
     page_id bigint,
-    titles varchar(1234567)
+    titles text
 );
 COPY genesis FROM '/tmp/genesis.tsv' WITH (FORMAT 'csv', DELIMITER E'\t')
