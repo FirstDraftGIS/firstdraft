@@ -99,6 +99,7 @@ def process_group(group, feature_count, featureplace_count):
             
             order_writer.writerow({
                 "id": order_id,
+                "complete": "true",
                 "token": page_id
             })
             
