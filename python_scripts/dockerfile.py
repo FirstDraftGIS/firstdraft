@@ -14,3 +14,6 @@ class Dockerfile:
     
     def run_together(self, commands):
         self.run(" \\\n &&  ".join(commands))
+        
+    def run_separately(self, commands):
+        self.run("; ".join(commands))

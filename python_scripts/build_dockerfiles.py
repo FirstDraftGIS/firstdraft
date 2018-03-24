@@ -92,13 +92,14 @@ df2.run_together([
     "rm conformed.tsv.zip"
 ])
 
-df2.write_line("ADD . /firstdraft")
-
+df2.run("mkdir /firstdraft")
+df2.write_line("ADD ./projfd /firstdraft/projfd")
 
 # set up database tables
 commands = [
     "cd /firstdraft/projfd",
     "service postgresql restart",
+    "sleep 10",
     "python3 manage.py makemigrations",
     "python3 manage.py migrate"]
 df2.run_together(commands)
@@ -111,29 +112,63 @@ df2.run_together([
     '''psql -c "COPY appfd_place FROM '/tmp/conformed.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd'''
 ])
 
-df2.run_together([
-    "service postgresql restart",
-    "sleep 5", # playing it safe and making sure postgresql has restarted
-    '''psql -c "UPDATE appfd_place SET name_normalized = unaccent(lower(name_ascii))" dbfd'''
-])
-
-
-
-"""
-
 # index database
-df.run_together([
+df2.run_together([
     "cd firstdraft/projfd",
+    "sleep 10",
     "service postgresql restart",
     "echo 'DB_INDEX = True' >> projfd/dynamic_settings.py",
+    "sleep 360",
+    "cat /var/log/postgresql/postgresql-9.5-main.log",
     "python3 manage.py makemigrations",
-    "python3 manage.py migrate",
-    "service postgresql restart"
+    "python3 manage.py migrate"
 ])
 
-# will set up apache stuff in a separate build process
-# this docker file is just to test and build
-# so can upload db dump, model and approve code
-# expose port so can make calls to server
-df.write_line("EXPOSE 8000")
-"""
+# delete conformed.tsv reducing size of docker container
+df2.run("rm /tmp/conformed.tsv")
+
+
+###############################################################
+###############################################################
+###############################################################
+
+df3 = Dockerfile("dockerfiles/loaded-with-training-data/Dockerfile")
+df3.write_line("FROM firstdraftgis/loaded:latest")
+df3.write_line("MAINTAINER First Draft GIS, LLC")
+df3.write_line("WORKDIR /")
+
+# download training data
+df3.run_together([
+    "cd /tmp",
+    "wget --no-verbose https://s3.amazonaws.com/firstdraftgis/genesis.tsv.zip",
+    "unzip genesis.tsv.zip",
+    "rm genesis.tsv.zip"
+])
+
+# delete and read conform script in case there were any updates
+df3.run("rm -fr /firstdraft/projfd/appfd/scripts/conform")
+df3.write_line("ADD ./projfd/appfd/scripts/conform /firstdraft/projfd/appfd/scripts/conform")
+
+df3.run_together([
+    "cd /firstdraft/projfd",
+    "service postgresql restart",
+    "sleep 720",
+    "python3 manage.py runscript conform.training_data"
+])
+
+# load conformed training data into databaset
+df3.run_together([
+    "cd /firstdraft/projfd",
+    "service postgresql restart",
+    "sleep 720",
+    '''psql -c "COPY appfd_order FROM '/tmp/order.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd''',
+    '''psql -c "COPY appfd_feature FROM '/tmp/feature.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd''',
+    '''psql -c "COPY appfd_feature FROM '/tmp/featureplace.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd'''
+])
+
+# clean up temp files
+df3.run_together([
+    "rm /tmp/order.tsv",
+    "rm /tmp/feature.tsv",
+    "rm /tmp/featureplace.tsv"
+])

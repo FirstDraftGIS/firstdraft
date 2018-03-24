@@ -20,7 +20,6 @@
 **/*.sw*
 temp
 data
-Dockerfile
 storage
 examples
 conformed.tsv
