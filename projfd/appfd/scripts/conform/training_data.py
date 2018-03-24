@@ -176,9 +176,10 @@ def run():
                     feature_count, featureplace_count = process_group(group, feature_count, featureplace_count)
                     group = []
 
-        process_group(group)
+        process_group(group, feature_count, featureplace_count)
         
         print("conform.training_data took", (datetime.now() - start).total_seconds(), "seconds")
         print("finishing conform.training_data")
     except Exception as e:
         print(e)
+        raise(e)
