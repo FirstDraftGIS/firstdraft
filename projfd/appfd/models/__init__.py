@@ -118,9 +118,9 @@ class FeaturePlace(Base):
     confidence = DecimalField(max_digits=5, decimal_places=4)
     country_rank = IntegerField(null=True)
     correct = NullBooleanField(null=True)
-    median_distance = FloatField()
-    sort_order = IntegerField()
-    popularity = IntegerField()
+    median_distance = FloatField(null=True)
+    sort_order = IntegerField(null=True)
+    popularity = IntegerField(null=True)
     def __str__(self): 
         return str(self.feature.id) + "~" + str(self.place.id)
 

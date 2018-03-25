@@ -10,13 +10,10 @@ ADD ./projfd/appfd/scripts/conform /firstdraft/projfd/appfd/scripts/conform
 RUN cd /firstdraft/projfd \
  &&  service postgresql restart \
  &&  sleep 720 \
- &&  python3 manage.py runscript conform.training_data
-RUN cd /firstdraft/projfd \
- &&  service postgresql restart \
- &&  sleep 720 \
+ &&  python3 manage.py runscript conform.training_data \
  &&  psql -c "COPY appfd_order FROM '/tmp/order.tsv' WITH (FORMAT 'csv', DELIMITER E'	', HEADER, NULL '')" dbfd \
  &&  psql -c "COPY appfd_feature FROM '/tmp/feature.tsv' WITH (FORMAT 'csv', DELIMITER E'	', HEADER, NULL '')" dbfd \
- &&  psql -c "COPY appfd_feature FROM '/tmp/featureplace.tsv' WITH (FORMAT 'csv', DELIMITER E'	', HEADER, NULL '')" dbfd
-RUN rm /tmp/order.tsv \
+ &&  psql -c "COPY appfd_featureplace FROM '/tmp/featureplace.tsv' WITH (FORMAT 'csv', DELIMITER E'	', HEADER, NULL '')" dbfd \
+ &&  rm /tmp/order.tsv \
  &&  rm /tmp/feature.tsv \
  &&  rm /tmp/featureplace.tsv

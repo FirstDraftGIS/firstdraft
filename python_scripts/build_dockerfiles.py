@@ -153,22 +153,11 @@ df3.run_together([
     "cd /firstdraft/projfd",
     "service postgresql restart",
     "sleep 720",
-    "python3 manage.py runscript conform.training_data"
-])
-
-# load conformed training data into databaset
-df3.run_together([
-    "cd /firstdraft/projfd",
-    "service postgresql restart",
-    "sleep 720",
+    "python3 manage.py runscript conform.training_data",
     '''psql -c "COPY appfd_order FROM '/tmp/order.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd''',
     '''psql -c "COPY appfd_feature FROM '/tmp/feature.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd''',
-    '''psql -c "COPY appfd_feature FROM '/tmp/featureplace.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd'''
-])
-
-# clean up temp files
-df3.run_together([
+    '''psql -c "COPY appfd_featureplace FROM '/tmp/featureplace.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd''',
     "rm /tmp/order.tsv",
     "rm /tmp/feature.tsv",
-    "rm /tmp/featureplace.tsv"
+    "rm /tmp/featureplace.tsv"    
 ])

@@ -14,8 +14,23 @@ start_file = datetime.now()
 
 csv.field_size_limit(sys.maxsize)
 
+enwiki_title_to_place_id = dict(Place.objects.exclude(enwiki_title=None).values_list("enwiki_title", "id"))
+print("got enwiki_title_to_place_id", (datetime.now() - start_file).total_seconds(), "seconds in")
 
-# create mapping used later
+enwiki_title_to_normalized_name = dict(Place.objects.exclude(enwiki_title=None).values_list("enwiki_title", "name_normalized"))
+print("got enwiki_title_to_place_id", (datetime.now() - start_file).total_seconds(), "seconds in")
+
+place_id_to_popularity = Counter()
+with open("/tmp/genesis.tsv") as f:
+    for page_id, titles in csv.reader(f, delimiter="\t"):
+        for title in titles.split(";"):
+            if title in enwiki_title_to_place_id:
+                place_id = enwiki_title_to_place_id[title]
+                place_id_to_popularity[place_id] += 1
+print("got popularities", (datetime.now() - start_file).total_seconds(), "seconds in")
+print("most common:", place_id_to_popularity.most_common(10))
+
+# create normalized name to id mapping
 cursor = connection.cursor()
 cursor.execute("DROP TABLE IF EXISTS name_normalized_2_place_ids;")
 cursor.execute("""
@@ -30,16 +45,20 @@ start_indexing = datetime.now()
 cursor.execute("CREATE UNIQUE INDEX name2ids_idx ON name2ids (name_normalized);")
 print("indexing took", (datetime.now() - start_indexing).total_seconds(), "seconds")
 
-
 def get_writer(name):
     f = open("/tmp/" + name.lower() + ".tsv", "w")
     model = getattr(models, name)
     fieldnames = []
+    foreign_keys = []
     for field in model._meta.fields:
         if isinstance(field, ForeignKey):
-            fieldnames.append(field.name + "_id")
+            foreign_keys.append(field.name + "_id")
         else:
             fieldnames.append(field.name)
+            
+    # add foreign key fields to the end, which is what django does
+    fieldnames += foreign_keys
+    print("fieldnames:", fieldnames)
     writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t")
     writer.writeheader()
     return writer
@@ -92,6 +111,7 @@ def process_group(group, feature_count, featureplace_count):
         normalized_name_2_place_ids = dict(cursor.fetchall())
         #print("normalized_name_2_place_ids:", str(normalized_name_2_place_ids))
         print("grabbing normalized_name_2_place_ids took", (datetime.now() - s).total_seconds(), "seconds")
+
         
         for line_count, page_id, titles in group:
             
@@ -100,6 +120,8 @@ def process_group(group, feature_count, featureplace_count):
             order_writer.writerow({
                 "id": order_id,
                 "complete": "true",
+                "edited": "true",
+                "open_source": "true",
                 "token": page_id
             })
             
@@ -112,11 +134,12 @@ def process_group(group, feature_count, featureplace_count):
 
                     correct_place = title2place[title]
                     correct_place_id = correct_place.id
-                        
+
                     name = correct_place.name
                     name_normalized = correct_place.name_normalized
                         
                     feature_writer.writerow({
+                        "geometry_used": "Point",
                         "id": feature_id,
                         "order_id": order_id,
                         "name": name,
@@ -130,9 +153,10 @@ def process_group(group, feature_count, featureplace_count):
                     featureplace_writer.writerow({
                         "id": featureplace_id,
                         "feature_id": feature_id,
-                        "place_id": correct_place.id,
+                        "place_id": correct_place_id,
                         "confidence": 0.9999,
-                        "correct": "true"
+                        "correct": "true",
+                        "popularity": place_id_to_popularity[correct_place_id]
                     })
                         
                     # write incorrect feature places
@@ -145,8 +169,9 @@ def process_group(group, feature_count, featureplace_count):
                                 "feature_id": feature_id,
                                 "place_id": place_id,
                                 "confidence": 0,
-                                "correct": "false"
-                            })    
+                                "correct": "false",
+                                "popularity": place_id_to_popularity[place_id]
+                            })
 
         print("process_group took", (datetime.now() - start_processing_group).total_seconds(), "seconds")
 
