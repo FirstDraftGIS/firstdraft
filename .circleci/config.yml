@@ -1,56 +1,38 @@
 version: 2
 jobs:
-  build:
+  conform_training_data:
     docker:
-      - image: firstdraftgis/base:latest
+      - image: firstdraftgis/loaded:latest
     steps:
-      - checkout
       - run:
-          name: Create Database
+          name: Update Source Code and Database (if necessary)
           command: |
-            service postgresql restart
-            su postgres -c "psql -c 'CREATE DATABASE dbfd'"
-            su postgres -c "psql -c 'CREATE ROLE $(whoami) SUPERUSER LOGIN CREATEDB'"
-            su postgres -c "psql -c 'ALTER DATABASE dbfd OWNER TO $(whoami)'"
-            su postgres -c 'psql -c "$(awk 'NR>=3 { printf "CREATE EXTENSION " $2 "; " }' postgresql_extensions.md)" dbfd'
-      - run:
-          name: Building Database Tables
-          command: |
-            cd projfd
-            service postgresql restart;
-            python3 manage.py makemigrations;
-            python3 manage.py migrate;
-      - restore_cache:
-          keys:
-            - conformed
-      - run:
-          name: Download Conformed Gazetteer Data
-          working_directory: /tmp
-          command: if [ ! -f /tmp/conformed.tsv ]; then wget https://s3.amazonaws.com/firstdraftgis/conformed.tsv.zip && unzip conformed.tsv.zip; fi
-      - save_cache:
-          key: conformed
-          paths:
-            - /tmp/conformed.tsv
-      - run:
-          name: Load Data
-          command: psql -c "COPY appfd_place FROM '/tmp/conformed.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '');"
-      - run:
-          name: Normalize Names
-          command: psql -c "UPDATE appfd_place SET name_normalized = unaccent(lower(name_ascii));"
-      - run:
-          name: Enable Indexing
-          working_directory: ~/firstdraft/projfd/projfd
-          command: echo "DB_INDEX = True" >> dynamic_settings.py
-      - run:
-          name: Index Database
-          working_directory: ~/firstdraft/projfd
-          command: |
-            service postgresql restart
+            cd /firstdraft
+            git pull
             python3 manage.py makemigrations
             python3 manage.py migrate
-          
-        
-
-
+      - run:
+          name: Download Genesis Training Data
+          command: |
+            cd /tmp
+            wget --no-verbose https://s3.amazonaws.com/firstdraftgis/genesis.tsv.zip
+            unzip genesis.tsv.zip
+            rm genesis.tsv.zip
+      - run:
+          name: Conform Training Data
+          command: |
+            cd /firstdraft
+            python3 manage.py runscript conform.training_data
+  publish:
+    docker:
+      - image: python:latest
+    steps:
+      - run: echo "finished"
+workflows:
+  version: 2
+  full_build:
+    jobs:
+      - conform_training_data
+      - publish
         
 
