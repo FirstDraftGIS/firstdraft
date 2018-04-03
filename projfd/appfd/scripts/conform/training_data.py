@@ -18,32 +18,39 @@ enwiki_title_to_place_id = dict(Place.objects.exclude(enwiki_title=None).values_
 print("got enwiki_title_to_place_id", (datetime.now() - start_file).total_seconds(), "seconds in")
 
 enwiki_title_to_normalized_name = dict(Place.objects.exclude(enwiki_title=None).values_list("enwiki_title", "name_normalized"))
-print("got enwiki_title_to_place_id", (datetime.now() - start_file).total_seconds(), "seconds in")
+print("got enwiki_title_to_normalized_name", (datetime.now() - start_file).total_seconds(), "seconds in")
 
+# create normalized name to id mapping
+# takes about 2 - 3 minutes
+with connection.cursor() as cursor:
+    cursor.execute("""
+        SELECT name_normalized, array_agg(id) AS ids
+        FROM appfd_place
+        AS subquery
+        GROUP BY name_normalized;
+    """)
+    name2ids = dict(cursor.fetchall())
+    print("inserting into took", (datetime.now() - start_file).total_seconds(), "seconds")
+
+# popularity is # of times meant place versus number of times didn't
 place_id_to_popularity = Counter()
 with open("/tmp/genesis.tsv") as f:
     for page_id, titles in csv.reader(f, delimiter="\t"):
         for title in titles.split(";"):
             if title in enwiki_title_to_place_id:
+                # add 1 for correct place
                 place_id = enwiki_title_to_place_id[title]
                 place_id_to_popularity[place_id] += 1
+                
+                # subtract one for all the other places with the same name
+                normalized_name = enwiki_title_to_normalized_name[title]
+                for other_place_id in name2ids[normalized_name]:
+                    if other_place_id != place_id:
+                        place_id_to_popularity[place_id] -= 1
+                
 print("got popularities", (datetime.now() - start_file).total_seconds(), "seconds in")
 print("most common:", place_id_to_popularity.most_common(10))
 
-# create normalized name to id mapping
-cursor = connection.cursor()
-cursor.execute("DROP TABLE IF EXISTS name_normalized_2_place_ids;")
-cursor.execute("""
-SELECT name_normalized, array_agg(id) AS ids
-INTO name2ids
-FROM appfd_place
-AS subquery
-GROUP BY name_normalized;
-""")
-print("inserting into took", (datetime.now() - start_file).total_seconds(), "seconds")
-start_indexing = datetime.now()
-cursor.execute("CREATE UNIQUE INDEX name2ids_idx ON name2ids (name_normalized);")
-print("indexing took", (datetime.now() - start_indexing).total_seconds(), "seconds")
 
 def get_writer(name):
     f = open("/tmp/" + name.lower() + ".tsv", "w")
@@ -97,22 +104,7 @@ def process_group(group, feature_count, featureplace_count):
         s = datetime.now()
         normalized_names = list(set([place.name_normalized for place in matching_places]))
         print("grabbing normalized_names took", (datetime.now() - s).total_seconds(), "seconds")
-        
-        s = datetime.now()
-        normalized_name_2_place_ids = defaultdict(list)
-        cursor = connection.cursor()
-        statement = """
-            SELECT name_normalized, ids
-            FROM name2ids
-            WHERE name_normalized=ANY(ARRAY[""" + ",".join(wrap(normalized_names)) + """]);
-        """
-        #print(statement)
-        cursor.execute(statement)
-        normalized_name_2_place_ids = dict(cursor.fetchall())
-        #print("normalized_name_2_place_ids:", str(normalized_name_2_place_ids))
-        print("grabbing normalized_name_2_place_ids took", (datetime.now() - s).total_seconds(), "seconds")
 
-        
         for line_count, page_id, titles in group:
             
             order_id = line_count
@@ -160,7 +152,7 @@ def process_group(group, feature_count, featureplace_count):
                     })
                         
                     # write incorrect feature places
-                    for place_id in normalized_name_2_place_ids[name_normalized]:
+                    for place_id in name2ids[name_normalized]:
                         if place_id != correct_place_id:
                             featureplace_count += 1
                             featureplace_id = featureplace_count
