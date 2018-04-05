@@ -149,11 +149,30 @@ df3.run_together([
 df3.run("rm -fr /firstdraft/projfd/appfd/scripts/conform")
 df3.write_line("ADD ./projfd/appfd/scripts/conform /firstdraft/projfd/appfd/scripts/conform")
 
+# delete and rerun migrations in case there were any updates
+df3.run("rm -fr /firstdraft/projfd/appfd/models")
+df3.write_line("ADD ./projfd/appfd/models /firstdraft/projfd/appfd/models")
 df3.run_together([
     "cd /firstdraft/projfd",
     "service postgresql restart",
     "sleep 720",
-    "python3 manage.py runscript conform.training_data",
+    "python3 manage.py makemigrations",
+    "python3 manage.py migrate"
+])
+
+# build tsvs of db tables
+df3.run_together([
+    "cd /firstdraft/projfd",
+    "service postgresql restart",
+    "sleep 720",
+    "python3 manage.py runscript conform.training_data"
+])
+
+"""
+df3.run_together([
+    "cd /firstdraft/projfd",
+    "service postgresql restart",
+    "sleep 720",    
     '''psql -c "COPY appfd_order FROM '/tmp/order.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd''',
     '''psql -c "COPY appfd_feature FROM '/tmp/feature.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd''',
     '''psql -c "COPY appfd_featureplace FROM '/tmp/featureplace.tsv' WITH (FORMAT 'csv', DELIMITER E'\t', HEADER, NULL '')" dbfd''',
@@ -161,3 +180,6 @@ df3.run_together([
     "rm /tmp/feature.tsv",
     "rm /tmp/featureplace.tsv"    
 ])
+"""
+
+# upload tables to s3

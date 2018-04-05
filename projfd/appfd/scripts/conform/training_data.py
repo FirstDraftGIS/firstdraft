@@ -14,14 +14,16 @@ start_file = datetime.now()
 
 csv.field_size_limit(sys.maxsize)
 
+# 10 seconds
 enwiki_title_to_place_id = dict(Place.objects.exclude(enwiki_title=None).values_list("enwiki_title", "id"))
 print("got enwiki_title_to_place_id", (datetime.now() - start_file).total_seconds(), "seconds in")
 
+# 18 seconds
 enwiki_title_to_normalized_name = dict(Place.objects.exclude(enwiki_title=None).values_list("enwiki_title", "name_normalized"))
 print("got enwiki_title_to_normalized_name", (datetime.now() - start_file).total_seconds(), "seconds in")
 
 # create normalized name to id mapping
-# takes about 2 - 3 minutes
+# takes about 2 - 6 minutes
 with connection.cursor() as cursor:
     cursor.execute("""
         SELECT name_normalized, array_agg(id) AS ids
@@ -32,6 +34,7 @@ with connection.cursor() as cursor:
     name2ids = dict(cursor.fetchall())
     print("inserting into took", (datetime.now() - start_file).total_seconds(), "seconds")
 
+# takes about 5 minutes
 # popularity is # of times meant place versus number of times didn't
 place_id_to_popularity = Counter()
 with open("/tmp/genesis.tsv") as f:
@@ -85,6 +88,7 @@ def process_group(group, feature_count, featureplace_count):
         
         start_processing_group = datetime.now()
         
+        # about 2 seconds
         s = datetime.now()
         enwiki_titles = set()
         for line_count, page_id, titles in group:
@@ -93,14 +97,17 @@ def process_group(group, feature_count, featureplace_count):
         enwiki_titles = list(enwiki_titles)
         print("grabbing enwiki_titles took", (datetime.now() - s).total_seconds(), "seconds")
         
+        # took about 1.5 minutes
         s = datetime.now()
         matching_places = list(Place.objects.filter(enwiki_title__in=enwiki_titles))
         print("grabbing matching_places took", (datetime.now() - s).total_seconds(), "seconds")
        
+        # took about half a second
         s = datetime.now()
         title2place = dict([(place.enwiki_title, place) for place in matching_places])
         print("grabbing title2place took", (datetime.now() - s).total_seconds(), "seconds")
         
+        # took about half a second
         s = datetime.now()
         normalized_names = list(set([place.name_normalized for place in matching_places]))
         print("grabbing normalized_names took", (datetime.now() - s).total_seconds(), "seconds")

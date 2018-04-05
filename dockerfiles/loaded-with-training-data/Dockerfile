@@ -7,13 +7,14 @@ RUN cd /tmp \
  &&  rm genesis.tsv.zip
 RUN rm -fr /firstdraft/projfd/appfd/scripts/conform
 ADD ./projfd/appfd/scripts/conform /firstdraft/projfd/appfd/scripts/conform
+RUN rm -fr /firstdraft/projfd/appfd/models
+ADD ./projfd/appfd/models /firstdraft/projfd/appfd/models
 RUN cd /firstdraft/projfd \
  &&  service postgresql restart \
  &&  sleep 720 \
- &&  python3 manage.py runscript conform.training_data \
- &&  psql -c "COPY appfd_order FROM '/tmp/order.tsv' WITH (FORMAT 'csv', DELIMITER E'	', HEADER, NULL '')" dbfd \
- &&  psql -c "COPY appfd_feature FROM '/tmp/feature.tsv' WITH (FORMAT 'csv', DELIMITER E'	', HEADER, NULL '')" dbfd \
- &&  psql -c "COPY appfd_featureplace FROM '/tmp/featureplace.tsv' WITH (FORMAT 'csv', DELIMITER E'	', HEADER, NULL '')" dbfd \
- &&  rm /tmp/order.tsv \
- &&  rm /tmp/feature.tsv \
- &&  rm /tmp/featureplace.tsv
+ &&  python3 manage.py makemigrations \
+ &&  python3 manage.py migrate
+RUN cd /firstdraft/projfd \
+ &&  service postgresql restart \
+ &&  sleep 720 \
+ &&  python3 manage.py runscript conform.training_data
