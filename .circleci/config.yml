@@ -5,17 +5,17 @@ jobs:
       - image: firstdraftgis/base:latest
     steps:
       - checkout
-      - run: bash /firstdraft/build_steps/1-load_places
-        
+      - run: bash /firstdraft/build_steps/1-load_places.sh
   load_training_data:
     docker:
       - image: firstdraftgis/loaded:latest
     steps:
-      - run:
+      - run: bash /firstdraft/build_steps/1-load_training_data.sh
           name: Update Source Code and Database (if necessary)
           command: |
-            cd /firstdraft
-            git pull
+            rm /firstdraft
+            cd /
+            git clone https://github.com/FirstDraftGIS/firstdraft
             python3 manage.py makemigrations
             python3 manage.py migrate
       - run:
@@ -43,5 +43,8 @@ workflows:
       - load_training_data:
           requires:
             - load_places
+      - publish:
+          requires:
+            - load_training_data
         
 
