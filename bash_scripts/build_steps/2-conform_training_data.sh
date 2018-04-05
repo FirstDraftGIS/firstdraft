@@ -52,3 +52,8 @@ if [ -n "$fdgis_prod_build" ]; then
     rm /tmp/feature.tsv
     rm /tmp/featureplace.tsv
 fi
+
+# upload conformed files to s3
+aws s3 cp /tmp/order.tsv s3://firstdraftgis/order.tsv
+aws s3 cp /tmp/feature.tsv s3://firstdraftgis/feature.tsv
+aws s3 cp /tmp/featureplace.tsv s3://firstdraftgis/featureplace.tsv

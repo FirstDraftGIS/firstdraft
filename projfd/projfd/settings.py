@@ -174,3 +174,5 @@ ANONYMOUS_USER_ID = -1
 CONTROLCENTER_DASHBOARDS = (
     'projfd.dashboards.MyDashboard',
 )
+
+FILEPATH_OF_MARGE_TRAINING_DATA = "/tmp/marge_training_data.tsv"

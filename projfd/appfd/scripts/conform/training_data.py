@@ -170,6 +170,7 @@ def process_group(group, feature_count, featureplace_count):
                                 "confidence": 0,
                                 "correct": "false",
                                 "popularity": place_id_to_popularity[place_id]
+                                "order_id", order_id
                             })
 
         print("process_group took", (datetime.now() - start_processing_group).total_seconds(), "seconds")
