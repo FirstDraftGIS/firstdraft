@@ -1,8 +1,10 @@
-from appfd.models import Feature
-from appfd.models import Order
 from json import dumps
 from os import mkdir
-from os.path import isdir
+from os.path import isdir, join
+
+from appfd.models import Feature
+from appfd.models import Order
+from projfd.additional_settings.firstdraft import MAPS_DIRECTORY
 
 def run(key):
     print("starting create_xypair with key " + key)
@@ -18,7 +20,7 @@ def run(key):
             if fp.place:
                 pairs.append([fp.place.point.x, fp.place.point.y])
 
-    directory = "/home/usrfd/maps/" + key + "/"
+    directory = join(MAPS_DIRECTORY, key)
     if not isdir(directory):
         mkdir(directory)
 
@@ -30,5 +32,5 @@ def run(key):
         pair = None
 
     # run something here so it chooses the most precise one
-    with open(directory + key + ".xy", "wb") as f:
+    with open(join(directory, key + ".xy"), "w") as f:
         f.write(dumps(pair))

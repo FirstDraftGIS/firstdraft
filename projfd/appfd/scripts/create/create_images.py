@@ -7,6 +7,8 @@ from time import sleep
 
 def run(key):
     try:
+        print("NEED TO REWRITE create_images using mapnik")
+        """
         print("starting create_images with key " + key)
 
         from django.db import connection
@@ -37,5 +39,7 @@ def run(key):
         driver.quit()
 
         print("finished create_images")
+        """
     except Exception as e:
         print("CAUGHT EXCEPTION in create_images:", e)
+    

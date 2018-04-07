@@ -1,8 +1,11 @@
-from appfd.models import FeaturePlace, Order
-from geojson import Feature as gFeature
 from geojson import dumps, FeatureCollection, MultiPolygon, Point, Polygon, GeometryCollection
 from os import mkdir
-from os.path import isdir
+from os.path import isdir, join
+from urllib.parse import quote
+
+from appfd.models import FeaturePlace, Order
+from geojson import Feature as gFeature
+from projfd.additional_settings.firstdraft import MAPS_DIRECTORY, PUBLIC_BASE_URL
 
 def run(key):
     print("starting create_geojson.run with key " + key)
@@ -34,7 +37,7 @@ def run(key):
                 importance = 0
             properties['importance'] = importance
             properties['name'] = place.name
-            properties['geonameid'] = place.geonameid
+            properties['geonames_id'] = place.geonames_id
             properties['pcode'] = place.pcode
             properties['timezone'] = place.timezone
             point = Point((place.point.x, place.point.y))
@@ -50,10 +53,16 @@ def run(key):
             features.append(gFeature(geometry=gc, properties=properties))
     featureCollection = FeatureCollection(features)
 
-    directory = "/home/usrfd/maps/" + key + "/"
+    directory = join(MAPS_DIRECTORY, key)
     if not isdir(directory):
         mkdir(directory)
 
     serialized = dumps(featureCollection, sort_keys=True)
-    with open(directory + key + ".geojson", "wb") as f:
+    with open(join(directory, key + ".geojson"), "w") as f:
         f.write(serialized)
+
+
+    print("I finished running create_geojson.  You can view the map here:")
+    url = PUBLIC_BASE_URL + "/api/orders/" + key + "/maps/geojson"
+    quoted = quote(url)
+    print("http://geojson.io/#data=data:text/x-url," + quoted)

@@ -8,6 +8,7 @@ Cython
 date-extractor
 Django
 django-braces
+django-cors-headers
 django-crispy-forms
 djangorestframework
 djangorestframework-gis

@@ -163,18 +163,25 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
     print("need to choose one for each target based on highest probability")
     for target, options in list(target_places.items()):
 
+        importances = [option.importance for option in options if option.importance]
+        print("importances:", importances)
+        median_importance = median([importances]) if importances else 0.5
+        print("median_importance:", median_importance)
+
         # convert geoenties to Pandas dataframe
         options_as_dicts = []
         for option in options:
             population = option.population or 0
             option_as_dict = {
-                "importance": option.importance,
+                "importance": option.importance or median_importance,
+                "has_enwiki_title": 1 if option.enwiki_title else 0,
                 "has_population_over_1_million": 1 if population > 1e5 else 0,
                 "has_population_over_1_thousand": 1 if population > 1e3 else 0, 
                 "has_population_over_1_hundred": 1 if population > 1e2 else 0
             }
             options_as_dicts.append(option_as_dict)
         df = DataFrame(options_as_dicts)
+        print("df:", df)
         for index, probability in enumerate(marge_predict.get_probabilities(df)):
             print("MARGE proba:", probability)
             options[index].probability = probability
@@ -208,7 +215,7 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
         topic_id = name_topic.get(target, None)
         count = l['count'] if 'count' in l else 1
         correct_option = next(option for option in options if option.correct)
-        geometry_used = "Shape" if correct_option.has_mpoly else "Point"
+        geometry_used = "Shape" if correct_option.mpoly else "Point"
         feature = Feature.objects.create(count=count, name=l["name"], geometry_used=geometry_used, order_id=order_id, topic_id=topic_id, verified=False)
         need_to_save = False
         if "context" in l:
@@ -221,7 +228,7 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
         if need_to_save:
             feature.save()
         for option in options:
-            featureplaces.append(FeaturePlace(confidence=float(option.probability), correct=option.correct, country_rank=option.country_rank, feature=feature, median_distance=option.median_distance_from_all_other_points, place_id=option.place_id, popularity=option.popularity, sort_order=-1))
+            featureplaces.append(FeaturePlace(confidence=float(option.probability), correct=option.correct, feature=feature, place_id=option.id, sort_order=-1))
 
 
     FeaturePlace.objects.bulk_create(featureplaces)

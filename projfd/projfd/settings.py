@@ -4,6 +4,7 @@ from django.utils.crypto import get_random_string
 from os.path import expanduser
 from subprocess import check_output
 
+from .additional_settings.cors import *
 from .additional_settings.drf import *
 from .additional_settings.swagger import *
 from .dynamic_settings import *
@@ -63,7 +64,8 @@ INSTALLED_APPS = [
     'appfd',
     'behave_django',
     'apifd',
-    'timezone_field'
+    'timezone_field',
+    "corsheaders"
 ]
 
 if DEBUG:
@@ -73,11 +75,13 @@ if DEBUG:
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',    
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsPostCsrfMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware'
+    #'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 if DEBUG:

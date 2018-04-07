@@ -1,11 +1,14 @@
-from appfd.models import Feature
-from appfd.models import Order
 from django.contrib.gis.geos import MultiPolygon, Polygon
 import shapefile
 from shapefile import POLYGONM, POINT
 from os import listdir, mkdir, remove
-from os.path import basename, isdir
+from os.path import basename, join, isdir
 from zipfile import ZipFile
+
+from appfd.models import Feature
+from appfd.models import Order
+
+from projfd.additional_settings.firstdraft import MAPS_DIRECTORY
 
 CRS = 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]'
 
@@ -25,7 +28,7 @@ def run(key, debug=False):
     from django.db import connection
     connection.close()
 
-    directory = "/home/usrfd/maps/" + key + "/"
+    directory = join(MAPS_DIRECTORY,  key)
     if not isdir(directory):
         mkdir(directory)
 
@@ -46,7 +49,7 @@ def run(key, debug=False):
         writer.field("name")
         writer.field("confidence")
         writer.field("countrycode")
-        writer.field("geonameid")
+        writer.field("geonames_id")
         writer.field("pcode")
         writer.field("start_time")
         writer.field("end_time")
@@ -64,7 +67,7 @@ def run(key, debug=False):
             place = fp.place
 
             # what happens to feature.confidence decimal??? need to convert to float?
-            writer_points.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonameid, place.pcode, start, end)
+            writer_points.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonames_id, place.pcode, start, end)
             writer_points.point(float(place.point.x), float(place.point.y))
             number_of_points += 1
 
@@ -72,28 +75,27 @@ def run(key, debug=False):
                 if place.mpoly:
                     #print "pyshp doesn't seem to be able to handle mpoly with original coords"
                     for c in place.mpoly.coords:
-                        writer_polygons.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonameid, place.pcode, start, end)
+                        writer_polygons.record(place.name.encode("utf-8"), fp.confidence, place.country_code, place.geonames_id, place.pcode, start, end)
                         writer_polygons.poly(parts=c, shapeType=POLYGONM)
                         number_of_polygons += 1
             except Exception as e:
                 print("caught the following error while trying to write multipolygons", e)
 
-    directory = "/home/usrfd/maps/" + key + "/"
     if number_of_points > 0 or number_of_polygons > 0:
         if number_of_points > 0:
-            writer_points.save(directory + key + "_points")
-            with open(directory + key + "_points.prj", "wb") as f:
+            writer_points.save(join(directory, key + "_points"))
+            with open(join(directory, key + "_points.prj"), "wb") as f:
                 f.write(CRS)
             print("WROTE PRJ")
         if number_of_polygons > 0:
-            writer_polygons.save(directory + key + "_polygons")
-            with open(directory + key + "_polygons.prj", "wb") as f:
+            writer_polygons.save(join(directory, key + "_polygons"))
+            with open(join(directory, key + "_polygons.prj"), "wb") as f:
                 f.write(CRS)
 
-        with ZipFile(directory + key + ".zip", 'w') as zipped_shapefile:
+        with ZipFile(join(directory, key + ".zip"), 'w') as zipped_shapefile:
             for filename in listdir(directory):
                 if filename.split(".")[-1] in ("cpg","dbf","shp","shx","prj"):
-                    path_to_file = directory + filename
+                    path_to_file = join(directory, filename)
                     zipped_shapefile.write(path_to_file, filename)
                     remove(path_to_file)
 

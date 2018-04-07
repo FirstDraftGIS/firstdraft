@@ -1,5 +1,5 @@
 from appfd.models import Basemap, Feature, Order, Place, Test
-from appfd.views import request_map_from_sources
+from appfd.views import get_map, request_map_from_sources
 from appfd.scripts.ai import update_popularity_for_order
 from apifd.mixins import CsrfExemptSessionAuthentication
 from apifd.serializers import BasemapSerializer, FeatureSerializer, QueryableOrderSerializer, PlaceSerializer, VerbosePlaceSerializer, TestSerializer
@@ -90,6 +90,10 @@ class OrderViewSet(ModelViewSet):
         order = get_object_or_404(queryset, token=pk)
         serializer = OrderSerializer(order, context={"view": self, "request": request, "format": None})
         return Response(serializer.data)
+
+    @list_route(methods=['get'], url_name='maps', url_path='(?P<token>.+)/maps/(?P<map_format>.+)')
+    def maps(self, request, token, map_format):
+        return get_map(request, token, map_format)
 
 
 # ViewSets define the view behavior.

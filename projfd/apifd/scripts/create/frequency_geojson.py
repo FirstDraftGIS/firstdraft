@@ -1,11 +1,13 @@
-from appfd.models import Feature, Order, Place
 from collections import Counter
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.clickjacking import xframe_options_exempt
 import appfd, json, geojson
 from os import mkdir
-from os.path import isdir, isfile
+from os.path import isdir, isfile, join
+
+from appfd.models import Feature, Order, Place
+from projfd.additional_settings.firstdraft import MAPS_DIRECTORY
 
 # this returns a geojson representing the frequency of places mentioned
 # it currently only supports countries
@@ -16,7 +18,7 @@ def run(token):
     from django.db import connection
     connection.close()
 
-    path_to_geojson = "/home/usrfd/maps/" + token + "/" + token + "_frequency.geojson"
+    path_to_geojson = join(join(MAPS_DIRECTORY, token), token + "_frequency.geojson")
     order = Order.objects.filter(token=token).first()
     print("order:", order)
     if order:
@@ -63,7 +65,7 @@ def run(token):
                     place.point = place.mpoly.centroid
   
                 properties['admin_level'] = admin_level
-                properties['geonameid'] = place.geonameid
+                properties['geonames_id'] = place.geonames_id
                 properties['latitude'] = place.point.y
                 properties['longitude'] = place.point.x
                 properties['name'] = place.name
@@ -78,5 +80,5 @@ def run(token):
             featureCollection = geojson.FeatureCollection(features)
             
             serialized = geojson.dumps(featureCollection, sort_keys=True)
-            with open("/home/usrfd/maps/" + token + "/" + token + "_frequency_" + str(admin_level) + ".geojson", "wb") as f:
+            with open(join(join(MAPS_DIRECTORY, token), token + "_frequency_" + str(admin_level) + ".geojson"), "w") as f:
                 f.write(serialized)

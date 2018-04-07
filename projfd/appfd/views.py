@@ -1,12 +1,3 @@
-from apifd.scripts.create.frequency_geojson import run as create_frequency_geojson
-from apifd.serializers import PlaceSerializer
-from appfd import forms, models
-from appfd import cleaner
-from appfd.finisher import finish_order
-from appfd.forms import *
-from appfd.generator import generate_map_from_sources 
-#from appfd.generator.additions import generate_possible_additions
-from appfd.models import *
 from bnlp3 import clean as bnlp_clean
 from bnlp3 import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
 from bs4 import BeautifulSoup
@@ -41,13 +32,12 @@ from multiprocessing import Process
 from openpyxl import load_workbook
 from operator import itemgetter
 from os import listdir, mkdir, remove
-from os.path import isfile
+from os.path import isfile, join
 import json, requests, io, sys, zipfile
 from json import dumps, loads
 from re import findall, search
 from requests import get
 from rest_framework.response import Response
-from appfd.resolver import resolve_locations
 from sendfile import sendfile
 from scrp import getTextContentViaMarionette, getRandomUserAgentString
 from subprocess import call, check_output
@@ -57,6 +47,18 @@ from urllib.request import urlretrieve
 from openpyxl import load_workbook
 from zipfile import ZipFile
 #import sys
+
+from apifd.scripts.create.frequency_geojson import run as create_frequency_geojson
+from apifd.serializers import PlaceSerializer
+from appfd import forms, models
+from appfd import cleaner
+from appfd.finisher import finish_order
+from appfd.forms import *
+from appfd.generator import generate_map_from_sources 
+#from appfd.generator.additions import generate_possible_additions
+from appfd.models import *
+from appfd.resolver import resolve_locations
+from projfd.additional_settings.firstdraft import MAPS_DIRECTORY
 
 
 """
@@ -467,24 +469,24 @@ def does_metadata_exist(request, job, _type="iso_19115_2"):
 def get_map(request, job, extension):
   try:
     print(("starting get_map with", job, extension))
-    path_to_directory = "/home/usrfd/maps/" + job + "/"
+    path_to_directory = join(MAPS_DIRECTORY, job)
 
     # currently, loads zip file in memory and returns it
     # todo: use mod_xsendfile, so don't load into memory
     if extension in ("shp","zip"):
         filename = job + ".zip"
-        abspath = path_to_directory + filename
+        abspath = join(path_to_directory, filename)
 
         with open(abspath, "rb") as zip_file:
             response = HttpResponse(zip_file, content_type='application/force-download')
             response['Content-Disposition'] = 'attachment; filename="%s"' % filename
             return response
     elif extension in ("jpeg", "gif", "jpg", "png"):
-        with open(path_to_directory + job + "." + extension) as f:
+        with open(join(path_to_directory, job + "." + extension)) as f:
             data = f.read()
         return HttpResponse(data, content_type="image/" + extension)
     elif extension == "pdf":
-        with open(path_to_directory + job + "." + extension) as f:
+        with open(join(path_to_directory, job + "." + extension)) as f:
             data = f.read()
         return HttpResponse(data, content_type='application/pdf')
     else:
@@ -493,7 +495,7 @@ def get_map(request, job, extension):
             print("for filename")
 
             if filename == job + "." + extension:
-                with open(path_to_directory + filename) as f:
+                with open(join(path_to_directory, filename)) as f:
                     data = f.read()
                 break
         return HttpResponse(data, content_type='application/json') 

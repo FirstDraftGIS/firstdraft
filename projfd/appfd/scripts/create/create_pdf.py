@@ -7,6 +7,9 @@ from time import sleep
 
 def run(key):
     try:
+        
+        print("need to rewrite create_pdf with mapnik")
+        """
         print("starting create_pdf with key " + key)
 
         from django.db import connection
@@ -57,5 +60,6 @@ def run(key):
         driver.quit()
 
         print("finished create_pdf")
+        """
     except Exception as e:
         print("CAUGHT EXCEPTION in create_pdf:", e)

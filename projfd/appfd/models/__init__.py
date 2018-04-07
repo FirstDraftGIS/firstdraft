@@ -51,7 +51,7 @@ class Basemap(Base):
         return self.name
 
 class CountryCodeRank(Base):
-    country_code = CharField(max_length=10)
+    country_code = CharField(max_length=10, null=True)
     rank = IntegerField(null=True)
     order = ForeignKey("order", to_field="token", on_delete=CASCADE)
 
@@ -128,10 +128,9 @@ class FeaturePlace(Base):
 try:
     default_basemap_id = Basemap.objects.get(name="OpenStreetMap.Mapnik").id
 except:
-    default_basemap_id = -1
+    default_basemap_id = None
 class MapStyle(Base):
-    basemap = ForeignKey("Basemap", default=default_basemap_id, on_delete=SET_DEFAULT)
-
+    basemap = ForeignKey("Basemap", default=default_basemap_id, null=True, on_delete=SET_DEFAULT)
 
 class ParentChild(Base):
     parent = ForeignKey('Place', related_name="parentplace", on_delete=CASCADE)

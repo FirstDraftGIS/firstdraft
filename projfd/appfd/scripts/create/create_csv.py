@@ -1,7 +1,9 @@
+from os import mkdir
+from os.path import isdir, join
+
 from appfd.models import Feature, FeaturePlace
 from appfd.models import Order
-from os import mkdir
-from os.path import isdir
+from projfd.additional_settings.firstdraft import MAPS_DIRECTORY
 
 def run(key):
     print("starting create_csv with key " + key)
@@ -9,13 +11,13 @@ def run(key):
     from django.db import connection
     connection.close()
 
-    directory = "/home/usrfd/maps/" + key + "/"
+    directory = join(MAPS_DIRECTORY, key)
     if not isdir(directory):
         mkdir(directory)
 
-    path_to_csv_file = directory + key + ".csv"
+    path_to_csv_file = join(directory, key + ".csv")
 
-    f = open(path_to_csv_file, "wb")
+    f = open(path_to_csv_file, "w")
 
     features = Feature.objects.filter(order__token=key)
 
@@ -44,7 +46,7 @@ def run(key):
             place = fp.place
 
             try:
-                f.write("\n".encode("utf-8") + place.name.encode("utf-8") + ",".encode("utf-8") + str(fp.confidence).encode("utf-8") + "," + str(place.point.x).encode("utf-8") + "," + str(place.point.y).encode("utf-8") + "," + str(place.country_code).encode("utf-8") + "," + str(place.geonameid).encode("utf-8"))
+                f.write("\n" + place.name + "," + str(fp.confidence) + "," + str(place.point.x) + "," + str(place.point.y) + "," + str(place.country_code) + "," + str(place.geonames_id))
             except Exception as e:
                 try: print("place.name:", [place.name])
                 except: pass
