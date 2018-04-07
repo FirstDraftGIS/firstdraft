@@ -85,6 +85,16 @@ def clean(POST, FILES, debug=False):
                             cleaned_data = form.cleaned_data['data']
                             if cleaned_data:
                                 sources.append({"type": "text", "data": cleaned_data.strip()})
+        
+        # check if passed in url param
+        if "url" in POST:
+            print("passed in url param")
+            data = POST["url"]
+            form = LinkForm({"data": data})
+            if form.is_valid():
+                cleaned_data = form.cleaned_data['data']
+                if cleaned_data:
+                    sources.append({"type": "link", "data": cleaned_data.strip()})
 
         print("finishing clean")
         return {"sources": sources, "style": style, "map_format": map_format, "extra_context": extra_context}

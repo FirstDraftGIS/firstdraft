@@ -1,7 +1,6 @@
 #from appfd.models import Feature, Place
 from appfd.geoentity import GeoEntity
 from appfd.models import *
-from appfd.scripts.ai import predict
 from appfd.scripts.ai.lsi.get_topic import run as get_topic
 from collections import Counter, defaultdict
 from decimal import Decimal
@@ -10,8 +9,10 @@ from datetime import datetime
 from django.db import connection
 from django.db.models import Q
 import editdistance
+import marge
 from multiprocessing import *
 from numpy import amin, argmin, mean, median, where
+from pandas import DataFrame
 from random import shuffle
 #from pydash.collections import pluck
 from pytz import UTC
@@ -203,10 +204,26 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
 
     print("add probability to each geoentity")
     mode = "local" if order.end_user_timezone else "global"
-    predict.run(geoentities, mode=mode)
-
+    
     # need to choose one for each target based on highest probability
     for target, options in list(target_geoentities.items()):
+
+        # convert geoenties to Pandas dataframe
+        options_as_dicts = []
+        for option in options:
+            population = option.population
+            option_as_dict = {
+                "importance": option.importance,
+                "has_population_over_1_million": 1 if population > 1e5 else 0,
+                "has_population_over_1_thousand": 1 if population > 1e3 else 0, 
+                "has_population_over_1_hundred": 1 if population > 1e2 else 0
+            }
+            options_as_dicts.append(option_as_dict)
+        df = DataFrame(options_as_dicts)
+        for index, probability in enumerate(marge.predict.get_probabilities(df)):
+            print("MARGE proba:", probability)
+            options[index].probability = probability
+        
         target_lowered = target.lower()
 
         country_code = name_country_code.get(target_lowered, None)

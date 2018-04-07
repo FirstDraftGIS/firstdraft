@@ -5,7 +5,7 @@ from appfd import cleaner
 from appfd.finisher import finish_order
 from appfd.forms import *
 from appfd.generator import generate_map_from_sources 
-from appfd.generator.additions import generate_possible_additions
+#from appfd.generator.additions import generate_possible_additions
 from appfd.models import *
 from bnlp3 import clean as bnlp_clean
 from bnlp3 import getLocationsAndDatesFromEnglishText, getLocationsFromEnglishText
@@ -529,6 +529,7 @@ def preview_map(request, job):
     return render(request, "appfd/preview_map.html", {'job': job})
 
 
+"""
 # takes in a name of a place
 # adds source
 # resolve_possible_locations
@@ -543,17 +544,17 @@ def request_possible_additions(request):
         token = form.cleaned_data['token']
         return HttpResponse(json.dumps([PlaceSerializer(place).data for place in generate_possible_additions(name, token)]), "application/json")
         #return HttpResponse(json.dumps([vars(place) for place in places]), "application/json")
-
+"""
 
 def request_map_from_sources(request, debug=True):
 
     try:
-        print("starting upload_file")
+        print("starting request_map_from_sources")
         if request.method == 'POST':
             # need to add a way, so can upload advanced options
-            #print "request.FILES", type(request.FILES['source_1_data'])
-            #print "request.FILES:", request.FILES
-            #print "request.POST:", request.POST
+            if debug:
+                print("request.FILES:", request.FILES)
+                print("request.POST:", request.POST)
             cleaned = cleaner.clean(request.POST, request.FILES)
             if debug: print(("cleaned:", cleaned))
             if cleaned:

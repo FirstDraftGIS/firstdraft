@@ -6,10 +6,11 @@ from appfd.resolver import resolve_locations
 from location_extractor import extract_locations_with_context_from_docx, extract_locations_with_context_from_pdf
 from io import BytesIO
 from os import mkdir
+from os.path import join
+from projfd.additional_settings.firstdraft import MAPS_DIRECTORY
 from requests import head, get
 from table_extractor import extract_tables
 import validators
-
 
 def toFileName(text, max_length=1000):
     return text.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_").replace(" ","_")[:max_length]
@@ -33,8 +34,9 @@ def generate_map_from_sources(job, data_sources, metadata_sources, debug=False):
         case_insensitive = extra_context.get("case_insensitive", None)
 
         # make directory to store input sources and final maps
-        directory = "/home/usrfd/maps/" + key + "/"
+        directory = join(MAPS_DIRECTORY, key)
         mkdir(directory)
+        print("made directory:" + directory)
 
         max_source_text_length = next(f for f in Source._meta.fields if f.name == "source_text").max_length
 
@@ -92,10 +94,10 @@ def generate_map_from_sources(job, data_sources, metadata_sources, debug=False):
                         elif contentType.startswith("text/html"):
                             print("seems to be a normal webpage")
                             if "html" in source:
-                                # if passing in html along with url
+                                print("passing along html with url")
                                 locations.extend(extract_locations_from_webpage(url, html=source['html']))
                             else:
-                                locations.extend(extract_locations_from_webpage(url))
+                                locations.extend(extract_locations_from_webpage(url, debug_level=0))
                 elif source_type == "file":
                     print("source_type is file")
                     print("source_data:", source_data, dir(source_data))

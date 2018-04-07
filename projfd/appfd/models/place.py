@@ -22,12 +22,12 @@ from projfd.dynamic_settings import *
 class Place(Base):
 
     # attribution
-    attribution = TextField(null=True, blank=True)
+    attribution = TextField(null=True, blank=True, db_index=DB_INDEX)
 
     # concordances
     enwiki_title = TextField(null=True, blank=True, db_index=DB_INDEX)
     geonames_id = IntegerField(null=True, blank=True, db_index=DB_INDEX)
-    osm_id = TextField(null=True, blank=True)
+    osm_id = TextField(null=True, blank=True, db_index=DB_INDEX)
     pcode = TextField(null=True, blank=True, db_index=DB_INDEX)
     fips = IntegerField(null=True, blank=True, db_index=DB_INDEX)
 
@@ -45,17 +45,17 @@ class Place(Base):
     west = FloatField(null=True, blank=True)
 
     # name stuff
-    name = TextField(null=True, blank=True)
-    name_ascii = TextField(null=True, blank=True)
-    name_display = TextField(null=True, blank=True)
-    name_en = TextField(null=True, blank=True)
+    name = TextField(null=True, blank=True, db_index=DB_INDEX)
+    name_ascii = TextField(null=True, blank=True, db_index=DB_INDEX)
+    name_display = TextField(null=True, blank=True, db_index=DB_INDEX)
+    name_en = TextField(null=True, blank=True, db_index=DB_INDEX)
     name_normalized = TextField(null=True, blank=True, db_index=DB_INDEX)
-    other_names = TextField(null=True, blank=True)
+    other_names = TextField(null=True, blank=True, db_index=DB_INDEX)
 
     # place types
     geonames_feature_class = TextField(null=True, blank=True, db_index=DB_INDEX)
     geonames_feature_code = TextField(null=True, blank=True, db_index=DB_INDEX)
-    place_type = TextField(null=True, blank=True)
+    place_type = TextField(null=True, blank=True, db_index=DB_INDEX)
 
     # geometries
     objects = GeoManager()
@@ -68,30 +68,30 @@ class Place(Base):
 
     # osm stuff
     importance = FloatField(null=True, blank=True)
-    osmname_class = TextField(null=True, blank=True)
-    osmname_type = TextField(null=True, blank=True)
-    osm_type = TextField(null=True, blank=True)
-    place_rank = IntegerField(null=True, blank=True)
+    osmname_class = TextField(null=True, blank=True, db_index=DB_INDEX)
+    osmname_type = TextField(null=True, blank=True, db_index=DB_INDEX)
+    osm_type = TextField(null=True, blank=True, db_index=DB_INDEX)
+    place_rank = IntegerField(null=True, blank=True, db_index=DB_INDEX)
 
     # dem and elevation stuff
     dem = FloatField(null=True, blank=True)
     elevation = FloatField(null=True, blank=True)
 
     # geocoder stuff
-    city = TextField(null=True, blank=True)
-    county = TextField(null=True, blank=True) # should be 100
-    country = TextField(null=True, blank=True)
+    city = TextField(null=True, blank=True, db_index=DB_INDEX)
+    county = TextField(null=True, blank=True, db_index=DB_INDEX) # should be 100
+    country = TextField(null=True, blank=True, db_index=DB_INDEX)
     country_code = TextField(null=True, blank=True, db_index=DB_INDEX)
-    state = TextField(null=True, blank=True)
-    street = TextField(null=True, blank=True)
+    state = TextField(null=True, blank=True, db_index=DB_INDEX)
+    street = TextField(null=True, blank=True, db_index=DB_INDEX)
 
     #misc
     note = TextField(null=True, blank=True)
-    population = BigIntegerField(null=True, blank=True)
+    population = BigIntegerField(null=True, blank=True, db_index=DB_INDEX)
     # number of times name appeared and meant this place minus number of times didn't mean this place
-    popularity = BigIntegerField(null=True, blank=True)
+    popularity = BigIntegerField(null=True, blank=True, db_index=DB_INDEX)
     timezone = TextField(null=True, blank=True, db_index=DB_INDEX)
-    topic = ForeignKey("Topic", null=True, on_delete=SET_NULL) # represents the most common topic associated with this place
+    topic = ForeignKey("Topic", null=True, on_delete=SET_NULL, db_index=DB_INDEX) # represents the most common topic associated with this place
 
     class Meta:
         ordering = ['name']

@@ -1,8 +1,11 @@
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import getpass, imp, os
 from django.utils.crypto import get_random_string
+from os.path import expanduser
 from subprocess import check_output
 
+from .additional_settings.drf import *
+from .additional_settings.swagger import *
 from .dynamic_settings import *
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -38,7 +41,7 @@ TEMPLATES = [{
 },]
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["0.0.0.0", "52.23.197.49"]
 
 
 # Application definition
@@ -52,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'django_extensions',
+    'django_filters',
     'mod_wsgi.server',
     'rest_framework',
     'rest_framework_gis',
@@ -65,19 +69,15 @@ INSTALLED_APPS = [
 if DEBUG:
     pass
 
-MIDDLEWARE_CLASSES = [
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-
-# disable csrf because prevents api calls to all views
-#    'django.middleware.csrf.CsrfViewMiddleware',
+    #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    #'silk.middleware.SilkyMiddleware'
-    #'reversion.middleware.RevisionMiddleware'
 ]
 
 if DEBUG:
@@ -151,14 +151,6 @@ REGISTRATION_OPEN=True
 # For Python Social Auth
 LOGIN_REDIRECT_URL = '/'
 
-
-REST_FRAMEWORK = {
-    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
-    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',),
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 10
-}
-
 SENDFILE_BACKEND = 'sendfile.backends.mod_wsgi'
 SENDFILE_ROOT = 'home/usrfd/maps'
 SENDFILE_URL = '/maps'
@@ -176,3 +168,5 @@ CONTROLCENTER_DASHBOARDS = (
 )
 
 FILEPATH_OF_MARGE_TRAINING_DATA = "/tmp/marge_training_data.tsv"
+
+USER_HOME_DIRECTORY = expanduser("~/")

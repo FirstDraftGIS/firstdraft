@@ -6,7 +6,7 @@ from appfd.scripts.create import create_csv, create_geojson, create_images, crea
 from appfd.models import Feature, FeaturePlace, MapStyle, MetaData, MetaDataEntry, Order, Place, Style
 from collections import Counter
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -14,6 +14,10 @@ from multiprocessing import Process
 from os import mkdir
 from os.path import isdir, isfile
 import json
+
+def redirect_to_api(request):
+    return redirect("/api/")
+
 
 @require_POST
 def change_basemap(request):

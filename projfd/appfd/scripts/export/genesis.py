@@ -234,7 +234,6 @@ def run():
                     print("line_count:", line_count)
                     feature_count, featureplace_count = process_group(group, feature_count, featureplace_count)
                     group = []
-                    break
 
         process_group(group, feature_count, featureplace_count)
         

@@ -1,8 +1,9 @@
 from appfd.models import Basemap, Feature, Order, Place, Test
+from appfd.views import request_map_from_sources
 from appfd.scripts.ai import update_popularity_for_order
 from apifd.mixins import CsrfExemptSessionAuthentication
-from apifd.serializers import BasemapSerializer, FeatureSerializer, OrderSerializer, PlaceSerializer, TestSerializer
-from braces.views import CsrfExemptMixin
+from apifd.serializers import BasemapSerializer, FeatureSerializer, QueryableOrderSerializer, PlaceSerializer, VerbosePlaceSerializer, TestSerializer
+from braces.views import CsrfExemptMixin, LoginRequiredMixin
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -12,9 +13,11 @@ from multiprocessing import Process
 from rest_framework.response import Response
 from rest_framework.decorators import list_route
 from rest_framework.mixins import UpdateModelMixin
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet
 
+from .more_viewsets.ai import *
 
 
 # ViewSets define the view behavior.
@@ -59,7 +62,7 @@ class OrderViewSet(ModelViewSet):
 
     http_method_names = ["get"]
     filter_fields = ["token"]
-    serializer_class = OrderSerializer
+    serializer_class = QueryableOrderSerializer
 
     def get_queryset(self):
         token = self.request.query_params.get("token", None)
@@ -74,7 +77,7 @@ class OrderViewSet(ModelViewSet):
     def list(self, request):
         queryset = self.queryset.get(token=request.query_params['token'])
 
-        # duplicating what regular list method gives the serializer
+        # dupleicating what regular list method gives the serializer
         # need to do this in order for fields params to work
         serializer = OrderSerializer(queryset, context={"view": self, "request": request, "format": None})
         return Response(serializer.data)
@@ -87,18 +90,21 @@ class OrderViewSet(ModelViewSet):
         order = get_object_or_404(queryset, token=pk)
         serializer = OrderSerializer(order, context={"view": self, "request": request, "format": None})
         return Response(serializer.data)
-        
+
 
 # ViewSets define the view behavior.
 class PlaceViewSet(ModelViewSet):
     http_method_names = ["get"]
-    queryset = Place.objects.all()
-    serializer_class = PlaceSerializer
-    filter_fields = ('id','name')
+    
+    # don't try to sort tens of millions of records
+    queryset = Place.objects.order_by()
+    
+    serializer_class = VerbosePlaceSerializer
+    filter_fields = ('id', 'country', 'name', 'name_normalized')
 
-    @list_route(methods=['get'])
-    def typeahead(self, request):
-        return Response(Place.objects.filter(name__startswith=request.query_params['name']).distinct("name").values_list("name", flat=True)[:5])
+    @list_route(methods=['get'], url_name='typeahead', url_path='typeahead/(?P<query>.+)')
+    def typeahead(self, request, query):
+        return Response(Place.objects.filter(name__startswith=query).distinct("name").values_list("name", flat=True)[:5])
 
 class TestViewSet(ModelViewSet):
     http_method_names = ["get"]

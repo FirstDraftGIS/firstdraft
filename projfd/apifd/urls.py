@@ -7,10 +7,11 @@ from django.conf import settings
 import appfd, inspect
 from . import views
 from rest_framework import routers, serializers, viewsets
-from apifd.viewsets import BasemapViewSet, FeatureViewSet, OrderViewSet, PlaceViewSet, TestViewSet
+from apifd.viewsets import AIViewSet, BasemapViewSet, FeatureViewSet, OrderViewSet, PlaceViewSet, TestViewSet
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
+router.register(r'ai', AIViewSet, base_name="ai")
 router.register(r'basemaps', BasemapViewSet)
 router.register(r'features', FeatureViewSet, "feature")
 router.register(r'orders', OrderViewSet, "order")
