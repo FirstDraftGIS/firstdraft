@@ -1,5 +1,3 @@
-#from appfd.models import Feature, Place
-from appfd.geoentity import GeoEntity
 from appfd.models import *
 from appfd.scripts.ai.lsi.get_topic import run as get_topic
 from collections import Counter, defaultdict
@@ -9,7 +7,7 @@ from datetime import datetime
 from django.db import connection
 from django.db.models import Q
 import editdistance
-import marge
+from marge import predict as marge_predict 
 from multiprocessing import *
 from numpy import amin, argmin, mean, median, where
 from pandas import DataFrame
@@ -23,6 +21,15 @@ from super_python import *
 from sys import exit
 from timeit import default_timer
 from time import sleep
+from unidecode import unidecode
+
+def normalize(name):
+    lowered = name.lower()
+    decoded = unidecode(lowered)
+    if len(decoded) > 3:
+        return decoded
+    else:
+        return lowered
 
 # takes in a list of locations and resovles them to features in the database
 def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1codes=[], debug=True, end_user_timezone=None, case_insensitive=None):
@@ -39,11 +46,14 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
   
     order = Order.objects.get(id=order_id)
 
+    # make more resilient to unidecode
+
     name_country = {}
     name_country_code = {}
     name_location = {}
     name_topic = {}
     names = []
+    normalized_names = set()
     for location in locations:
         #cleaning name a little just to play it safe; sometimes have blank depending on extract method
         name = location['name'] = location['name'].strip()
@@ -52,17 +62,19 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
         #skipping over places with commas and parentheses in them.. because won't find in db anyway... probably need more longterm solution like escape quoting in psql
         if name and not any(char in name for char in [',', ')', '(', '?', "'", '"', "}", "{"]): 
             names.append(name)
-            name_location[name.lower()] = location
+            normalized = normalize(name)
+            normalized_names.add(normalized)
+            name_location[normalized] = location
             if location.get('country', None):
-                name_country[name.lower()] = location['country']
+                name_country[normalized] = location['country']
             if location.get('country_code', None):
-                name_country_code[name.lower()] = location['country_code']
+                name_country_code[normalized] = location['country_code']
             if "context" in location:
                 topic_id = get_topic(location['context'])
                 location['topic_id'] = topic_id
-                name_topic[name.lower()] = topic_id
+                name_topic[normalized] = topic_id
             else:
-                name_topic[name.lower()] = None
+                name_topic[normalized] = None
 
 
     number_of_locations = len(locations)
@@ -73,145 +85,88 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
     # randomize order in order to minimize statistic bias
     shuffle(names)
 
-    if case_insensitive is True:
-        print("[resolver] add in other cased versions of names")
-        names.extend([name.lower() for name in names])
-        names.extend([name.title() for name in names])
-        names.extend([name.upper() for name in names])
-        print("[resolver] names after updating:", [names])
-
-    names = set(names)
+    names = list(set(names))
     try: print("names:", names)
     except UnicodeEncodeError: print("couldn't print statement because non-ascii")
 
-    cursor = connection.cursor()
-
-    seconds_left = max_seconds - (datetime.now().replace(tzinfo=UTC) - order.start).total_seconds() 
-    print("seconds_left:", seconds_left)
-    if seconds_left > 60:
-        if countries:
-            statement = "SELECT * FROM fdgis_resolve_with_countries('{" + ", ".join(names) + "}'::TEXT[], '{" + ", ".join(countries) + "}'::TEXT[], true);"
-        else:
-            statement = "SELECT * FROM fdgis_resolve('{" + ", ".join(names) + "}'::TEXT[], true);"
-    else:
-        if countries:
-            statement = "SELECT * FROM fdgis_resolve_with_countries('{" + ", ".join(names) + "}'::TEXT[], '{" + ", ".join(countries) + "}'::TEXT[], false);"
-        else:
-            statement = "SELECT * FROM fdgis_resolve('{" + ", ".join(names) + "}'::TEXT[], false);"
-
-    try:
-        print("statement:\n", statement)
-    except UnicodeEncodeError:
-        print("couldn't print statement because non-ascii")
-
-    cursor.execute(statement)
-    print("executed statement")
-
-    geoentities = []
-    for row in cursor.fetchall():
-        try:
-            geoentities.append(GeoEntity(row))
-        except Exception as e:
-            print("exception creating geoentity... skipping")
-    
-    print("created " + str(len(geoentities)) + " geoentities")
+    places = Place.objects.filter(name_normalized__in=normalized_names)
 
     if end_user_timezone:
-        for g in geoentities:
-            g.matches_end_user_timezone = str(g.timezone == end_user_timezone)
+        for place in places:
+            place.matches_end_user_timezone = str(place.timezone == end_user_timezone)
     else:
-        for g in geoentities:
-            g.matches_end_user_timezone = g.timezone == "Unknown"
+        for place in places:
+            place.matches_end_user_timezone = place.timezone == "Unknown"
 
     if admin1codes:
         print("admin1codes:", admin1codes)
-        geoentities = [g for g in geoentities if g.admin1code in admin1codes]
+        places = [p for p in places if p.admin1_code in admin1codes]
         print("filtered by admin1codes")
 
-    print("filtering out geoentities that don't match admin1 code if there is an admin1 code match")
+    print("filtering out places that don't match admin1 code if there is an admin1 code match")
     for location in locations:
         if 'admin1code' in location:
             name = location['name']
+            normalized = normalize(name)
             admin1code = location['admin1code'] 
             if admin1code:
                 try:print("name:", name)
                 except: pass
                 print("admin1code:", admin1code)
-                # are there any in geoentities that match
+                # are there any in places that match
                 matches = []
                 not_matches = []
-                for geoentity in geoentities:
-                    if geoentity.place_name == name or geoentity.alias == name:
-                        if geoentity.admin1code == admin1code:
-                            matches.append(geoentity)
+                for place in place:
+                    if name in place.get_all_names() or normalized in place.get_all_names():
+                        if place.admin1_code == admin1code:
+                            matches.append(place)
                         else:
-                            not_matches.append(geoentity)
+                            not_matches.append(place)
                 #print "matches:", matches
                 #print "not_matches:", not_matches
                 if matches:
-                    for geoentity in not_matches:
-                        geoentities.remove(geoentity)
+                    for place in not_matches:
+                        places.remove(place)
 
-    number_of_geoentities = len(geoentities)
+    number_of_places = len(places)
 
-    if number_of_geoentities == 0:
+    if number_of_places == 0:
         return False
 
-    print("geoentities", type(geoentities), len(geoentities))
+    print("places", type(places), len(places))
 
     # calculate median distance from every other point
-    #all_cords = [geoentity.point.coords for geoentity in geoentities]
-
-    target_geoentities = defaultdict(list)
+    #all_cords = [place.point.coords for place in places]
+    
+    target_places = defaultdict(list)
     target_coords = defaultdict(list)
     all_coords = []
-    for geoentity in geoentities:
-        all_coords.append(geoentity.point.coords)
-        target_geoentities[geoentity.target.lower()].append(geoentity)
-        target_coords[geoentity.target.lower()].append(geoentity.point.coords)
+    for place in places:
+        all_coords.append(place.point.coords)
+        target_places[place.name_normalized].append(place)
+        target_coords[place.name_normalized].append(place.point.coords)
 
-    #number_of_clusters =  max(3, number_of_locations/20)
-    number_of_clusters = 3 if len(all_coords) >= 3 else len(all_coords)
-    print("number_of_clusters:", number_of_clusters)
-    #centroids = kmeans(all_coords, number_of_clusters)[0]
-    #print "centroids:", centroids
-    estimator = KMeans(n_clusters=number_of_clusters)
-    #print "all_coords:", all_coords
-    estimator.fit(all_coords)
-    print("fit estimator")
-    labels = estimator.labels_
-    cluster_count = Counter()
-    for cluster in labels:
-        cluster_count[cluster] += 1
-    cluster_frequency = {cluster: float(count) / number_of_geoentities for cluster, count in cluster_count.items() }
-    for i in range(number_of_geoentities):
-        geoentities[i].cluster_frequency = cluster_frequency[labels[i]]
-    
-
-    print("number of target_geoentities:", len(target_geoentities))
-    for target, options in list(target_geoentities.items()):
-        #print "target:", target
-        target_lowered = target.lower()
-        for i, v in enumerate(median(cdist(target_coords[target_lowered], all_coords), axis=1)):
-            target_geoentities[target_lowered][i].median_distance_from_all_other_points = int(v)
+    print("number of target_places:", len(target_places))
+    for target, options in list(target_places.items()):
+        for i, v in enumerate(median(cdist(target_coords[target], all_coords), axis=1)):
+            target_places[target][i].median_distance_from_all_other_points = int(v)
        
         #print "name_topic names are", name_topic.keys() 
-        topic_id = name_topic[target_lowered]
+        topic_id = name_topic[target]
         #print "topic:", topic_id
         for option in options:
             #print "\toption.topic_id:", option.topic_id
             option.matches_topic = option.topic_id == topic_id
 
-    print("add probability to each geoentity")
     mode = "local" if order.end_user_timezone else "global"
     
-    # need to choose one for each target based on highest probability
-    for target, options in list(target_geoentities.items()):
+    print("need to choose one for each target based on highest probability")
+    for target, options in list(target_places.items()):
 
         # convert geoenties to Pandas dataframe
         options_as_dicts = []
         for option in options:
-            population = option.population
+            population = option.population or 0
             option_as_dict = {
                 "importance": option.importance,
                 "has_population_over_1_million": 1 if population > 1e5 else 0,
@@ -220,7 +175,7 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
             }
             options_as_dicts.append(option_as_dict)
         df = DataFrame(options_as_dicts)
-        for index, probability in enumerate(marge.predict.get_probabilities(df)):
+        for index, probability in enumerate(marge_predict.get_probabilities(df)):
             print("MARGE proba:", probability)
             options[index].probability = probability
         
@@ -248,14 +203,13 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
  
     #Feature, FeaturePlace
     featureplaces = [] 
-    for target, options in list(target_geoentities.items()):
-        target_lowered = target.lower()
-        l = name_location[target_lowered]
-        topic_id = name_topic[target_lowered] if target_lowered in name_topic else None
+    for target, options in list(target_places.items()):
+        l = name_location[target]
+        topic_id = name_topic.get(target, None)
         count = l['count'] if 'count' in l else 1
         correct_option = next(option for option in options if option.correct)
         geometry_used = "Shape" if correct_option.has_mpoly else "Point"
-        feature = Feature.objects.create(count=count, name=target, geometry_used=geometry_used, order_id=order_id, topic_id=topic_id, verified=False)
+        feature = Feature.objects.create(count=count, name=l["name"], geometry_used=geometry_used, order_id=order_id, topic_id=topic_id, verified=False)
         need_to_save = False
         if "context" in l:
             feature.text = l['context']

@@ -93,5 +93,20 @@ class Place(Base):
     timezone = TextField(null=True, blank=True, db_index=DB_INDEX)
     topic = ForeignKey("Topic", null=True, on_delete=SET_NULL, db_index=DB_INDEX) # represents the most common topic associated with this place
 
+    def get_all_names(self):
+        if not hasattr(self, "all_names"):
+            names = set()
+            names.add(self.name)
+            names.add(self.name_ascii)
+            names.add(self.name_display)
+            names.add(self.name_en)
+            names.add(self.name_normalized)
+            if self.other_names:
+                for other_name in self.other_names.split(","):
+                    names.add(other_name)
+            names.discard(None)
+            self.all_names = names
+        return self.all_names
+
     class Meta:
         ordering = ['name']
