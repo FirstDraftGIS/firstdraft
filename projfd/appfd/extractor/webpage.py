@@ -8,22 +8,29 @@ from requests import get
 def extract_locations_from_webpage(url, html=None, max_seconds=5, debug_level=0):
   try:
 
+    print("starting extract_locations_from_webpage with debug_level", debug_level)
+
+    if debug_level > 0: print("\turl:", url)
+
     filename = url.replace("/","_").replace("\\","_").replace("'","_").replace('"',"_").replace(".","_").replace(":","_").replace("__","_")
 
     if not html:
         headers = {"User-Agent": getRandomUserAgentString()}
         html = get(url, headers=headers).text
+        if debug_level > 0:
+            print('\tgot html')
 
     article = Article(url)
     article.download()
     article.parse()
-    if article.text > 500:
+    if debug_level > 0: print("\tparsed article")
+    if len(article.text) > 500:
         text = article.text
         print("got text using newspaper")
     else:
         headers = {"User-Agent": getRandomUserAgentString()}
         text = bnlp_clean(html)
-
+    if debug_level > 0: print("\tgot text")
 
     if debug_level > 0: print("[extract_locations_from_webpage] text:", type(text))
     locations = extract_locations_with_context_from_html_tables(html)
