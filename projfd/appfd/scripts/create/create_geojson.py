@@ -66,3 +66,5 @@ def run(key):
     url = PUBLIC_BASE_URL + "/api/orders/" + key + "/maps/geojson"
     quoted = quote(url)
     print("http://geojson.io/#data=data:text/x-url," + quoted)
+
+    print(PUBLIC_BASE_URL + "/api/orders/" + key + "/maps/geojson")    

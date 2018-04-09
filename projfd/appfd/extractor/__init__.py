@@ -9,7 +9,7 @@ def find_ngrams(input_list, n):
 
 # we're just casting a wide net and extracting 
 # all the capitalized words and other words that follow rules
-def extract_locations_from_text(text, case_insensitive=None, debug=True):
+def extract_locations_from_text(text, case_insensitive=None, debug=False):
 
     try:
 
@@ -57,7 +57,7 @@ def extract_locations_from_text(text, case_insensitive=None, debug=True):
         try: print("names are yeah:", names)
         except: pass
 
-        results = location_extractor.extract_locations_with_context(text, names, debug=True, return_abbreviations=True, case_insensitive=case_insensitive)
+        results = location_extractor.extract_locations_with_context(text, names, debug=debug, return_abbreviations=True, case_insensitive=case_insensitive)
 
         try: print("results:", results)
         except: pass
