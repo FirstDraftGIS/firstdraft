@@ -5,7 +5,7 @@
 | apt-file             | useful for looking up which packages have which files |
 | apt-utils            | used by apt-get update |
 | autoconf             | used by postgis autogen.sh |
-| build-essential      | c++ compilier we need for sfcgal and pg_bulkload |
+| build-essential      | c++ compilier we need for sfcgal |
 | clang                | used by Mapnik |
 | clang-3.8            | used by Mapnik |
 | cmake                |                     |
@@ -27,7 +27,6 @@
 | libboost-all-dev     | |
 | libc6                | |
 | libcgal-dev          | |
-| libedit-dev          | used by pg_bulkload |
 | libgdal1-dev         | |
 | libgeos-dev          | |
 | libgmp3-dev          | |
@@ -37,11 +36,8 @@
 | libmpfr4             | |
 | libmpfr4-dbg         | |
 | libopenblas-dev      | |
-| libpam-dev           | used by pg_bulkload |
 | libproj-dev          | |
-| libreadline-dev      | used by pg_bulkload |
 | libpq-dev            | needed to install psycopg2 database adapater |
-| libselinux1-dev      | used by pg_bulkload |
 | libxslt1-dev         | |
 | locales              | needed to set encoding to utf-8 for pip installing |
 | make                 | used by Mapnik |
@@ -52,7 +48,7 @@
 | postgresql-contrib   | |
 | postgresql-server-dev-all | |
 | ^postgresql-[0-9].[0-9]-postgis-[0-9].[0-9]$ | PostGIS |
-| python3.6            | |
+| python3            | |
 | software-properties-common | adds add-apt-repository command used by Mapnik installation |
 | vim                  | text editing |
 | zip                  | |

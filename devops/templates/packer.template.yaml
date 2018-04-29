@@ -1,0 +1,29 @@
+variables:
+  aws_secret_key: ""
+  aws_access_key: ""
+builders:
+  - type: amazon-ebs
+    access_key: "{{user `aws_access_key`}}"
+    secret_key: "{{user `aws_secret_key`}}"
+    region: us-east-1
+    source_ami_filter:
+        filters:
+          virtualization-type: hvm
+          name: "{{OVERWRITE ME PLEASE}}"
+          root-device-type: ebs
+        owners:
+          - "{{user `aws_owner_id`}}"
+        most_recent: true
+    instance_type: m4.4xlarge
+    ssh_username: ubuntu
+    ami_name: "{{OVERWRITE ME PLEASE}}"
+    launch_block_device_mappings:
+        - device_name: /dev/sda1
+          volume_size: 1000
+          volume_type: gp2
+          delete_on_termination: true
+    force_deregister: true
+    force_delete_snapshot: true
+provisioners:
+  - type: "{{OVERWRITE ME PLEASE}}"
+    script: "{{OVERWRITE ME PLEASE}}"

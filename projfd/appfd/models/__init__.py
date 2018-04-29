@@ -5,6 +5,7 @@ from datetime import datetime
 from django.core.validators import RegexValidator
 from django.db import IntegrityError
 from django.contrib.auth.models import User
+from django.contrib.gis.db.models import CASCADE, DO_NOTHING
 from django.contrib.gis.db.models import *
 from pytz import utc
 from shutil import rmtree
@@ -49,6 +50,13 @@ class Basemap(Base):
     name = CharField(max_length=50)
     def __str__(self):
         return self.name
+
+class Cooccurrence(Model):
+    a = IntegerField() # actually a fk to place, but don't want restraints
+    b = IntegerField()
+    count = IntegerField()
+    def __str__(self):
+        return str(self.a) + " & " + str(self.b) + ": " + str(self.count)
 
 class CountryCodeRank(Base):
     country_code = CharField(max_length=10, null=True)

@@ -20,13 +20,16 @@ django-guardian
 django-sendfile
 django-timezone-field
 editdistance
+freq
 gensim
 geojson
 georefdata
+georich
 html5lib
 language-detector
 location-extractor
 lxml
+marge
 markdown
 maxminddb
 metadata-extractor

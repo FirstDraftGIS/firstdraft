@@ -1,0 +1,48 @@
+{
+    "provisioners": [
+        {
+            "type": "shell",
+            "script": "../build_steps/1-install-dependencies.sh"
+        },
+        {
+            "type": "shell",
+            "script": "../build_steps/2-install-mapnik.sh"
+        }
+    ],
+    "variables": {
+        "aws_secret_key": "",
+        "aws_access_key": ""
+    },
+    "builders": [
+        {
+            "ami_name": "firstdraftgis-base",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "type": "amazon-ebs",
+            "ssh_username": "ubuntu",
+            "force_delete_snapshot": true,
+            "region": "us-east-1",
+            "instance_type": "m4.4xlarge",
+            "source_ami_filter": {
+                "owners": [
+                    "099720109477"
+                ],
+                "filters": {
+                    "virtualization-type": "hvm",
+                    "root-device-type": "ebs",
+                    "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*"
+                },
+                "most_recent": true
+            },
+            "access_key": "{{user `aws_access_key`}}",
+            "force_deregister": true,
+            "launch_block_device_mappings": [
+                {
+                    "delete_on_termination": true,
+                    "volume_type": "gp2",
+                    "device_name": "/dev/sda1",
+                    "volume_size": 1000
+                }
+            ]
+        }
+    ]
+}

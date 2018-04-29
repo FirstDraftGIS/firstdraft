@@ -10,41 +10,23 @@ from pandas import read_csv
 from projfd.settings import FILEPATH_OF_MARGE_TRAINING_DATA
 import sys
 
-from appfd.utils import get_sorted_field_names
+from appfd.utils import get_enwiki_title_to_place_id, get_sorted_field_names, load_pickle, save_pickle
 from appfd.models import Place
 
 start_file = datetime.now()
 
 csv.field_size_limit(sys.maxsize)
 
-def load(filename):
-    filepath = "/tmp/" + filename + ".pickle"
-    if isfile(filepath):
-        with open(filepath, "rb") as f:
-            return pickle.load(f)
-    else:
-        print("couldn't load " + filepath + " because it doesn't exist")
 
-def save(obj, filename):
-    filepath = "/tmp/" + filename + ".pickle"
-    with open(filepath, "wb") as f:
-        pickle.dump(obj, f)
-    print("saved " + filename + " to " + filepath)
+enwiki_title_to_place_id = get_enwiki_title_to_place_id()
 
-enwiki_title_to_place_id = load("enwiki_title_to_place_id")
-if enwiki_title_to_place_id is None:
-    enwiki_title_to_place_id = dict(Place.objects.exclude(enwiki_title=None).values_list("enwiki_title", "id"))
-    save(enwiki_title_to_place_id, "enwiki_title_to_place_id")
-print("got enwiki_title_to_place_id", (datetime.now() - start_file).total_seconds(), "seconds in")
-
-
-enwiki_title_to_normalized_name = load("enwiki_title_to_normalized_name")
+enwiki_title_to_normalized_name = load_pickle("enwiki_title_to_normalized_name")
 if enwiki_title_to_normalized_name is None:
     enwiki_title_to_normalized_name = dict(Place.objects.exclude(enwiki_title=None).values_list("enwiki_title", "name_normalized"))
-    save(enwiki_title_to_normalized_name, "enwiki_title_to_normalized_name")
+    save_pickle(enwiki_title_to_normalized_name, "enwiki_title_to_normalized_name")
 print("got enwiki_title_to_normalized_name", (datetime.now() - start_file).total_seconds(), "seconds in")
  
-name2ids = load("name2ids")
+name2ids = load_pickle("name2ids")
 if name2ids is None:
     with connection.cursor() as cursor:
         cursor.execute("""
@@ -54,11 +36,11 @@ if name2ids is None:
             GROUP BY name_normalized;
         """)
         name2ids = dict(cursor.fetchall())
-    save(name2ids, "name2ids")
+    save_pickle(name2ids, "name2ids")
 print("inserting into took", (datetime.now() - start_file).total_seconds(), "seconds")
     
 
-place_id_to_popularity = load("place_id_to_popularity")
+place_id_to_popularity = load_pickle("place_id_to_popularity")
 if place_id_to_popularity is None:
     # takes about 5 minutes
     # popularity is # of times meant place versus number of times didn't
@@ -76,7 +58,7 @@ if place_id_to_popularity is None:
                     for other_place_id in name2ids[normalized_name]:
                         if other_place_id != place_id:
                             place_id_to_popularity[place_id] -= 1
-    save(place_id_to_popularity, "place_id_to_popularity")
+    save_pickle(place_id_to_popularity, "place_id_to_popularity")
     
 print("got popularities", (datetime.now() - start_file).total_seconds(), "seconds in")
 print("most common:", place_id_to_popularity.most_common(10))
