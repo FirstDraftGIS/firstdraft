@@ -10,39 +10,39 @@
         }
     ],
     "variables": {
-        "aws_secret_key": "",
-        "aws_access_key": ""
+        "aws_access_key": "",
+        "aws_secret_key": ""
     },
     "builders": [
         {
-            "ami_name": "firstdraftgis-base",
-            "secret_key": "{{user `aws_secret_key`}}",
-            "type": "amazon-ebs",
-            "ssh_username": "ubuntu",
-            "force_delete_snapshot": true,
             "region": "us-east-1",
-            "instance_type": "m4.4xlarge",
             "source_ami_filter": {
                 "owners": [
                     "099720109477"
                 ],
+                "most_recent": true,
                 "filters": {
+                    "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
                     "virtualization-type": "hvm",
-                    "root-device-type": "ebs",
-                    "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*"
-                },
-                "most_recent": true
+                    "root-device-type": "ebs"
+                }
             },
-            "access_key": "{{user `aws_access_key`}}",
+            "force_delete_snapshot": true,
+            "ami_name": "firstdraftgis-base",
+            "ssh_username": "ubuntu",
             "force_deregister": true,
+            "access_key": "{{user `aws_access_key`}}",
             "launch_block_device_mappings": [
                 {
-                    "delete_on_termination": true,
                     "volume_type": "gp2",
                     "device_name": "/dev/sda1",
-                    "volume_size": 1000
+                    "volume_size": 1000,
+                    "delete_on_termination": true
                 }
-            ]
+            ],
+            "instance_type": "m4.4xlarge",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "type": "amazon-ebs"
         }
     ]
 }

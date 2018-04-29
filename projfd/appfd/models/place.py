@@ -92,7 +92,7 @@ class Place(Base):
     popularity = BigIntegerField(null=True, blank=True, db_index=DB_INDEX)
     timezone = TextField(null=True, blank=True, db_index=DB_INDEX)
     topic = ForeignKey("Topic", null=True, on_delete=SET_NULL, db_index=DB_INDEX) # represents the most common topic associated with this place
-    wikidata_id = TextField(null=True, blank=true, db_index=DB_INDEX)
+    wikidata_id = TextField(null=True, blank=True, db_index=DB_INDEX)
 
     def get_all_names(self):
         if not hasattr(self, "all_names"):
