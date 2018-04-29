@@ -9,40 +9,40 @@
             "script": "../build_steps/2-install-mapnik.sh"
         }
     ],
-    "variables": {
-        "aws_access_key": "",
-        "aws_secret_key": ""
-    },
     "builders": [
         {
-            "region": "us-east-1",
+            "ssh_username": "ubuntu",
+            "ami_name": "firstdraftgis-base",
+            "instance_type": "m4.4xlarge",
             "source_ami_filter": {
+                "filters": {
+                    "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
+                    "root-device-type": "ebs",
+                    "virtualization-type": "hvm"
+                },
                 "owners": [
                     "099720109477"
                 ],
-                "most_recent": true,
-                "filters": {
-                    "name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*",
-                    "virtualization-type": "hvm",
-                    "root-device-type": "ebs"
-                }
+                "most_recent": true
             },
-            "force_delete_snapshot": true,
-            "ami_name": "firstdraftgis-base",
-            "ssh_username": "ubuntu",
+            "type": "amazon-ebs",
             "force_deregister": true,
             "access_key": "{{user `aws_access_key`}}",
+            "region": "us-east-1",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "force_delete_snapshot": true,
             "launch_block_device_mappings": [
                 {
+                    "delete_on_termination": true,
                     "volume_type": "gp2",
                     "device_name": "/dev/sda1",
-                    "volume_size": 1000,
-                    "delete_on_termination": true
+                    "volume_size": 1000
                 }
-            ],
-            "instance_type": "m4.4xlarge",
-            "secret_key": "{{user `aws_secret_key`}}",
-            "type": "amazon-ebs"
+            ]
         }
-    ]
+    ],
+    "variables": {
+        "aws_access_key": "",
+        "aws_secret_key": ""
+    }
 }

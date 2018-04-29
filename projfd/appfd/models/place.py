@@ -50,7 +50,7 @@ class Place(Base):
     name_display = TextField(null=True, blank=True, db_index=DB_INDEX)
     name_en = TextField(null=True, blank=True, db_index=DB_INDEX)
     name_normalized = TextField(null=True, blank=True, db_index=DB_INDEX)
-    other_names = TextField(null=True, blank=True, db_index=DB_INDEX)
+    other_names = TextField(null=True, blank=True, db_index=False)
 
     # place types
     geonames_feature_class = TextField(null=True, blank=True, db_index=DB_INDEX)
