@@ -6,7 +6,7 @@
             "instance_type": "m4.4xlarge",
             "secret_key": "{{user `aws_secret_key`}}",
             "force_deregister": true,
-            "ami_name": "firstdraftgis-loaded",
+            "ami_name": "firstdraftgis-exported",
             "region": "us-east-1",
             "type": "amazon-ebs",
             "ssh_username": "ubuntu",
@@ -24,7 +24,7 @@
                     "{{user `aws_owner_id`}}"
                 ],
                 "filters": {
-                    "name": "firstdraftgis-base",
+                    "name": "firstdraftgis-loaded",
                     "root-device-type": "ebs",
                     "virtualization-type": "hvm"
                 }
@@ -34,7 +34,7 @@
     "provisioners": [
         {
             "type": "shell",
-            "script": "../build_steps/3-load-places.sh"
+            "script": "../build_steps/4-conform-training-data.sh"
         }
     ],
     "variables": {

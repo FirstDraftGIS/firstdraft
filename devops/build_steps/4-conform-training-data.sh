@@ -7,7 +7,7 @@ cd /tmp
     time wget --no-verbose https://s3.amazonaws.com/firstdraftgis/genesis.tsv.zip
     unzip genesis.tsv.zip
 
-cd /firstdraft/projfd
+cd ~/firstdraft/projfd
     time python3 manage.py makemigrations
     time python3 manage.py migrate
     echo "conforming training data to database schema"
@@ -16,3 +16,6 @@ cd /firstdraft/projfd
     time python3 manage.py runscript export.genesis
     
 rm -fr /tmp/genesis.tsv.*
+
+mkdir ~/Data
+mv /tmp/firstdraftgis_export.tsv ~/Data/.

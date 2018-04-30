@@ -13,6 +13,9 @@ import sys
 from appfd.utils import get_enwiki_title_to_place_id, get_sorted_field_names, load_pickle, save_pickle
 from appfd.models import Place
 
+
+threshold = 10000
+
 start_file = datetime.now()
 
 csv.field_size_limit(sys.maxsize)
@@ -216,8 +219,11 @@ def run():
                     print("line_count:", line_count)
                     feature_count, featureplace_count = process_group(group, feature_count, featureplace_count)
                     group = []
+                    if line_count % threshold == 0:
+                        break
 
-        process_group(group, feature_count, featureplace_count)
+
+        #process_group(group, feature_count, featureplace_count)
         
         print("conform.training_data took", (datetime.now() - start).total_seconds(), "seconds")
         print("finishing conform.training_data")

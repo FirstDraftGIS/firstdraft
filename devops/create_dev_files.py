@@ -57,6 +57,14 @@ configs = [
             {"type": "shell", "script": "../build_steps/3-load-places.sh"},
         ],
         "builders.0.source_ami_filter.filters.name": "firstdraftgis-base"        
+    },
+    {
+        "builders.0.source_ami_filter.owners": ["{{user `aws_owner_id`}}"],
+        "builders.0.ami_name": "firstdraftgis-exported",
+        "provisioners": [
+            {"type": "shell", "script": "../build_steps/4-conform-training-data.sh"},
+        ],
+        "builders.0.source_ami_filter.filters.name": "firstdraftgis-loaded"         
     }
 ]
 
