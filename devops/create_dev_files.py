@@ -65,7 +65,23 @@ configs = [
             {"type": "shell", "script": "../build_steps/4-conform-training-data.sh"},
         ],
         "builders.0.source_ami_filter.filters.name": "firstdraftgis-loaded"         
-    }
+    },
+    {
+        "builders.0.source_ami_filter.owners": ["{{user `aws_owner_id`}}"],
+        "builders.0.ami_name": "firstdraftgis-trained",
+        "provisioners": [
+            {"type": "shell", "script": "../build_steps/5-train.sh"},
+        ],
+        "builders.0.source_ami_filter.filters.name": "firstdraftgis-exported"         
+    },
+    {
+        "builders.0.source_ami_filter.owners": ["{{user `aws_owner_id`}}"],
+        "builders.0.ami_name": "firstdraftgis-networked",
+        "provisioners": [
+            {"type": "shell", "script": "../build_steps/6-networked.sh"},
+        ],
+        "builders.0.source_ami_filter.filters.name": "firstdraftgis-trained"         
+    }      
 ]
 
 for index, config in enumerate(configs):

@@ -8,7 +8,7 @@
                 "filters": {
                     "root-device-type": "ebs",
                     "virtualization-type": "hvm",
-                    "name": "firstdraftgis-base"
+                    "name": "firstdraftgis-exported"
                 },
                 "owners": [
                     "{{user `aws_owner_id`}}"
@@ -19,7 +19,7 @@
             "region": "us-east-1",
             "secret_key": "{{user `aws_secret_key`}}",
             "ssh_username": "ubuntu",
-            "ami_name": "firstdraftgis-loaded",
+            "ami_name": "firstdraftgis-trained",
             "force_delete_snapshot": true,
             "launch_block_device_mappings": [
                 {
@@ -38,7 +38,7 @@
     "provisioners": [
         {
             "type": "shell",
-            "script": "../build_steps/3-load-places.sh"
+            "script": "../build_steps/5-train.sh"
         }
     ]
 }

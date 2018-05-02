@@ -2,6 +2,10 @@ set -e
 
 echo "starting to load training data"
 
+# updating
+cd ~/firstdraft/projfd && git pull
+
+
 cd /tmp
     echo "downloading genesis"
     time wget --no-verbose https://s3.amazonaws.com/firstdraftgis/genesis.tsv.zip
