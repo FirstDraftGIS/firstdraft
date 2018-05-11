@@ -19,7 +19,7 @@
 | gcc-6                | used by Mapnik |
 | gfortran             |         |
 | git                  | version control |
-| libapache2-mod-wsgi  | installed for wsgi |
+| libapache2-mod-wsgi-py3 | installed for wsgi |
 | libatlas-base-dev    | |
 | libblas3             | |
 | libblas-dev          | |

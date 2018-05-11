@@ -6,7 +6,7 @@
             "source_ami_filter": {
                 "filters": {
                     "root-device-type": "ebs",
-                    "name": "firstdraftgis-base",
+                    "name": "firstdraftgis-exported",
                     "virtualization-type": "hvm"
                 },
                 "most_recent": true,
@@ -16,7 +16,7 @@
             },
             "access_key": "{{user `aws_access_key`}}",
             "force_deregister": true,
-            "ami_name": "firstdraftgis-user",
+            "ami_name": "firstdraftgis-trained",
             "ssh_username": "ubuntu",
             "instance_type": "m4.4xlarge",
             "region": "us-east-1",
@@ -38,7 +38,7 @@
     "provisioners": [
         {
             "type": "shell",
-            "script": "../build_steps/install-user.sh"
+            "script": "../build_steps/train.sh"
         }
     ]
 }

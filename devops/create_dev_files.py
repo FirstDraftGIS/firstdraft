@@ -15,7 +15,7 @@ system_requirements = get_reqs("../system_requirements.md")
 print("system_requirements:", system_requirements)
 
 # create build steps
-for partial_file_name in ["1-install-dependencies", "3-load-places"]:
+for partial_file_name in ["install-system-reqs", "install-user", "load-places", "network"]:
     with open("templates/" + partial_file_name + ".template.sh") as f1:
         with open("build_steps/" + partial_file_name + ".sh", "w") as f2:
             template = f1.read()
@@ -45,24 +45,40 @@ configs = [
         "builders.0.source_ami_filter.owners": ["099720109477"],
         "builders.0.ami_name": "firstdraftgis-base",
         "provisioners": [
-            {"type": "shell", "script": "../build_steps/1-install-dependencies.sh"},
-            {"type": "shell", "script": "../build_steps/2-install-mapnik.sh"}
+            {"type": "shell", "script": "../build_steps/install-system-reqs.sh"},
+            {"type": "shell", "script": "../build_steps/install-mapnik.sh"},
         ],
         "builders.0.source_ami_filter.filters.name": "ubuntu/images/*ubuntu-xenial-16.04-amd64-server-*"
     },
     {
         "builders.0.source_ami_filter.owners": ["{{user `aws_owner_id`}}"],
-        "builders.0.ami_name": "firstdraftgis-loaded",
+        "builders.0.ami_name": "firstdraftgis-user",
         "provisioners": [
-            {"type": "shell", "script": "../build_steps/3-load-places.sh"},
+            {"type": "shell", "script": "../build_steps/install-user.sh"},
         ],
         "builders.0.source_ami_filter.filters.name": "firstdraftgis-base"        
     },
     {
         "builders.0.source_ami_filter.owners": ["{{user `aws_owner_id`}}"],
+        "builders.0.ami_name": "firstdraftgis-db",
+        "provisioners": [
+            {"type": "shell", "script": "../build_steps/create-db.sh"},
+        ],
+        "builders.0.source_ami_filter.filters.name": "firstdraftgis-user"
+    },
+    {
+        "builders.0.source_ami_filter.owners": ["{{user `aws_owner_id`}}"],
+        "builders.0.ami_name": "firstdraftgis-loaded",
+        "provisioners": [
+            {"type": "shell", "script": "../build_steps/load-places.sh"},
+        ],
+        "builders.0.source_ami_filter.filters.name": "firstdraftgis-db"
+    },
+    {
+        "builders.0.source_ami_filter.owners": ["{{user `aws_owner_id`}}"],
         "builders.0.ami_name": "firstdraftgis-exported",
         "provisioners": [
-            {"type": "shell", "script": "../build_steps/4-conform-training-data.sh"},
+            {"type": "shell", "script": "../build_steps/conform-training-data.sh"},
         ],
         "builders.0.source_ami_filter.filters.name": "firstdraftgis-loaded"         
     },
@@ -70,7 +86,7 @@ configs = [
         "builders.0.source_ami_filter.owners": ["{{user `aws_owner_id`}}"],
         "builders.0.ami_name": "firstdraftgis-trained",
         "provisioners": [
-            {"type": "shell", "script": "../build_steps/5-train.sh"},
+            {"type": "shell", "script": "../build_steps/train.sh"},
         ],
         "builders.0.source_ami_filter.filters.name": "firstdraftgis-exported"         
     },
@@ -78,7 +94,7 @@ configs = [
         "builders.0.source_ami_filter.owners": ["{{user `aws_owner_id`}}"],
         "builders.0.ami_name": "firstdraftgis-networked",
         "provisioners": [
-            {"type": "shell", "script": "../build_steps/6-networked.sh"},
+            {"type": "shell", "script": "../build_steps/network.sh"},
         ],
         "builders.0.source_ami_filter.filters.name": "firstdraftgis-trained"         
     }      

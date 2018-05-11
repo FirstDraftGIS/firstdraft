@@ -24,13 +24,16 @@ unzip conformed.tsv.zip
 echo "Creating firstdraft-build directory"
 sudo git clone --depth=1 https://github.com/FirstDraftGIS/firstdraft ~/firstdraft
 cd ~/firstdraft/projfd
-python3 manage.py makemigrations
-python3 manage.py migrate
-echo "copying from conformed into database"
-time sudo -u postgres psql -c "COPY appfd_place FROM '/tmp/conformed.tsv' WITH (FORMAT 'csv', DELIMITER E'	', HEADER, NULL '')" dbfd
-echo 'DB_INDEX = True' > ~/firstdraft/projfd/projfd/dynamic_settings.py
-python3 manage.py makemigrations
-python3 manage.py migrate
-
+    source ~/venv/bin/activate
+        python3 manage.py makemigrations
+        python3 manage.py migrate
+    deactivate
+    echo "copying from conformed into database"
+    time sudo -u postgres psql -c "COPY appfd_place FROM '/tmp/conformed.tsv' WITH (FORMAT 'csv', DELIMITER E'	', HEADER, NULL '')" dbfd
+    echo 'DB_INDEX = True' > ~/firstdraft/projfd/projfd/dynamic_settings.py
+    source ~/venv/bin/activate
+        python3 manage.py makemigrations
+        python3 manage.py migrate
+    deactivate
 
 rm /tmp/conformed.tsv*

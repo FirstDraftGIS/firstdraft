@@ -9,13 +9,16 @@ from .additional_settings.drf import *
 from .additional_settings.swagger import *
 from .dynamic_settings import *
 
+try:
+    from .additional_settings.secrets import SECRET_KEY
+except Exception as e:
+    raise Exception("You have not created a SECRET_KEY.  Please run python3 firstdraft/python_scripts/intialize.py")
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SETTINGS_DIR = os.path.dirname(__file__)
 PROJECT_PATH = os.path.join(SETTINGS_DIR, os.pardir)
 PROJECT_PATH = os.path.abspath(PROJECT_PATH)
-
-SECRET_KEY = get_random_string()
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e;
 
@@ -21,18 +21,11 @@ echo "set LANG"
 LANGUAGE=en_US:en
 echo "set LANGUAGE"
 
-echo "installing Python packages"
-cd /
+echo "INSTALLING PIP"
 sudo curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo -H python3
-echo "installed pip"
-sudo -H pip install --upgrade pip
-echo "upgraded pip if necessary"
-sudo -H pip install --quiet {{python_reqs}}
-echo "installed first pass of python packages"
-sudo -H pip install -U scikit-learn
-echo "installed scikit-learn"
-sudo -H python3 -c "import nltk; nltk.download('stopwords')"
-echo "downloaded nltk data"
+
+echo "INSTALL virtualenv"
+sudo -H pip install virtualenv
 
 sudo git clone https://github.com/DanielJDufour/safecast /safecast
 cd /safecast

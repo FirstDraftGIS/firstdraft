@@ -85,6 +85,7 @@ projfd/static/bower_components/*
 node_modules/
 *.pickle
 conformed.tsv
+secrets.py
 
 # cloud 9 files
 *c9*

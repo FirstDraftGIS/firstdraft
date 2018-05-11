@@ -20,12 +20,16 @@ sudo make | grep -v 'clang++-3.8'
 sudo make test
 sudo make install | grep -v '^Install File:'
 
-cd /
-sudo curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | python3
-sudo pip3 install --upgrade pip
-sudo pip3 install --quiet behave-django bnlp3 bscrp beryl boto broth Cython date-extractor Django django-braces django-crispy-forms djangorestframework djangorestframework-gis djangorestframework-queryfields django-rest-swagger django-extensions django-filter django-guardian django-sendfile django-timezone-field editdistance gensim geojson georefdata html5lib language-detector location-extractor lxml markdown maxminddb metadata-extractor mod_wsgi newspaper3k nltk numpy openpyxl pandas Pillow psycopg2-binary PyPDF2 pyproj git+git://github.com/GeospatialPython/pyshp pydash python-dateutil python-docx python-magic pyvirtualdisplay PyYAML pytz requests scipy scrp selenium six social-auth-app-django stop-words super_python table-extractor tensorflow titlecase validators wheel
-sudo pip3 install -U scikit-learn
-sudo python3 -c "import nltk; nltk.download('stopwords')"
+cd /tmp
+    sudo curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | python3
+    sudo pip3 install --upgrade pip
+
+virtualenv ~/venv
+source ~/venv/bin/activate
+    pip3 install --quiet behave-django bnlp3 bscrp beryl boto broth Cython date-extractor Django django-braces django-crispy-forms djangorestframework djangorestframework-gis djangorestframework-queryfields django-rest-swagger django-extensions django-filter django-guardian django-sendfile django-timezone-field editdistance gensim geojson georefdata html5lib language-detector location-extractor lxml markdown maxminddb metadata-extractor mod_wsgi newspaper3k nltk numpy openpyxl pandas Pillow psycopg2-binary PyPDF2 pyproj git+git://github.com/GeospatialPython/pyshp pydash python-dateutil python-docx python-magic pyvirtualdisplay PyYAML pytz requests scipy scrp selenium six social-auth-app-django stop-words super_python table-extractor tensorflow titlecase validators wheel
+    pip3 install -U scikit-learn
+    python3 -c "import nltk; nltk.download('stopwords')"
+deactivate
 
 sudo git clone https://github.com/DanielJDufour/safecast /safecast
 cd /safecast
