@@ -29,4 +29,8 @@ sudo ln -s /etc/apache2/sites-available/fd.conf /etc/apache2/sites-enabled/fd.co
 
 sudo chown -R www-data:www-data /home/usrfd/maps
 
+
+## update paths in marge, so don't try to access /var/www
+sed -i 's/~\/Data/\/home\/usrfd\/Data/g' /home/usrfd/marge/marge/config.yml
+
 sudo service apache2 restart
