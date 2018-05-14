@@ -114,12 +114,12 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
     places = marge_utils.to_dicts(marge_resolver.resolve(places))
     print("MARGE resolved:", len(places))
 
-    maxes = marge_utils.max_by_group(places, "probability", "feature_id")
+    maxes = marge_utils.max_by_group(places, "score", "feature_id")
     print("maxes:", maxes)
     
     for option in places:
         fid = option["feature_id"]
-        prob = option["probability"]
+        prob = option["score"]
         option["correct"] = prob == maxes[fid]
     print("resolver SET CORRECT")
  
@@ -149,7 +149,7 @@ def resolve_locations(locations, order_id, max_seconds=10, countries=[], admin1c
         if need_to_save:
             feature.save()
         for option in options:
-            featureplaces.append(FeaturePlace(confidence=option["probability"], correct=bool(option["correct"]), feature=feature, place_id=option["id"], sort_order=-1))
+            featureplaces.append(FeaturePlace(confidence=option["score"], correct=bool(option["correct"]), feature=feature, place_id=option["id"], sort_order=-1))
 
     FeaturePlace.objects.bulk_create(featureplaces)
 
