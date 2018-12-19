@@ -1,3 +1,5 @@
+:warning: Much of this is in the process of being rewritten.  It's currently too expensive to host an always running EC2 instance running First Draft Artificial Intelligence.  I'm currently rewriting all of this to use PostgreSQL on AWS and AWS Lambda, which will be **a lot** cheaper and potentially faster.  If you'd like to help in that effort, please email me at daniel.j.dufour@gmail.com.  Thanks and have a nice day
+
 [![Requirements Status](https://requires.io/github/DanielJDufour/firstdraft/requirements.svg?branch=master)](https://requires.io/github/DanielJDufour/firstdraft/requirements/?branch=master)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg?maxAge=2592000?style=plastic)]()
 
