@@ -7,10 +7,18 @@
 Automatically generate first drafts of maps
 
 :earth_africa: **Multi-Lingual (support for Arabic, English, and Spanish)**
-:
+
+:mountain: **Database of more than thirty million places**
 
 # Installation
 The quickest way to get First Draft GIS up and running is to launch the First Draft GIS AMI on AWS found here: https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Images:visibility=public-images;search=First%20Draft%20GIS;sort=name
+
+# Dependencies
+First Draft relies on the following projects:
+
+<img src="https://github.com/Unum-Gazetteer/unum/raw/master/emoji.png" width=23.95> [Unum Gazetteer](https://github.com/Unum-Gazetteer/unum)
+
+:book: [Wikidata-Gazetteer](https://github.com/wikidata-gazetteer/wikidata-gazetteer)
 
 #### Important Names
 | name | thing |
