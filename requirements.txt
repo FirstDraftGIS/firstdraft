@@ -11,6 +11,7 @@ django-braces
 django-cors-headers
 django-crispy-forms
 djangorestframework
+djangorestframework-csv
 djangorestframework-gis
 djangorestframework-queryfields
 django-rest-swagger
