@@ -14,6 +14,7 @@ djangorestframework
 djangorestframework-csv
 djangorestframework-gis
 djangorestframework-queryfields
+djangorestframework-more
 django-rest-swagger
 django-extensions
 django-filter
